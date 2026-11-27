@@ -1,6 +1,5 @@
 import { memo, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
-import ProviderIcon from "../../components/ProviderIcon";
 import type { ModelResponseTiming } from "../../components/ModelResponse";
 import neuripsLogo from "../../assets/neurips-logo.svg";
 import openaiLogo from "../../assets/providers/openai.svg";
@@ -21,7 +20,7 @@ import ValueStrip from "./ValueStrip";
 import Vignette from "./Vignette";
 import { CHARCOAL, CHARCOAL_FAINT } from "./charcoal";
 import { valueSteps } from "./valueSteps";
-import { MARK_INTERVAL_MS, OPENING_BEATS, OFFSETS, at, caseCharsAt, ramp, visibility } from "./timeline";
+import { COLLAPSE_MS, OPENING_BEATS, OFFSETS, at, caseCharsAt, ramp, visibility } from "./timeline";
 
 /* -------------------------------------------------------------------------- */
 /*  Copy                                                                       */
@@ -332,42 +331,6 @@ export function PatientCard({
   );
 }
 
-/** Height of the row under each choice: holds the repeat-query marks, then the tag chips. */
-const ROW_H = "1.9em";
-
-function Marks({ index, t }: { index: 0 | 1; t: number }) {
-  const total = openingCase.decisions.length;
-  const start = at("model", "marks");
-  const mine = openingCase.decisions
-    .map((choice, i) => ({ choice, i }))
-    .filter((d) => d.choice === index);
-  const fadeOut = ramp(t, FRAMEWORK_AT - FADE_MS, FRAMEWORK_AT);
-  return (
-    <div
-      role="img"
-      aria-label={`${mine.length} of ${total} repeated queries chose: ${openingCase.choices[index]}`}
-      className="mt-[0.45em] flex items-center justify-center gap-[0.3em]"
-      style={{ height: ROW_H, opacity: 1 - fadeOut }}
-    >
-      {mine.map(({ i }) => {
-        const p = ramp(t, start + i * MARK_INTERVAL_MS, start + i * MARK_INTERVAL_MS + FADE_MS);
-        return (
-          <span
-            key={i}
-            className="block aspect-square min-w-0 shrink rounded-full"
-            style={{
-              flex: "0 1 0.85em",
-              backgroundColor: OPTION_ACCENT,
-              opacity: p,
-              transform: `scale(${0.5 + 0.5 * p})`,
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-}
-
 /**
  * One value's tag on one choice: the full value name, then the tag. Three
  * redundant cues carry the tag, in charcoal only:
@@ -429,31 +392,14 @@ function OptionCard({
   index,
   t,
   selected,
-  showMarks,
   showChips,
-  sharedIcon,
 }: {
   index: 0 | 1;
   t: number;
   selected: boolean;
-  showMarks: boolean;
   showChips: boolean;
-  sharedIcon: boolean;
 }) {
   const frame = selected ? OPTION_ACCENT : `color-mix(in srgb, ${NEUTRAL.ink} 28%, white)`;
-  const iconHere =
-    sharedIcon &&
-    index === openingCase.response.chosen &&
-    t >= at("model", "extract") &&
-    t < FRAMEWORK_AT + ICON_LEAVE_MS;
-  const badge = visibility(
-    t,
-    at("model", "extract"),
-    at("model", "extract") + FADE_MS,
-    FRAMEWORK_AT - FADE_MS,
-    FRAMEWORK_AT,
-  );
-  const showIcon = sharedIcon ? iconHere : selected;
   return (
     <li
       aria-current={selected ? "true" : undefined}
@@ -468,27 +414,12 @@ function OptionCard({
       <div className="relative flex w-full items-center justify-center">
         <p
           className="font-semibold leading-snug"
-          style={{ fontSize: "1.05em", paddingInline: showIcon ? "2.2em" : undefined }}
+          style={{ fontSize: "1.05em" }}
         >
           {openingCase.choices[index]}
         </p>
-        {showIcon &&
-          (sharedIcon ? (
-            <span
-              data-anchor="icon-option"
-              className="absolute right-0 top-1/2 inline-flex -translate-y-1/2"
-              style={{ width: 32, height: 32, zoom: "var(--z)", visibility: "hidden" }}
-            />
-          ) : (
-            <span
-              className="absolute right-0 top-1/2 inline-flex -translate-y-1/2"
-              style={{ opacity: badge, zoom: "var(--z)" }}
-            >
-              <ProviderIcon src={PROVIDER.logo} alt={PROVIDER.name} size={32} />
-            </span>
-          ))}
       </div>
-      {showChips ? <Chips index={index} t={t} /> : showMarks ? <Marks index={index} t={t} /> : null}
+      {showChips ? <Chips index={index} t={t} /> : null}
     </li>
   );
 }
@@ -564,7 +495,9 @@ const SceneBody = memo(function SceneBody({
     recallPatient && t >= recall
       ? ramp(t, recall + FADE_MS, recall + FADE_MS * 2)
       : visibility(t, at("hook", "patient"), at("hook", "patient") + FADE_MS, FRAMEWORK_AT - FADE_MS, FRAMEWORK_AT);
-  const showResponse = t >= thinkAt && t < FRAMEWORK_AT;
+  // The mark stays after the framework starts, only until the stage icon has left for its dock.
+  const showResponse = t >= thinkAt && t < FRAMEWORK_AT + ICON_LEAVE_MS;
+  const collapse = ramp(t, at("model", "collapse"), at("model", "collapse") + COLLAPSE_MS);
   const responseOpacity = visibility(
     t,
     beat("think") + OFFSETS.model,
@@ -579,8 +512,7 @@ const SceneBody = memo(function SceneBody({
 
   const showOptions = t >= at("dilemma", "options") && !cleared;
   const optionsOpacity = ramp(t, at("dilemma", "options"), at("dilemma", "options") + FADE_MS) * (1 - clearP);
-  const selectedIndex = t >= at("model", "extract") && t < FRAMEWORK_AT ? openingCase.response.chosen : null;
-  const showMarks = t >= at("model", "marks") && t < FRAMEWORK_AT;
+  const selectedIndex = t >= at("model", "extract") && t < at("model", "collapse") ? openingCase.response.chosen : null;
   const showChips = t >= FRAMEWORK_AT;
 
   const showStrip = t >= at("framework", "framework") && !cleared;
@@ -628,25 +560,6 @@ const SceneBody = memo(function SceneBody({
         </Block>
       )}
 
-      {showResponse && (
-        <Block probe={probe} className="w-full">
-          <div style={{ opacity: responseOpacity }}>
-            <OpeningResponse
-              text={openingCase.response.text}
-              recommendationSpan={openingCase.response.recommendationSpan}
-              wordsPerGroup={RESPONSE.wordsPerGroup}
-              identifyLabel={RESPONSE.identifyLabel}
-              panelLabel={RESPONSE.panelLabel}
-              iconSrc={PROVIDER.logo}
-              iconLabel={PROVIDER.name}
-              elapsedMs={Math.max(0, t - OFFSETS.model)}
-              timing={RESPONSE_TIMING}
-              hideIcon={sharedIcon}
-            />
-          </div>
-        </Block>
-      )}
-
       {showVignette && (
         <Block probe={probe} className="w-full">
           <div style={{ opacity: vignetteOpacity }}>
@@ -669,9 +582,29 @@ const SceneBody = memo(function SceneBody({
             className="grid w-full grid-cols-1 items-stretch gap-[0.6em] @md:grid-cols-2"
             style={{ opacity: optionsOpacity }}
           >
-            <OptionCard index={0} t={t} selected={selectedIndex === 0} showMarks={showMarks} showChips={showChips} sharedIcon={sharedIcon} />
-            <OptionCard index={1} t={t} selected={selectedIndex === 1} showMarks={showMarks} showChips={showChips} sharedIcon={sharedIcon} />
+            <OptionCard index={0} t={t} selected={selectedIndex === 0} showChips={showChips} />
+            <OptionCard index={1} t={t} selected={selectedIndex === 1} showChips={showChips} />
           </ul>
+        </Block>
+      )}
+
+      {showResponse && (
+        <Block probe={probe} className="w-full">
+          <div style={{ opacity: responseOpacity }}>
+            <OpeningResponse
+              text={openingCase.response.text}
+              recommendationSpan={openingCase.response.recommendationSpan}
+              wordsPerGroup={RESPONSE.wordsPerGroup}
+              identifyLabel={RESPONSE.identifyLabel}
+              panelLabel={RESPONSE.panelLabel}
+              iconSrc={PROVIDER.logo}
+              iconLabel={PROVIDER.name}
+              elapsedMs={Math.max(0, t - OFFSETS.model)}
+              timing={RESPONSE_TIMING}
+              collapse={collapse}
+              hideIcon={sharedIcon}
+            />
+          </div>
         </Block>
       )}
     </div>

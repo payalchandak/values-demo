@@ -1,5 +1,5 @@
 import { beatStart, type Beat } from "../../types";
-import { FADE_MS, STAGGER_MS, VALUE_ORDER } from "../../design";
+import { FADE_MS, MOVE_MS, VALUE_ORDER } from "../../design";
 import { openingCase } from "./openingCase";
 import { triggerWords } from "./valueTriggers";
 
@@ -12,9 +12,6 @@ import { triggerWords } from "./valueTriggers";
  * fade-outs finish exactly at the next chapter's start, so a seek to a
  * chapter start never shows stale content from the previous one.
  */
-
-/** Gap between repeat-query marks appearing. */
-export const MARK_INTERVAL_MS = STAGGER_MS;
 
 /**
  * How fast the opening case types, in characters per second.
@@ -61,7 +58,39 @@ const REVEALED_AT = REVEAL_AT + openingCase.response.text.length * TYPE_MS_PER_C
 const HIGHLIGHT_AT = REVEALED_AT + 1000;
 const EXTRACT_AT = HIGHLIGHT_AT + 1000;
 const EXTRACTED_AT = EXTRACT_AT + 1000;
-const MARKS_AT = EXTRACTED_AT + 1200;
+/** The answer text shrinks away and the first dot lands next to the mark. */
+export const COLLAPSE_MS = 300;
+const COLLAPSE_AT = EXTRACTED_AT;
+const FIRST_DOT_AT = COLLAPSE_AT + COLLAPSE_MS;
+/** Each repeat query: the mark turns once, then its dot lands. */
+const RERUN_SPIN_MS = 450;
+const RERUN_GAP_MS = 120;
+const RERUN_MS = RERUN_SPIN_MS + RERUN_GAP_MS;
+const RERUNS_AT = FIRST_DOT_AT + 500;
+const RUN_COUNT = openingCase.decisions.length;
+const RERUNS_DONE_AT = RERUNS_AT + (RUN_COUNT - 1) * RERUN_MS;
+
+/** Turns of the provider mark before the first answer types: two full turns. */
+const FIRST_SPIN_DEG = 720;
+
+/**
+ * One dot per repeated query, next to the provider mark, in chapter-local ms.
+ * The first lands as the answer collapses. Each later one lands as a turn of the mark ends.
+ */
+export const RUN_DOTS: readonly { startMs: number }[] = Array.from({ length: RUN_COUNT }, (_, i) => ({
+  startMs: i === 0 ? FIRST_DOT_AT - MOVE_MS : RERUNS_AT + (i - 1) * RERUN_MS + RERUN_SPIN_MS,
+}));
+
+/** Rotation of the provider mark in degrees at chapter-local time `e`. Cumulative, so every turn ends upright. */
+export function markSpinDeg(e: number): number {
+  let deg = ramp(e, THINK_AT, REVEAL_AT) * FIRST_SPIN_DEG;
+  for (let i = 1; i < RUN_COUNT; i++) {
+    const start = RERUNS_AT + (i - 1) * RERUN_MS;
+    const p = ramp(e, start, start + RERUN_SPIN_MS);
+    deg += (p * p * (3 - 2 * p)) * 360;
+  }
+  return deg;
+}
 
 const model = [
   { name: "ask", startMs: 0 }, // "What would you recommend?" leaves; no headline yet
@@ -69,11 +98,12 @@ const model = [
   { name: "reveal", startMs: REVEAL_AT }, // answer starts typing
   { name: "revealed", startMs: REVEALED_AT }, // last character is on screen
   { name: "highlight", startMs: HIGHLIGHT_AT }, // recommendation sentence sweeps
-  { name: "extract", startMs: EXTRACT_AT }, // its choice is outlined, OpenAI icon lands on it
+  { name: "extract", startMs: EXTRACT_AT }, // its choice is outlined
   { name: "extracted", startMs: EXTRACTED_AT },
-  { name: "marks", startMs: MARKS_AT }, // repeat-query marks accumulate
-  { name: "marksDone", startMs: MARKS_AT + openingCase.decisions.length * MARK_INTERVAL_MS },
-  { name: "end", startMs: MARKS_AT + openingCase.decisions.length * MARK_INTERVAL_MS + 2600 },
+  { name: "collapse", startMs: COLLAPSE_AT }, // answer shrinks away, first dot lands
+  { name: "reruns", startMs: RERUNS_AT }, // the mark turns again for each repeat query
+  { name: "rerunsDone", startMs: RERUNS_DONE_AT + RERUN_MS },
+  { name: "end", startMs: RERUNS_DONE_AT + RERUN_MS + 2600 },
 ] as const satisfies readonly Beat[];
 
 const round100 = (ms: number): number => Math.round(ms / 100) * 100;
