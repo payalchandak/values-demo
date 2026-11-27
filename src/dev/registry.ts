@@ -10,6 +10,7 @@ export interface DevEntry {
 // { name: "foo", component: lazy(() => import("./Foo")) }
 export const registry: DevEntry[] = [
   { name: "ending", component: lazy(() => import("../chapters/ending/EndingDev")) },
+  { name: "primitives", component: lazy(() => import("./PrimitivesPage")) },
 ];
 
 const PREFIX = "#/dev/";
