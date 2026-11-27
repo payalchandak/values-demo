@@ -10,14 +10,14 @@ import type { Tag, Value } from "../study/types";
 /**
  * Dev page for the design primitives: #/dev/primitives
  *
- * Source of the profile numbers: normalized priorities (mean of the
- * hierarchical fit) from value-prism/results/hierarchical_profiles.csv,
- * rounded to 4 decimals. Each row sums to 1.
+ * Profile numbers are the published normalized priorities, softmax(weights / 0.262),
+ * copied from `PAPER_LLMS` in value-prism/scripts/check_attribution.py (the paper table).
+ * Order is A, B, N, J; each row sums to 1.
  */
 const PROFILES: readonly { key: string; name: string; priorities: Record<Value, number> }[] = [
-  { key: "openai/gpt-5.2", name: "GPT 5.2", priorities: { A: 0.0304, B: 0.7941, N: 0.0918, J: 0.0837 } },
-  { key: "anthropic/claude-opus-4.5", name: "Claude Opus 4.5", priorities: { A: 0.1685, B: 0.1621, N: 0.655, J: 0.0144 } },
-  { key: "google/gemini-3-pro-preview", name: "Gemini 3 Pro", priorities: { A: 0.3516, B: 0.3106, N: 0.2845, J: 0.0533 } },
+  { key: "openai/gpt-5.2", name: "GPT 5.2", priorities: { A: 0.061, B: 0.676, N: 0.121, J: 0.142 } },
+  { key: "anthropic/claude-opus-4.5", name: "Claude Opus 4.5", priorities: { A: 0.205, B: 0.218, N: 0.526, J: 0.051 } },
+  { key: "google/gemini-3-pro-preview", name: "Gemini 3 Pro", priorities: { A: 0.312, B: 0.355, N: 0.222, J: 0.111 } },
 ];
 
 const pct = (n: number): string => `${(n * 100).toFixed(1)}%`;
@@ -191,7 +191,7 @@ export default function PrimitivesPage() {
 
         <Section
           title="RadarChart: three models"
-          note="Fixed axes A, B, N, J. Same 0 to 1 scale and plot position every time, so shapes compare directly. Priorities from value-prism/results/hierarchical_profiles.csv."
+          note="Fixed axes A, B, N, J. Same 0 to 1 scale and plot position every time, so shapes compare directly. Priorities are the published paper profiles."
         >
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {PROFILES.map((p) => (
