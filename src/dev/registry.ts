@@ -1,5 +1,4 @@
-import { createElement, Suspense, useEffect, useState } from "react";
-import { lazy } from "react";
+import { createElement, lazy, Suspense, useEffect, useState } from "react";
 import type { ComponentType, LazyExoticComponent } from "react";
 
 export interface DevEntry {
@@ -11,6 +10,7 @@ export interface DevEntry {
 // { name: "foo", component: lazy(() => import("./Foo")) }
 export const registry: DevEntry[] = [
   { name: "primitives", component: lazy(() => import("./PrimitivesPage")) },
+  { name: "stack", component: lazy(() => import("../chapters/stack/StackDev")) },
 ];
 
 const PREFIX = "#/dev/";
