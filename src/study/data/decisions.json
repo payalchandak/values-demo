@@ -1,0 +1,7678 @@
+{
+  "gpt": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 5,
+      "trials": 10
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 6,
+      "trials": 10
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 10,
+      "trials": 10
+    }
+  },
+  "claude": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 6,
+      "trials": 10
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 5,
+      "trials": 10
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 10,
+      "trials": 10
+    }
+  },
+  "gemini": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 5,
+      "trials": 10
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 10,
+      "trials": 10
+    }
+  },
+  "qwen": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 5,
+      "trials": 10
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 10,
+      "trials": 10
+    }
+  },
+  "deepseek": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 6,
+      "trials": 10
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 5,
+      "trials": 10
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 5,
+      "trials": 10
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 6,
+      "trials": 10
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 10,
+      "trials": 10
+    }
+  },
+  "llama": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 5,
+      "trials": 10
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 9,
+      "trials": 9
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 5,
+      "trials": 10
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 6,
+      "trials": 10
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 5,
+      "trials": 10
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 4,
+      "trials": 10
+    }
+  },
+  "mistral": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 6,
+      "trials": 10
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 10,
+      "trials": 10
+    }
+  },
+  "kimi": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 5,
+      "trials": 10
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 9
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 10,
+      "trials": 10
+    }
+  },
+  "grok": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 6,
+      "trials": 10
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 5,
+      "trials": 10
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 10,
+      "trials": 10
+    }
+  },
+  "sonar": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 10,
+      "trials": 10
+    }
+  },
+  "glm": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 5,
+      "trials": 10
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 6,
+      "trials": 9
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 0,
+      "trials": 9
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 1,
+      "trials": 9
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 9
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 8,
+      "trials": 9
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 9
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 2,
+      "trials": 10
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 9
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 10,
+      "trials": 10
+    }
+  },
+  "ernie": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 9,
+      "trials": 10
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 6,
+      "trials": 10
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 6,
+      "trials": 10
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 3,
+      "trials": 10
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 7,
+      "trials": 10
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 6,
+      "trials": 10
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 10
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 4,
+      "trials": 10
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 6,
+      "trials": 10
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 8,
+      "trials": 10
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 10,
+      "trials": 10
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 0,
+      "trials": 10
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 10,
+      "trials": 10
+    }
+  },
+  "P01": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P02": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 0,
+      "trials": 1
+    }
+  },
+  "P03": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 0,
+      "trials": 1
+    }
+  },
+  "P04": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P05": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 0,
+      "trials": 1
+    }
+  },
+  "P06": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P07": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P08": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 0,
+      "trials": 1
+    }
+  },
+  "P09": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P10": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P11": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P12": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P13": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 0,
+      "trials": 1
+    }
+  },
+  "P14": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P15": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P16": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 0,
+      "trials": 1
+    }
+  },
+  "P17": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P18": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P19": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 0,
+      "trials": 1
+    }
+  },
+  "P20": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P21": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P22": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P23": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P24": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "P25": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 0,
+      "trials": 1
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 1,
+      "trials": 1
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 1,
+      "trials": 1
+    }
+  },
+  "physicians": {
+    "065d7abf-3671-43a2-8375-79fb6e87ed78": {
+      "choice1": 12,
+      "trials": 25
+    },
+    "0b5a2bcb-0946-461a-8ba1-8f29213f01c5": {
+      "choice1": 11,
+      "trials": 25
+    },
+    "0c790bb1-dd0d-4724-8502-e8613968dd04": {
+      "choice1": 18,
+      "trials": 25
+    },
+    "0dd9fa12-e3fa-4243-8a4f-2b34052734dc": {
+      "choice1": 3,
+      "trials": 25
+    },
+    "10199c7b-b781-474f-a9e3-751bdfd9288a": {
+      "choice1": 17,
+      "trials": 25
+    },
+    "1b570980-2a9a-41a3-87a8-d3a7439f5ed5": {
+      "choice1": 16,
+      "trials": 25
+    },
+    "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6": {
+      "choice1": 22,
+      "trials": 25
+    },
+    "2529588f-f37c-4af4-86d8-1d5eb99466f5": {
+      "choice1": 18,
+      "trials": 25
+    },
+    "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc": {
+      "choice1": 16,
+      "trials": 25
+    },
+    "2f51d70e-facc-45fa-a520-ec3d2fc17b44": {
+      "choice1": 7,
+      "trials": 25
+    },
+    "3e0c9fbc-7c0c-464a-881a-1cad43601591": {
+      "choice1": 17,
+      "trials": 25
+    },
+    "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116": {
+      "choice1": 12,
+      "trials": 25
+    },
+    "4b731f8c-84a3-4191-9eb2-28aae57e1bc9": {
+      "choice1": 22,
+      "trials": 25
+    },
+    "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0": {
+      "choice1": 6,
+      "trials": 25
+    },
+    "5ce660f0-67cd-48b5-8316-e147b578a7c9": {
+      "choice1": 22,
+      "trials": 25
+    },
+    "6519444e-8565-4d94-882b-19d5cd4f08a7": {
+      "choice1": 25,
+      "trials": 25
+    },
+    "665d81cb-3074-4457-8af0-bb437f386b7b": {
+      "choice1": 14,
+      "trials": 25
+    },
+    "71073932-0517-418a-9e0d-40423a4f1755": {
+      "choice1": 5,
+      "trials": 25
+    },
+    "7129cbd9-42d9-42da-86e6-7132d1f0369c": {
+      "choice1": 3,
+      "trials": 25
+    },
+    "731f6c10-7da1-4140-97ea-dbc609c428d6": {
+      "choice1": 24,
+      "trials": 25
+    },
+    "7b8a4a5e-4119-48e2-ab3d-72c2d0684718": {
+      "choice1": 14,
+      "trials": 25
+    },
+    "7bd46c3e-76f0-4cdc-bf02-016e944c77cd": {
+      "choice1": 24,
+      "trials": 25
+    },
+    "7f52898a-aca8-476f-ad50-4b9851fca821": {
+      "choice1": 11,
+      "trials": 25
+    },
+    "82d191f9-5472-4905-8c3d-de170b9dc85b": {
+      "choice1": 2,
+      "trials": 25
+    },
+    "88292af4-c4be-4a91-81c6-3f7c7fd4b574": {
+      "choice1": 17,
+      "trials": 25
+    },
+    "8c1c8374-ab03-4bf7-a4ef-b5b225422685": {
+      "choice1": 22,
+      "trials": 25
+    },
+    "9b7e0b45-ee7a-4de7-8961-eab9091bc99e": {
+      "choice1": 16,
+      "trials": 25
+    },
+    "9cf163fb-fb6c-4f2d-949f-c34d8d430d52": {
+      "choice1": 19,
+      "trials": 25
+    },
+    "a00e045a-a1ad-4635-bc4d-860f71ca01e0": {
+      "choice1": 17,
+      "trials": 25
+    },
+    "a4bf234a-6888-4825-8fb4-40e6afe55489": {
+      "choice1": 12,
+      "trials": 25
+    },
+    "a8d7dbba-43b5-48ab-9855-e65266ae2f23": {
+      "choice1": 22,
+      "trials": 25
+    },
+    "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc": {
+      "choice1": 20,
+      "trials": 25
+    },
+    "b01b61b0-5f1e-4030-acd3-dfefa7136ca4": {
+      "choice1": 17,
+      "trials": 25
+    },
+    "b0a439fe-8ab8-450b-9e72-dbce2726a37e": {
+      "choice1": 1,
+      "trials": 25
+    },
+    "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6": {
+      "choice1": 14,
+      "trials": 25
+    },
+    "b94607ef-e355-4a64-b564-2a558c0eea71": {
+      "choice1": 4,
+      "trials": 25
+    },
+    "ba711ccb-a7ab-493f-84c5-39f735feb806": {
+      "choice1": 21,
+      "trials": 25
+    },
+    "beef02d0-02a4-45a5-b020-906846fe8bd8": {
+      "choice1": 8,
+      "trials": 25
+    },
+    "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd": {
+      "choice1": 10,
+      "trials": 25
+    },
+    "c66799aa-41ba-497c-824c-1e2e9b66b60c": {
+      "choice1": 10,
+      "trials": 25
+    },
+    "ca48bd78-c209-4c82-80c4-37438e90e68a": {
+      "choice1": 6,
+      "trials": 25
+    },
+    "d9b904c3-80de-486b-9b63-0bdb58f733a3": {
+      "choice1": 9,
+      "trials": 25
+    },
+    "dee07a00-bf07-49ab-b334-35158bab1b9d": {
+      "choice1": 12,
+      "trials": 25
+    },
+    "e0c6ee6e-c005-4b00-9ea9-478fceda1e19": {
+      "choice1": 16,
+      "trials": 25
+    },
+    "ec137441-228d-4234-b595-32e6772f3b3f": {
+      "choice1": 22,
+      "trials": 25
+    },
+    "ecdf28d6-3d88-4916-9b3c-67ef077fafc5": {
+      "choice1": 17,
+      "trials": 25
+    },
+    "eee77bbb-0416-4c4c-b1d5-26165571eb9b": {
+      "choice1": 3,
+      "trials": 25
+    },
+    "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b": {
+      "choice1": 13,
+      "trials": 25
+    },
+    "f35da35f-257c-4b85-9b8c-5ebcd8a464d4": {
+      "choice1": 18,
+      "trials": 25
+    },
+    "feec8675-056c-445c-a654-28dc91e1c511": {
+      "choice1": 18,
+      "trials": 25
+    }
+  }
+}
