@@ -2,6 +2,20 @@ import { useMemo } from "react";
 import { LayoutGroup, motionValue } from "framer-motion";
 import { useChapterClock } from "../../useChapterClock";
 import { createStackChapter } from "./index";
+import { DEFAULT_PROFILE_KEY, profileLabelFor, realStackCases } from "./stackCases";
+
+/** Real foreground trio plus seeded background cards, for the dev page. */
+function useDevChapter() {
+  return useMemo(
+    () =>
+      createStackChapter({
+        cases: realStackCases(DEFAULT_PROFILE_KEY),
+        profileKey: DEFAULT_PROFILE_KEY,
+        profileLabel: profileLabelFor(DEFAULT_PROFILE_KEY),
+      }),
+    [],
+  );
+}
 
 /**
  * Dev harness for `#/dev/stack`: the stack chapter alone, on the real chapter
@@ -15,7 +29,7 @@ export default function StackDev() {
 }
 
 function FrozenFrame({ ms }: { ms: number }) {
-  const chapter = useMemo(() => createStackChapter(), []);
+  const chapter = useDevChapter();
   return (
     <div className="h-screen w-screen overflow-hidden bg-canvas px-10 py-6">
       {chapter.render({ elapsedMs: ms, progress: 0, isPaused: true, time: motionValue(ms) })}
@@ -24,9 +38,9 @@ function FrozenFrame({ ms }: { ms: number }) {
 }
 
 function LiveDev() {
-  const chapters = useMemo(() => [createStackChapter()], []);
+  const chapter = useDevChapter();
+  const chapters = useMemo(() => [chapter], [chapter]);
   const clock = useChapterClock(chapters);
-  const chapter = chapters[0];
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-canvas">

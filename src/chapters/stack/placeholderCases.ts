@@ -80,8 +80,16 @@ const SCENARIOS: { vignette: string; choices: [string, string] }[] = [
 
 const TAG_VALUES: Tag[] = [-1, 0, 1];
 
-/** `count` placeholder StudyCases, ids `case_001`, `case_002`, ... */
-export function makePlaceholderCases(count = 50): StudyCase[] {
+/** Profile keys the placeholder cases carry model counts for. */
+const PLACEHOLDER_PROFILES = ["gpt", "claude", "gemini"] as const;
+
+/**
+ * `count` seeded placeholder StudyCases, ids `placeholder_001`, ... Used only
+ * for the background cards; the foreground trio comes from real data.
+ * `physicianVotesChoice1` is required by the StudyCase type but is never read by
+ * this chapter, so it is a constant 0 rather than invented data.
+ */
+export function makePlaceholderCases(count = 47): StudyCase[] {
   const rand = mulberry32(20260);
   const pickTag = (): Tag => TAG_VALUES[Math.floor(rand() * 3)];
   const cases: StudyCase[] = [];
@@ -98,16 +106,15 @@ export function makePlaceholderCases(count = 50): StudyCase[] {
       }
       tags = [one, two];
     } while (VALUES.every((v) => tags[0][v] === tags[1][v]));
+    const modelChoice1Counts: Record<string, number> = {};
+    for (const key of PLACEHOLDER_PROFILES) modelChoice1Counts[key] = Math.floor(rand() * 11);
     cases.push({
-      id: `case_${String(i + 1).padStart(3, "0")}`,
+      id: `placeholder_${String(i + 1).padStart(3, "0")}`,
       vignette: scenario.vignette,
       choices: scenario.choices,
       tags,
-      physicianVotesChoice1: 3 + Math.floor(rand() * 20),
-      modelChoice1Counts: {
-        gpt: Math.floor(rand() * 11),
-        claude: Math.floor(rand() * 11),
-      },
+      physicianVotesChoice1: 0,
+      modelChoice1Counts,
     });
   }
   return cases;

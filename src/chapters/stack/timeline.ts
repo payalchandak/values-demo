@@ -6,39 +6,104 @@ import type { StackBeatTimes } from "./beats";
  * frame, which is what makes pause and seek exact.
  */
 
-/** Logical stage size. The renderer scales this box to fit its container. */
-export const STAGE_W = 1000;
-export const STAGE_H = 600;
-
 export const CARD_W = 280;
 export const CARD_H = 196;
-/** Scale of the single hero card before it shrinks to stack size. */
-export const HERO_SCALE = 2.2;
 
-export const VOTES_TOTAL = 25;
-export const DOT_PITCH = 7;
-
-/** Fan geometry: cards rotate about a pivot below the stack. */
-const CENTER = { x: STAGE_W / 2, y: 300 };
-const FAN_RADIUS = 300;
-const FAN_HALF_ANGLE = 34; // degrees
-const FAN_MAX_STEP = 4; // degrees between neighbouring cards
-const PIVOT = { x: CENTER.x, y: CENTER.y + FAN_RADIUS };
-
-/** Foreground trio, left to right. Card 0 is the first row of the table. */
-const TRIO_X = [CENTER.x - 320, CENTER.x, CENTER.x + 320];
-
-/** Table geometry. */
-export const ROW_W = 820;
-export const ROW_H = 60;
-export const HEADER_Y = 114;
-export const HEADER_H = 44;
-const ROW_TOPS = [166, 240, 314];
-export const ELLIPSIS_Y = 410;
-export const COUNT_LABEL_Y = 456;
-export const STACK_LABEL_Y = 552;
+/** Queries per model per case: one marker dot each. */
+export const TRIALS = 10;
+export const DOT_SIZE = 8;
+export const DOT_PITCH = 13;
 
 export const FOREGROUND = 3;
+
+/**
+ * Everything positional lives in a Layout, in logical stage px. The renderer
+ * scales the stage to fit its container and picks `wide` or `tall` from the
+ * container's aspect ratio, so phones get a stacked trio and a compact table
+ * instead of a landscape stage shrunk to unreadable.
+ */
+export interface Layout {
+  name: "wide" | "tall";
+  stageW: number;
+  stageH: number;
+  center: { x: number; y: number };
+  /** Face scale of the hero card, of cards in the fan, and of the foreground trio. */
+  heroScale: number;
+  fanScale: number;
+  trioScale: number;
+  fanRadius: number;
+  fanHalfAngle: number; // degrees
+  fanMaxStep: number; // degrees between neighbouring cards
+  /** Foreground trio centres. Card 0 is the first row of the table. */
+  trio: readonly { x: number; y: number }[];
+  rowW: number;
+  rowH: number;
+  headerY: number;
+  headerH: number;
+  rowTops: readonly number[];
+  ellipsisY: number;
+  countLabelY: number;
+  stackLabelY: number;
+  /** Narrow row content (value initials, smaller type). */
+  compactRows: boolean;
+}
+
+export const WIDE: Layout = {
+  name: "wide",
+  stageW: 1000,
+  stageH: 600,
+  center: { x: 500, y: 300 },
+  heroScale: 2.2,
+  fanScale: 1,
+  trioScale: 1,
+  fanRadius: 300,
+  fanHalfAngle: 34,
+  fanMaxStep: 4,
+  trio: [
+    { x: 180, y: 300 },
+    { x: 500, y: 300 },
+    { x: 820, y: 300 },
+  ],
+  rowW: 820,
+  rowH: 60,
+  headerY: 114,
+  headerH: 44,
+  rowTops: [166, 240, 314],
+  ellipsisY: 410,
+  countLabelY: 456,
+  stackLabelY: 552,
+  compactRows: false,
+};
+
+export const TALL: Layout = {
+  name: "tall",
+  stageW: 400,
+  stageH: 680,
+  center: { x: 200, y: 310 },
+  heroScale: 1.35,
+  fanScale: 0.62,
+  trioScale: 0.9,
+  fanRadius: 190,
+  fanHalfAngle: 26,
+  fanMaxStep: 4,
+  trio: [
+    { x: 200, y: 100 },
+    { x: 200, y: 296 },
+    { x: 200, y: 492 },
+  ],
+  rowW: 340,
+  rowH: 64,
+  headerY: 136,
+  headerH: 44,
+  rowTops: [192, 270, 348],
+  ellipsisY: 458,
+  countLabelY: 504,
+  stackLabelY: 640,
+  compactRows: true,
+};
+
+/** Tall for portrait-ish containers, wide otherwise. */
+export const layoutFor = (width: number, height: number): Layout => (width < height * 0.9 ? TALL : WIDE);
 
 export interface CardFrame {
   index: number;
@@ -61,12 +126,12 @@ export interface CardFrame {
   shellOpacity: number;
   rowOpacity: number;
   /**
-   * Edge markers: each edge carries one dot per physician vote. `dots` of the
-   * VOTES_TOTAL have arrived; the first `choice1Votes` of the column are
-   * choice 1, the rest choice 2.
+   * Edge markers: each edge carries one dot per model query (TRIALS). `dots`
+   * of them have arrived; the first `choice1Count` of the column are choice 1,
+   * the rest choice 2.
    */
   dots: number;
-  choice1Votes: number;
+  choice1Count: number;
   markerOpacity: number;
   /** 0..1 fill of the observed-frequency bar. */
   freqFill: number;
@@ -101,9 +166,10 @@ function span(t: number, times: StackBeatTimes, from: keyof StackBeatTimes, to: 
  * middle outward, so cases 1 and 2 sit just behind the first card and are
  * the ones that lift out to join the foreground trio.
  */
-function fanSlots(backgroundCount: number) {
+function fanSlots(backgroundCount: number, layout: Layout) {
   const mid = (backgroundCount - 1) / 2;
-  const step = backgroundCount > 1 ? Math.min((2 * FAN_HALF_ANGLE) / (backgroundCount - 1), FAN_MAX_STEP) : 0;
+  const step =
+    backgroundCount > 1 ? Math.min((2 * layout.fanHalfAngle) / (backgroundCount - 1), layout.fanMaxStep) : 0;
   const order = Array.from({ length: backgroundCount }, (_, j) => j).sort((p, q) => {
     const dp = Math.abs(p - mid);
     const dq = Math.abs(q - mid);
@@ -113,19 +179,23 @@ function fanSlots(backgroundCount: number) {
   return order.map((j) => ({ slot: j, angle: (j - mid) * step, depth: Math.abs(j - mid) }));
 }
 
-const onArc = (angleDeg: number) => {
+/** Card centre after rotating `angleDeg` about the pivot that sits `fanRadius` below the stack. */
+const onArc = (angleDeg: number, layout: Layout) => {
   const r = (angleDeg * Math.PI) / 180;
-  return { x: PIVOT.x + FAN_RADIUS * Math.sin(r), y: PIVOT.y - FAN_RADIUS * Math.cos(r) };
+  const R = layout.fanRadius;
+  return { x: layout.center.x + R * Math.sin(r), y: layout.center.y + R - R * Math.cos(r) };
 };
 
 export function computeFrame(
   t: number,
   times: StackBeatTimes,
-  /** Physician votes for choice 1 (out of VOTES_TOTAL), one per case. */
-  votesChoice1: readonly number[],
+  /** Queries (out of TRIALS) where the selected model chose choice 1, one per case. */
+  choice1Counts: readonly number[],
+  layout: Layout,
 ): StackFrame {
-  const n = votesChoice1.length;
-  const slots = fanSlots(n - 1);
+  const L = layout;
+  const n = choice1Counts.length;
+  const slots = fanSlots(n - 1, L);
 
   const shrinkP = easeInOut(span(t, times, "shrink", "fan"));
   const fanLinear = span(t, times, "fan", "markers");
@@ -137,7 +207,7 @@ export function computeFrame(
   const morphP = span(t, times, "morph", "highlight");
   const highlightP = easeInOut(span(t, times, "highlight", "end"));
 
-  const heroScale = lerp(HERO_SCALE, 1, shrinkP);
+  const heroScale = lerp(L.heroScale, L.fanScale, shrinkP);
   const backgroundOpacity = t < times.fan ? 0 : 1 - fadeP;
 
   const cards: CardFrame[] = [];
@@ -146,21 +216,22 @@ export function computeFrame(
     const slot = i > 0 ? slots[i - 1] : undefined;
 
     // 1. Base placement: hero card, fan slot, or trio slot.
-    let cx = CENTER.x;
-    let cy = CENTER.y;
+    let cx = L.center.x;
+    let cy = L.center.y;
     let rot = 0;
-    let scale = i === 0 ? heroScale : 1;
+    let scale = i === 0 ? heroScale : L.fanScale;
     if (slot) {
       const angle = slot.angle * fanP;
-      const p = onArc(angle);
+      const p = onArc(angle, L);
       cx = p.x;
       cy = p.y;
       rot = angle;
     }
     if (foreground) {
-      cx = lerp(cx, TRIO_X[i], liftP);
-      cy = lerp(cy, CENTER.y, liftP);
+      cx = lerp(cx, L.trio[i].x, liftP);
+      cy = lerp(cy, L.trio[i].y, liftP);
       rot = lerp(rot, 0, liftP);
+      scale = lerp(scale, L.trioScale, liftP);
     }
 
     // 2. Flip (foreground only): staggered across the flip phase.
@@ -168,11 +239,11 @@ export function computeFrame(
 
     // 3. Morph into a table row (foreground only), staggered by row.
     const morphLocal = foreground ? easeInOut(clamp01((morphP - i * 0.12) / 0.76)) : 0;
-    const row = foreground ? ROW_TOPS[i] + ROW_H / 2 : 0;
-    cx = foreground ? lerp(cx, CENTER.x, morphLocal) : cx;
+    const row = foreground ? L.rowTops[i] + L.rowH / 2 : 0;
+    cx = foreground ? lerp(cx, L.center.x, morphLocal) : cx;
     cy = foreground ? lerp(cy, row, morphLocal) : cy;
-    const w = lerp(CARD_W * scale, ROW_W, morphLocal);
-    const h = lerp(CARD_H * scale, ROW_H, morphLocal);
+    const w = lerp(CARD_W * scale, L.rowW, morphLocal);
+    const h = lerp(CARD_H * scale, L.rowH, morphLocal);
 
     // Faces give way to the row shell early in the morph; row content arrives late.
     const swap = clamp01(morphLocal / 0.25);
@@ -182,7 +253,7 @@ export function computeFrame(
     const rank = foreground ? i : FOREGROUND + (slot?.slot ?? 0);
     const delay = (rank / (n + FOREGROUND)) * 0.55;
     const local = t < times.markers ? 0 : clamp01((markersP - delay) / 0.45);
-    const dots = Math.round(VOTES_TOTAL * local);
+    const dots = Math.round(TRIALS * local);
     const markerOpacity = 1 - clamp01(morphLocal / 0.3);
 
     const bgOpacity = foreground ? 1 : backgroundOpacity;
@@ -202,7 +273,7 @@ export function computeFrame(
       shellOpacity: swap,
       rowOpacity,
       dots,
-      choice1Votes: votesChoice1[i],
+      choice1Count: choice1Counts[i],
       markerOpacity,
       freqFill: i < FOREGROUND ? easeOut(clamp01((morphLocal - 0.55) / 0.45)) : 0,
       highlight: i === 0 ? highlightP : 0,

@@ -12,31 +12,32 @@ import {
   CARD_H,
   CARD_W,
   computeFrame,
-  COUNT_LABEL_Y,
   DOT_PITCH,
-  ELLIPSIS_Y,
+  DOT_SIZE,
   FOREGROUND,
-  HEADER_H,
-  HEADER_Y,
-  ROW_H,
-  ROW_W,
-  STACK_LABEL_Y,
-  STAGE_H,
-  STAGE_W,
-  VOTES_TOTAL,
+  layoutFor,
+  TRIALS,
+  WIDE,
   type CardFrame,
+  type Layout,
 } from "./timeline";
+
+/** UUID ids are shown as their first 8 hex chars; other ids are shown whole. */
+const displayId = (id: string) => (/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(id) ? id.slice(0, 8) : id);
 
 /** Choice 1 and choice 2 colors: used by edge markers, card backs and the frequency bar. */
 const CHOICE_COLORS = ["#D1495B", "#475569"] as const;
 const INK = "#1B2433";
-const DOT = 5;
 
 interface StackStageProps {
   cases: readonly StudyCase[];
   beats: readonly Beat[];
   /** Chapter-local clock in ms. The only thing that drives the animation. */
   elapsedMs: number;
+  /** Which model's `modelChoice1Counts` entry drives markers and the frequency bar. */
+  profileKey: string;
+  /** Name shown in the table header; defaults to `profileKey`. */
+  profileLabel?: string;
 }
 
 /**
@@ -44,22 +45,42 @@ interface StackStageProps {
  * The stage is a fixed logical box scaled to fit, so geometry never depends on
  * the viewport.
  */
-export default function StackStage({ cases, beats, elapsedMs }: StackStageProps) {
+export default function StackStage({ cases, beats, elapsedMs, profileKey, profileLabel }: StackStageProps) {
   if (cases.length < 3) throw new Error("StackStage needs at least 3 cases");
   const times = useMemo(() => resolveBeats(beats), [beats]);
-  const votes = useMemo(() => cases.map((c) => c.physicianVotesChoice1), [cases]);
+  const counts = useMemo(
+    () =>
+      cases.map((c) => {
+        const k = c.modelChoice1Counts[profileKey];
+        if (k === undefined) throw new Error(`${c.id} has no modelChoice1Counts["${profileKey}"]`);
+        return k;
+      }),
+    [cases, profileKey],
+  );
   const deltas = useMemo(() => cases.slice(0, 3).map(deltaOf), [cases]);
-  const frame = computeFrame(elapsedMs, times, votes);
 
   const hostRef = useRef<HTMLDivElement>(null);
-  const [fit, setFit] = useState({ scale: 1, left: 0, top: 0 });
+  const [fit, setFit] = useState<{ scale: number; left: number; top: number; layout: Layout }>({
+    scale: 1,
+    left: 0,
+    top: 0,
+    layout: WIDE,
+  });
+  const L = fit.layout;
+  const frame = computeFrame(elapsedMs, times, counts, L);
   useLayoutEffect(() => {
     const host = hostRef.current;
     if (!host) return;
     const measure = () => {
       const { width, height } = host.getBoundingClientRect();
-      const scale = Math.min(width / STAGE_W, height / STAGE_H);
-      setFit({ scale, left: (width - STAGE_W * scale) / 2, top: (height - STAGE_H * scale) / 2 });
+      const layout = layoutFor(width, height);
+      const scale = Math.min(width / layout.stageW, height / layout.stageH);
+      setFit({
+        scale,
+        left: (width - layout.stageW * scale) / 2,
+        top: (height - layout.stageH * scale) / 2,
+        layout,
+      });
     };
     measure();
     const observer = new ResizeObserver(measure);
@@ -75,14 +96,14 @@ export default function StackStage({ cases, beats, elapsedMs }: StackStageProps)
           position: "absolute",
           left: fit.left,
           top: fit.top,
-          width: STAGE_W,
-          height: STAGE_H,
+          width: L.stageW,
+          height: L.stageH,
           transform: `scale(${fit.scale})`,
           transformOrigin: "top left",
           color: INK,
         }}
       >
-        <Centered y={STACK_LABEL_Y} opacity={frame.stackLabel}>
+        <Centered layout={L} y={L.stackLabelY} opacity={frame.stackLabel}>
           <span className="text-lg font-semibold tracking-tight" style={{ color: `${INK}cc` }}>
             {cases.length} physician-reviewed dilemmas
           </span>
@@ -91,28 +112,34 @@ export default function StackStage({ cases, beats, elapsedMs }: StackStageProps)
         <div
           style={{
             position: "absolute",
-            left: (STAGE_W - ROW_W) / 2,
-            top: HEADER_Y,
-            width: ROW_W,
-            height: HEADER_H,
+            left: (L.stageW - L.rowW) / 2,
+            top: L.headerY,
+            width: L.rowW,
+            height: L.headerH,
             opacity: frame.headerOpacity,
           }}
         >
-          <TableHeader />
+          <TableHeader profileLabel={profileLabel ?? profileKey} compact={L.compactRows} />
         </div>
 
         {frame.cards.map((card) =>
           card.opacity <= 0 ? null : (
-            <StackCard key={cases[card.index].id} card={card} study={cases[card.index]} delta={deltas[card.index]} />
+            <StackCard
+              key={cases[card.index].id}
+              card={card}
+              study={cases[card.index]}
+              delta={deltas[card.index]}
+              layout={L}
+            />
           ),
         )}
 
-        <Centered y={ELLIPSIS_Y} opacity={frame.ellipsisOpacity}>
+        <Centered layout={L} y={L.ellipsisY} opacity={frame.ellipsisOpacity}>
           <span className="text-3xl leading-none tracking-[0.3em]" style={{ color: `${INK}99` }}>
             ...
           </span>
         </Centered>
-        <Centered y={COUNT_LABEL_Y} opacity={frame.countLabelOpacity}>
+        <Centered layout={L} y={L.countLabelY} opacity={frame.countLabelOpacity}>
           <span className="text-lg font-semibold tracking-tight" style={{ color: `${INK}cc` }}>
             {cases.length} cases
           </span>
@@ -122,13 +149,23 @@ export default function StackStage({ cases, beats, elapsedMs }: StackStageProps)
   );
 }
 
-function Centered({ y, opacity, children }: { y: number; opacity: number; children: React.ReactNode }) {
+function Centered({
+  layout,
+  y,
+  opacity,
+  children,
+}: {
+  layout: Layout;
+  y: number;
+  opacity: number;
+  children: React.ReactNode;
+}) {
   return (
     <div
       style={{
         position: "absolute",
         left: 0,
-        width: STAGE_W,
+        width: layout.stageW,
         top: y,
         transform: "translateY(-50%)",
         textAlign: "center",
@@ -149,10 +186,12 @@ function StackCard({
   card,
   study,
   delta,
+  layout,
 }: {
   card: CardFrame;
   study: StudyCase;
   delta: ReturnType<typeof deltaOf> | undefined;
+  layout: Layout;
 }) {
   const showBack = card.flipDeg > 90;
   return (
@@ -204,13 +243,19 @@ function StackCard({
               position: "absolute",
               left: "50%",
               top: "50%",
-              width: ROW_W,
-              height: ROW_H,
+              width: layout.rowW,
+              height: layout.rowH,
               transform: "translate(-50%, -50%)",
               opacity: card.rowOpacity,
             }}
           >
-            <RowContent study={study} delta={delta} freqFill={card.freqFill} />
+            <RowContent
+              study={study}
+              delta={delta}
+              freqFill={card.freqFill}
+              count={card.choice1Count}
+              compact={layout.compactRows}
+            />
           </div>
         </div>
       )}
@@ -250,13 +295,17 @@ function StackCard({
 }
 
 /**
- * A column of dots hugging a card edge, one dot per physician vote:
- * choice 1 dots first, then choice 2. Dots arrive top to bottom.
+ * A column of dots hugging a card edge, one dot per model query: choice 1 dots
+ * first, then choice 2. The column keeps its full height; dots arrive top to bottom.
  */
 function DotStrip({ side, frame }: { side: "left" | "right"; frame: CardFrame }) {
-  const maxDots = Math.max(0, Math.floor((frame.h - 8) / DOT_PITCH));
+  // Dots shrink with small cards so a column never outgrows its card.
+  const k = Math.min(1, frame.faceScale);
+  const dot = DOT_SIZE * k;
+  const pitch = DOT_PITCH * k;
+  const maxDots = Math.max(0, Math.floor((frame.h - 8) / pitch));
   const shown = Math.min(frame.dots, maxDots);
-  const first = Math.min(shown, frame.choice1Votes);
+  const first = Math.min(shown, frame.choice1Count);
   const second = shown - first;
   const column = (count: number, offset: number, color: string) =>
     count > 0 && (
@@ -264,11 +313,11 @@ function DotStrip({ side, frame }: { side: "left" | "right"; frame: CardFrame })
         style={{
           position: "absolute",
           left: 0,
-          top: offset * DOT_PITCH,
-          width: DOT,
-          height: count * DOT_PITCH,
-          backgroundImage: `radial-gradient(circle, ${color} ${DOT / 2 - 0.3}px, transparent ${DOT / 2}px)`,
-          backgroundSize: `${DOT}px ${DOT_PITCH}px`,
+          top: offset * pitch,
+          width: dot,
+          height: count * pitch,
+          backgroundImage: `radial-gradient(circle, ${color} ${dot / 2 - 0.4}px, transparent ${dot / 2}px)`,
+          backgroundSize: `${dot}px ${pitch}px`,
           backgroundRepeat: "repeat-y",
         }}
       />
@@ -277,15 +326,15 @@ function DotStrip({ side, frame }: { side: "left" | "right"; frame: CardFrame })
     <div
       style={{
         position: "absolute",
-        [side]: -(DOT + 4),
-        top: 4,
-        width: DOT,
-        height: shown * DOT_PITCH,
+        [side]: -(dot + 4),
+        top: Math.max(4, (frame.h - TRIALS * pitch) / 2),
+        width: dot,
+        height: shown * pitch,
         opacity: frame.markerOpacity,
       }}
     >
       {column(first, 0, CHOICE_COLORS[0])}
-      {column(second, frame.choice1Votes, CHOICE_COLORS[1])}
+      {column(second, frame.choice1Count, CHOICE_COLORS[1])}
     </div>
   );
 }
@@ -318,7 +367,7 @@ const CardFront = memo(function CardFront({ study }: { study: StudyCase }) {
   return (
     <div style={{ ...faceBase, display: "flex", flexDirection: "column" }}>
       <div className="font-mono" style={{ fontSize: 11, letterSpacing: "0.08em", color: "#6b7280" }}>
-        {study.id}
+        {displayId(study.id)}
       </div>
       <p style={{ ...clamp(3), margin: "6px 0 0", fontSize: 12, lineHeight: 1.4 }}>{study.vignette}</p>
       <div style={{ marginTop: "auto", display: "grid", gap: 4 }}>
@@ -359,7 +408,7 @@ const CardBack = memo(function CardBack({ study }: { study: StudyCase }) {
   return (
     <div style={{ ...faceBase, display: "flex", flexDirection: "column" }}>
       <div className="font-mono" style={{ fontSize: 11, letterSpacing: "0.08em", color: "#6b7280" }}>
-        {study.id} <span style={{ opacity: 0.6 }}>tags</span>
+        {displayId(study.id)} <span style={{ opacity: 0.6 }}>tags</span>
       </div>
       <div style={{ marginTop: 8, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {study.tags.map((tags, i) => (
@@ -412,10 +461,11 @@ function Chip({ value, tag }: { value: Value; tag: Tag }) {
 /* -------------------------------------------------------------------------- */
 
 const GRID = "140px repeat(4, 96px) 1fr";
+const GRID_COMPACT = "62px repeat(4, 34px) 1fr";
 
-function TableHeader() {
+function TableHeader({ profileLabel, compact }: { profileLabel: string; compact: boolean }) {
   const label = {
-    fontSize: 10,
+    fontSize: compact ? 10 : 10,
     letterSpacing: "0.04em",
     color: "#6b7280",
     textAlign: "center",
@@ -426,11 +476,11 @@ function TableHeader() {
       className="font-mono"
       style={{
         display: "grid",
-        gridTemplateColumns: GRID,
+        gridTemplateColumns: compact ? GRID_COMPACT : GRID,
         gridTemplateRows: "1fr 1fr",
         alignItems: "end",
         height: "100%",
-        padding: "0 20px",
+        padding: compact ? "0 12px" : "0 20px",
       }}
     >
       <span />
@@ -441,19 +491,21 @@ function TableHeader() {
           alignSelf: "center",
           borderBottom: "1px solid #d1d5db",
           paddingBottom: 3,
-          margin: "0 10px",
+          margin: compact ? "0 4px" : "0 10px",
         }}
       >
-        {"\u0394"} tags, choice 1 minus choice 2
+        {compact ? "\u0394 tags" : "\u0394 tags, choice 1 minus choice 2"}
       </span>
       <span />
-      <span style={{ ...label, textAlign: "left", fontSize: 10 }}>Case</span>
+      <span style={{ ...label, textAlign: "left" }}>Case</span>
       {VALUES.map((v) => (
-        <span key={v} style={label}>
-          {VALUE_NAMES[v]}
+        <span key={v} style={compact ? { ...label, color: VALUE_COLORS[v], fontWeight: 700, fontSize: 12 } : label}>
+          {compact ? v : VALUE_NAMES[v]}
         </span>
       ))}
-      <span style={{ ...label, textAlign: "left", paddingLeft: 20 }}>Chose option 1</span>
+      <span style={{ ...label, textAlign: "left", paddingLeft: compact ? 10 : 20 }}>
+        {compact ? `${profileLabel} chose 1` : `${profileLabel} chose option 1`}
+      </span>
     </div>
   );
 }
@@ -470,24 +522,30 @@ function RowContent({
   study,
   delta,
   freqFill,
+  count,
+  compact,
 }: {
   study: StudyCase;
   delta: ReturnType<typeof deltaOf>;
   freqFill: number;
+  /** Queries (out of TRIALS) where the model chose choice 1. */
+  count: number;
+  compact: boolean;
 }) {
-  const frequency = study.physicianVotesChoice1 / VOTES_TOTAL;
+  const frequency = count / TRIALS;
+  const text = compact ? 12 : 14;
   return (
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: GRID,
+        gridTemplateColumns: compact ? GRID_COMPACT : GRID,
         alignItems: "center",
         height: "100%",
-        padding: "0 20px",
+        padding: compact ? "0 12px" : "0 20px",
       }}
     >
-      <span className="font-mono" style={{ fontSize: 14, fontWeight: 600 }}>
-        {study.id}
+      <span className="font-mono" style={{ fontSize: text, fontWeight: 600 }}>
+        {displayId(study.id)}
       </span>
       {VALUES.map((v) => {
         const d = delta[v];
@@ -496,11 +554,11 @@ function RowContent({
             <span
               className="font-mono"
               style={{
-                minWidth: 44,
+                minWidth: compact ? 28 : 44,
                 textAlign: "center",
-                padding: "4px 0",
-                borderRadius: 8,
-                fontSize: 14,
+                padding: compact ? "3px 0" : "4px 0",
+                borderRadius: compact ? 6 : 8,
+                fontSize: text,
                 fontWeight: 600,
                 background: DELTA_TINT[d],
                 color: d === 0 ? "#6b7280" : d > 0 ? "#1D7A4D" : "#B42318",
@@ -511,12 +569,12 @@ function RowContent({
           </span>
         );
       })}
-      <span style={{ display: "flex", alignItems: "center", gap: 12, paddingLeft: 20 }}>
+      <span style={{ display: "flex", alignItems: "center", gap: compact ? 8 : 12, paddingLeft: compact ? 10 : 20 }}>
         <span
           style={{
             position: "relative",
             flex: 1,
-            height: 10,
+            height: compact ? 8 : 10,
             borderRadius: 5,
             background: CHOICE_COLORS[1],
             overflow: "hidden",
@@ -533,8 +591,11 @@ function RowContent({
             }}
           />
         </span>
-        <span className="font-mono" style={{ width: 40, textAlign: "right", fontSize: 14, fontWeight: 600 }}>
-          {Math.round(frequency * 100)}%
+        <span
+          className="font-mono"
+          style={{ width: compact ? 36 : 48, textAlign: "right", fontSize: text, fontWeight: 600 }}
+        >
+          {count}/{TRIALS}
         </span>
       </span>
     </div>
