@@ -41,11 +41,14 @@ const hook = [
   { name: "end", startMs: typedAt + CASE_HOLD_MS },
 ] as const satisfies readonly Beat[];
 
+/** Choices land, then a short still beat so the viewer can pick before the model answers. */
+const OPTIONS_AT = 600;
+const DECIDE_HOLD_MS = 2000;
 const dilemma = [
   { name: "question", startMs: 0 }, // "What would you recommend?"
-  { name: "options", startMs: 900 }, // two equal option cards
-  { name: "hold", startMs: 2200 }, // nothing moves: the viewer decides, no model answer yet
-  { name: "end", startMs: 11000 },
+  { name: "options", startMs: OPTIONS_AT }, // two equal option cards
+  { name: "hold", startMs: OPTIONS_AT + 500 }, // nothing moves: the viewer decides, no model answer yet
+  { name: "end", startMs: OPTIONS_AT + DECIDE_HOLD_MS },
 ] as const satisfies readonly Beat[];
 
 /** Two full turns of the provider mark, with "thinking…" in the panel. */
