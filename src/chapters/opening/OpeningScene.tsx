@@ -335,7 +335,22 @@ export function PatientCard({
 /** Height of the row under each choice: holds the repeat-query marks, then the tag chips. */
 const ROW_H = "1.9em";
 
-function Marks({ index, t }: { index: 0 | 1; t: number }) {
+/**
+ * The repeat-query dots for one choice. When the model chose this choice, its
+ * icon sits right after the dots: either the stage's shared icon (an invisible
+ * anchor it flies to) or a plain icon shown at `badge` opacity.
+ */
+function Marks({
+  index,
+  t,
+  icon,
+  badge,
+}: {
+  index: 0 | 1;
+  t: number;
+  icon: "none" | "anchor" | "inline";
+  badge: number;
+}) {
   const total = openingCase.decisions.length;
   const start = at("model", "marks");
   const mine = openingCase.decisions
@@ -346,8 +361,8 @@ function Marks({ index, t }: { index: 0 | 1; t: number }) {
     <div
       role="img"
       aria-label={`${mine.length} of ${total} repeated queries chose: ${openingCase.choices[index]}`}
-      className="mt-[0.5em] flex items-center gap-[0.3em]"
-      style={{ height: ROW_H, opacity: 1 - fadeOut }}
+      className="mt-[0.45em] flex items-center justify-center gap-[0.3em]"
+      style={{ height: ROW_H }}
     >
       {mine.map(({ i }) => {
         const p = ramp(t, start + i * MARK_INTERVAL_MS, start + i * MARK_INTERVAL_MS + FADE_MS);
@@ -358,12 +373,27 @@ function Marks({ index, t }: { index: 0 | 1; t: number }) {
             style={{
               flex: "0 1 0.85em",
               backgroundColor: OPTION_ACCENT,
-              opacity: p,
+              opacity: p * (1 - fadeOut),
               transform: `scale(${0.5 + 0.5 * p})`,
             }}
           />
         );
       })}
+      {icon === "anchor" && (
+        <span
+          data-anchor="icon-option"
+          className="ml-[0.2em] inline-flex shrink-0"
+          style={{ width: 32, height: 32, marginBlock: -8, zoom: "var(--z)", visibility: "hidden" }}
+        />
+      )}
+      {icon === "inline" && (
+        <span
+          className="ml-[0.2em] inline-flex shrink-0"
+          style={{ marginBlock: -8, opacity: badge, zoom: "var(--z)" }}
+        >
+          <ProviderIcon src={PROVIDER.logo} alt={PROVIDER.name} size={32} />
+        </span>
+      )}
     </div>
   );
 }
@@ -411,12 +441,12 @@ function Chips({ index, t }: { index: 0 | 1; t: number }) {
   const shown = VALUE_ORDER.filter((v) => weight[v] > 0);
   if (shown.length === 0) return null;
   return (
-    <div className="mt-[0.5em] flex flex-col items-start gap-[0.2em]">
+    <div className="mt-[0.5em] flex w-full flex-col items-center gap-[0.2em]">
       {shown.map((v) => (
         <div
           key={v}
           className="flex min-h-[1.6em] max-w-full items-center"
-          style={{ opacity: weight[v], transform: `scale(${0.85 + 0.15 * weight[v]})`, transformOrigin: "left center" }}
+          style={{ opacity: weight[v], transform: `scale(${0.85 + 0.15 * weight[v]})`, transformOrigin: "center" }}
         >
           <TagChip v={v} tag={tags[v]} />
         </div>
@@ -440,7 +470,7 @@ function OptionCard({
   showChips: boolean;
   sharedIcon: boolean;
 }) {
-  const frame = selected ? OPTION_ACCENT : NEUTRAL.line;
+  const frame = selected ? OPTION_ACCENT : `color-mix(in srgb, ${NEUTRAL.ink} 28%, white)`;
   const iconHere =
     sharedIcon &&
     index === openingCase.response.chosen &&
@@ -457,32 +487,22 @@ function OptionCard({
   return (
     <li
       aria-current={selected ? "true" : undefined}
-      className="rounded-[0.9em] border p-[0.8em] transition-colors duration-75 ease-out"
+      className="flex flex-col items-center justify-center rounded-[0.7em] border bg-white px-[0.85em] py-[0.4em] text-center transition-colors duration-75 ease-out"
       style={{
         borderColor: frame,
-        backgroundColor: selected ? "#F4F4F5" : "#FAFAFA",
-        boxShadow: selected ? `0 0 0 1px ${OPTION_ACCENT}` : "none",
+        backgroundColor: selected ? "#F4F4F5" : "#FFFFFF",
+        boxShadow: selected ? `0 0 0 1px ${OPTION_ACCENT}` : "0 1px 2px rgba(16,24,40,0.06)",
         color: NEUTRAL.ink,
       }}
     >
-      <div className="flex items-start justify-between gap-[0.6em]">
-        <p className="font-semibold leading-snug" style={{ fontSize: "1.05em" }}>
-          {openingCase.choices[index]}
-        </p>
-        {showIcon &&
-          (sharedIcon ? (
-            <span
-              data-anchor="icon-option"
-              className="inline-flex shrink-0"
-              style={{ width: 32, height: 32, zoom: "var(--z)", visibility: "hidden" }}
-            />
-          ) : (
-            <span className="inline-flex shrink-0" style={{ opacity: badge, zoom: "var(--z)" }}>
-              <ProviderIcon src={PROVIDER.logo} alt={PROVIDER.name} size={32} />
-            </span>
-          ))}
-      </div>
-      {showChips ? <Chips index={index} t={t} /> : showMarks ? <Marks index={index} t={t} /> : null}
+      <p className="font-semibold leading-snug" style={{ fontSize: "1.05em" }}>
+        {openingCase.choices[index]}
+      </p>
+      {/* The shared icon outlasts the dots by one move, so the row stays mounted until it has left. */}
+      {(showMarks || iconHere) && (
+        <Marks index={index} t={t} icon={!showIcon ? "none" : sharedIcon ? "anchor" : "inline"} badge={badge} />
+      )}
+      {showChips ? <Chips index={index} t={t} /> : null}
     </li>
   );
 }
@@ -574,7 +594,7 @@ const SceneBody = memo(function SceneBody({
   const showOptions = t >= at("dilemma", "options") && !cleared;
   const optionsOpacity = ramp(t, at("dilemma", "options"), at("dilemma", "options") + FADE_MS) * (1 - clearP);
   const selectedIndex = t >= at("model", "extract") && t < FRAMEWORK_AT ? openingCase.response.chosen : null;
-  const showMarks = t < FRAMEWORK_AT;
+  const showMarks = t >= at("model", "marks") && t < FRAMEWORK_AT;
   const showChips = t >= FRAMEWORK_AT;
 
   const showStrip = t >= at("framework", "framework") && !cleared;
