@@ -15,7 +15,7 @@ import ModelsAndPhysicians from "../chapters/ending/ModelsAndPhysicians";
 import { AUTOPLAY_MODELS, GALLERY_PHYSICIANS, INDIVIDUAL_MODELS } from "../chapters/ending/profiles";
 import { individualLabelWeight } from "../chapters/ending/beats";
 import { clamp01, easeInOut } from "../chapters/ending/shared";
-import { FADE_MS, MOVE_MS } from "../design/motion";
+import { FADE_MS } from "../design/motion";
 import { foregroundCases, gptProfile, stackCases } from "./data";
 import Morph from "./Morph";
 import { MORPH_TIMING, morphBeats } from "./morphBeats";
