@@ -99,9 +99,10 @@ const HALF_ROW = "1.125em";
  * The model's response for the opening, below the options. The round provider
  * icon sits on the panel's top-left edge and spins while the panel reads
  * "thinking…"; then the answer types out and its recommendation is picked out.
- * The panel then shrinks away and a dot lands beside the icon. The icon turns
- * again for each repeated query, each time leaving one more dot. Highlight
- * timing matches `ModelResponse`. Everything is in `em`, so it scales with the scene.
+ * The panel then shrinks away and a dot lands beside the icon, on the side of
+ * the choice that query made. Nine land with the icon; one lands on the other
+ * side. The icon turns again for each repeated query. Highlight timing matches
+ * `ModelResponse`. Everything is in `em`, so it scales with the scene.
  */
 export default function OpeningResponse({
   text,
@@ -139,7 +140,8 @@ export default function OpeningResponse({
     ro.observe(node);
     return () => ro.disconnect();
   }, []);
-  const dotCount = RUN_DOTS.filter((d) => progress.elapsedMs >= d.startMs).length;
+  const arrived = (choice: 0 | 1) =>
+    RUN_DOTS.filter((d) => d.choice === choice && progress.elapsedMs >= d.startMs).length;
   const c = clamp01(collapse);
   const settled = c <= 0 || panelH === 0;
   const panelFade = 1 - ramp(c, 0, 0.6);
@@ -178,46 +180,58 @@ export default function OpeningResponse({
 
   return (
     <div className="relative w-full" data-response-panel>
-      {/* Mark and dots. The panel's top edge runs through the middle of this row. */}
+      {/* Mark and dots. The panel's top edge runs through the middle of this row.
+          The two columns match the option cards: choice 1 with the mark, choice 2 on the other side. */}
       <div
         role="img"
-        aria-label={`${dotCount} of ${RUN_DOTS.length} repeated queries answered`}
-        className="relative z-10 flex items-center"
-        style={{ height: ROW, paddingLeft: "0.9em", gap: "0.7em" }}
+        aria-label={`${arrived(0)} decisions for the first choice, ${arrived(1)} for the second`}
+        className="relative z-10 grid w-full grid-cols-2 items-center"
+        style={{ height: ROW, gap: "0.6em" }}
       >
-        {/* Sized with calc, not `zoom`: the stage measures this box to place its own copy of the icon. */}
-        <span
-          data-anchor={hideIcon ? "icon-response" : undefined}
-          className="inline-flex shrink-0 items-center justify-center"
-          style={{
-            width: "calc(36px * var(--z))",
-            height: "calc(36px * var(--z))",
-            visibility: hideIcon ? "hidden" : undefined,
-          }}
-        >
-          <span className="inline-flex" style={{ zoom: "var(--z)", transform: `rotate(${spin}deg)` }}>
-            <ProviderIcon src={iconSrc} alt={iconLabel} size={36} />
-          </span>
-        </span>
-        <span className="flex items-center" style={{ gap: "0.45em" }}>
-          {RUN_DOTS.map((dot, i) => {
-            const p = ramp(progress.elapsedMs, dot.startMs, dot.startMs + FADE_MS);
-            return (
+        {([0, 1] as const).map((choice) => (
+          <div
+            key={choice}
+            className="flex min-w-0 items-center"
+            style={{ paddingLeft: "0.9em", gap: choice === 0 ? "0.7em" : "0.45em" }}
+          >
+            {choice === 0 && (
+              // Sized with calc, not `zoom`: the stage measures this box to place its own copy of the icon.
               <span
-                key={i}
-                aria-hidden
-                className="block rounded-full"
+                data-anchor={hideIcon ? "icon-response" : undefined}
+                className="inline-flex shrink-0 items-center justify-center"
                 style={{
-                  width: "0.7em",
-                  height: "0.7em",
-                  backgroundColor: CHARCOAL,
-                  opacity: p,
-                  transform: `scale(${0.5 + 0.5 * p})`,
+                  width: "calc(36px * var(--z))",
+                  height: "calc(36px * var(--z))",
+                  visibility: hideIcon ? "hidden" : undefined,
                 }}
-              />
-            );
-          })}
-        </span>
+              >
+                <span className="inline-flex" style={{ zoom: "var(--z)", transform: `rotate(${spin}deg)` }}>
+                  <ProviderIcon src={iconSrc} alt={iconLabel} size={36} />
+                </span>
+              </span>
+            )}
+            <span className="flex items-center" style={{ gap: "0.45em" }}>
+              {RUN_DOTS.map((dot, i) => {
+                if (dot.choice !== choice) return null;
+                const p = ramp(progress.elapsedMs, dot.startMs, dot.startMs + FADE_MS);
+                return (
+                  <span
+                    key={i}
+                    aria-hidden
+                    className="block shrink-0 rounded-full"
+                    style={{
+                      width: "0.7em",
+                      height: "0.7em",
+                      backgroundColor: CHARCOAL,
+                      opacity: p,
+                      transform: `scale(${0.5 + 0.5 * p})`,
+                    }}
+                  />
+                );
+              })}
+            </span>
+          </div>
+        ))}
       </div>
 
       <div

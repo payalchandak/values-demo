@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 import type { ChapterContext } from "../types";
 import { beatStart, chapterDuration } from "../types";
 import ProviderIcon from "../components/ProviderIcon";
@@ -6,7 +6,7 @@ import openaiLogo from "../assets/providers/openai.svg";
 import OpeningScene from "../chapters/opening/OpeningScene";
 import { ICON_LEAVE_MS } from "../chapters/opening/OpeningScene";
 import { markSpinDeg, modelHandoff } from "../chapters/opening/timeline";
-import StackStage, { type PatientBridge } from "../chapters/stack/StackStage";
+import StackStage from "../chapters/stack/StackStage";
 import { stackBeats } from "../chapters/stack/beats";
 import { RegressionScene } from "../chapters/regression/RegressionChapter";
 import { regressionBeats } from "../chapters/regression/beats";
@@ -23,7 +23,6 @@ import {
   headlineAt,
   isOpening,
   openingTime,
-  OPENING_END_MS,
   SEGMENT_OFFSET,
   type HeadlineState,
   type SegmentId,
@@ -150,9 +149,8 @@ function Headline({ state }: { state: HeadlineState }) {
 
 const STACK_END = chapterDuration({ beats: stackBeats });
 const REGRESSION_END = chapterDuration({ beats: regressionBeats });
-const BRIDGE_MS = beatStart(stackBeats, "turn");
 
-function StackScene({ elapsedMs, bridge }: { elapsedMs: number; bridge?: PatientBridge | null }) {
+function StackScene({ elapsedMs }: { elapsedMs: number }) {
   return (
     <StackStage
       cases={stackCases}
@@ -160,7 +158,6 @@ function StackScene({ elapsedMs, bridge }: { elapsedMs: number; bridge?: Patient
       elapsedMs={elapsedMs}
       profileKey={gptProfile.key}
       profileLabel={gptProfile.displayName}
-      bridge={bridge}
     />
   );
 }
@@ -182,49 +179,22 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
   const iconRef = useRef<HTMLDivElement>(null);
 
   const inOpening = isOpening(segment);
-  const bridging = segment === "stack" && e < BRIDGE_MS;
-  const showOpening = inOpening || bridging;
   const showScenes = !inOpening;
 
-  // Where the opening's patient card is, handed to the stack so its first card can start there.
-  const [patient, setPatient] = useState<PatientBridge | null>(null);
   useLayoutEffect(() => {
     const root = rootRef.current;
     const icon = iconRef.current;
     if (!root || !icon) return;
-    let next: PatientBridge | null = null;
-    if (bridging) {
-      const el = root.querySelector<HTMLElement>('[data-shared="patient"]');
-      if (el) {
-        const r = el.getBoundingClientRect();
-        next = {
-          left: r.left,
-          top: r.top,
-          width: r.width,
-          height: r.height,
-          fontPx: parseFloat(getComputedStyle(el).fontSize),
-        };
-      }
-    }
-    setPatient((prev) => {
-      if (prev === next) return prev;
-      if (prev && next && (Object.keys(next) as (keyof PatientBridge)[]).every((k) => Math.abs(prev[k] - next[k]) < 0.5)) {
-        return prev;
-      }
-      return next;
-    });
     placeIcon(root, icon, iconPlan(segment, e));
   });
-
-  const openingT = inOpening ? openingTime(segment, e) : OPENING_END_MS + e;
   // Two turns while the model thinks, then one more per repeated query. Every turn ends upright.
   const spinDeg = segment === "opening-model" ? markSpinDeg(e) : 0;
 
   return (
     <div ref={rootRef} data-stage className="relative h-full w-full">
-      {showOpening && (
+      {inOpening && (
         <div className="absolute inset-0" key="opening">
-          <OpeningScene t={openingT} sharedIcon hidePatient={segment === "stack"} recallPatient />
+          <OpeningScene t={openingTime(segment, e)} sharedIcon />
         </div>
       )}
 
@@ -232,7 +202,7 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
         <div className="absolute inset-0 flex flex-col" key="scenes">
           <Headline state={headlineAt(T)} />
           <div data-scene-zone className="relative min-h-0 flex-1">
-            {segment === "stack" && <StackScene elapsedMs={e} bridge={bridging ? patient : null} />}
+            {segment === "stack" && <StackScene elapsedMs={e} />}
 
             {segment === "regression" && (
               <>

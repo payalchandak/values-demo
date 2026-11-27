@@ -1,8 +1,6 @@
 import { memo, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { MOVE_MS } from "../../design/motion";
 import type { StudyCase, Tag, Value } from "../../study/types";
 import type { Beat } from "../../types";
-import { PatientCard } from "../opening/OpeningScene";
 import CaseCardFace, { CaseCardMini, caseCardFor, caseFaceStyle } from "./CaseCard";
 import { resolveBeats } from "./beats";
 import {
@@ -30,16 +28,6 @@ import {
 const displayId = (id: string) => (/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(id) ? id.slice(0, 8) : id);
 
 /** Choice 1 and choice 2 colors: used by edge markers, card backs and the frequency bar. */
-/** Where the opening's patient card sits on screen (viewport px) when the stack takes over from it. */
-export interface PatientBridge {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-  /** Computed font size of the card, so its em-based text renders identically. */
-  fontPx: number;
-}
-
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
@@ -60,12 +48,6 @@ interface StackStageProps {
   profileKey: string;
   /** Name shown in the table header; defaults to `profileKey`. */
   profileLabel?: string;
-  /**
-   * The opening's patient card. While the chapter clock is before the `shrink`
-   * beat, the first card starts as that card (same place, same size) and
-   * turns into the stack's first card.
-   */
-  bridge?: PatientBridge | null;
   /** Note under the case count. Used when the table is held after the stack. */
   caption?: ReactNode;
 }
@@ -81,7 +63,6 @@ export default function StackStage({
   elapsedMs,
   profileKey,
   profileLabel,
-  bridge,
   caption,
 }: StackStageProps) {
   if (cases.length < 3) throw new Error("StackStage needs at least 3 cases");
@@ -102,15 +83,11 @@ export default function StackStage({
     scale: number;
     left: number;
     top: number;
-    hostLeft: number;
-    hostTop: number;
     layout: Layout;
   }>({
     scale: 1,
     left: 0,
     top: 0,
-    hostLeft: 0,
-    hostTop: 0,
     layout: WIDE,
   });
   const L = fit.layout;
@@ -119,15 +96,13 @@ export default function StackStage({
     const host = hostRef.current;
     if (!host) return;
     const measure = () => {
-      const { width, height, left: hostLeft, top: hostTop } = host.getBoundingClientRect();
+      const { width, height } = host.getBoundingClientRect();
       const layout = layoutFor(width, height);
       const scale = Math.min(width / layout.stageW, height / layout.stageH);
       setFit({
         scale,
         left: (width - layout.stageW * scale) / 2,
         top: (height - layout.stageH * scale) / 2,
-        hostLeft,
-        hostTop,
         layout,
       });
     };
@@ -136,20 +111,6 @@ export default function StackStage({
     observer.observe(host);
     return () => observer.disconnect();
   }, []);
-
-  // Bridge: card 0 starts as the opening's patient card and settles into the stack card.
-  const bridgeMs = Math.min(times.shrink, MOVE_MS);
-  const bridgeP = bridge && bridgeMs > 0 ? 1 - easeInOut(clamp01(elapsedMs / bridgeMs)) : 0;
-  const patient =
-    bridge && bridgeP > 0
-      ? {
-          cx: (bridge.left + bridge.width / 2 - fit.hostLeft - fit.left) / fit.scale,
-          cy: (bridge.top + bridge.height / 2 - fit.hostTop - fit.top) / fit.scale,
-          w: bridge.width / fit.scale,
-          h: bridge.height / fit.scale,
-          fontPx: bridge.fontPx / fit.scale,
-        }
-      : null;
 
   // Cards stay centered. As they become rows, the stage rises so the table
   // header sits just under the headline instead of in the middle of the scene.
@@ -192,30 +153,17 @@ export default function StackStage({
           <TableHeader profileLabel={profileLabel ?? profileKey} compact={L.compactRows} />
         </div>
 
-        {frame.cards.map((frameCard) => {
-          const card =
-            frameCard.index === 0 && patient
-              ? {
-                  ...frameCard,
-                  cx: lerp(frameCard.cx, patient.cx, bridgeP),
-                  cy: lerp(frameCard.cy, patient.cy, bridgeP),
-                  w: lerp(frameCard.w, patient.w, bridgeP),
-                  h: lerp(frameCard.h, patient.h, bridgeP),
-                  shellOpacity: Math.max(frameCard.shellOpacity, 1),
-                  faceOpacity: frameCard.faceOpacity * clamp01((0.6 - bridgeP) / 0.3),
-                }
-              : frameCard;
-          return card.opacity <= 0 ? null : (
+        {frame.cards.map((card) =>
+          card.opacity <= 0 ? null : (
             <StackCard
               key={cases[card.index].id}
               card={card}
               study={cases[card.index]}
               delta={deltas[card.index]}
               layout={L}
-              patient={card.index === 0 && patient ? { ...patient, opacity: clamp01((bridgeP - 0.4) / 0.3) } : null}
             />
-          );
-        })}
+          ),
+        )}
 
         <Centered layout={L} y={L.ellipsisY} opacity={frame.ellipsisOpacity}>
           <span className="text-3xl leading-none tracking-[0.3em]" style={{ color: `${INK}99` }}>
@@ -290,13 +238,11 @@ function StackCard({
   study,
   delta,
   layout,
-  patient,
 }: {
   card: CardFrame;
   study: StudyCase;
   delta: ReturnType<typeof deltaOf> | undefined;
   layout: Layout;
-  patient: { w: number; h: number; fontPx: number; opacity: number } | null;
 }) {
   const showBack = card.flipDeg > 90;
   return (
@@ -361,24 +307,6 @@ function StackCard({
               count={card.choice1Count}
               compact={layout.compactRows}
             />
-          </div>
-        </div>
-      )}
-
-      {patient && patient.opacity > 0 && (
-        // The opening's patient card, uniformly scaled to the card's current box.
-        <div style={{ position: "absolute", inset: 0, borderRadius: 12, overflow: "hidden", opacity: patient.opacity }}>
-          <div
-            style={{
-              position: "absolute",
-              left: "50%",
-              top: "50%",
-              width: patient.w,
-              fontSize: patient.fontPx,
-              transform: `translate(-50%, -50%) scale(${Math.min(card.w / patient.w, card.h / patient.h)})`,
-            }}
-          >
-            <PatientCard />
           </div>
         </div>
       )}

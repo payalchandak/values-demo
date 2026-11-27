@@ -1,6 +1,6 @@
 import { FADE_MS, VALUE_ORDER } from "../../design";
 import type { Value } from "../../study/types";
-import { at, ramp } from "./timeline";
+import { at, highlightSweepMs, ramp } from "./timeline";
 
 /**
  * What the framework chapter shows about the values, as 0..1 weights that are
@@ -8,17 +8,20 @@ import { at, ramp } from "./timeline";
  * is 0, so the vignette stays plain.
  *
  *  - name[v]       the value's full name and definition (vignette still plain).
- *  - highlight[v]  its trigger sentence is highlighted; the rest dims.
+ *  - highlight[v]  its trigger sentence is the active one; the rest dims.
+ *  - sweep[v]      how far the tint has traveled across that sentence, 0..1.
  *  - dim           how far the rest of the vignette has receded.
- *  - chip1[v]      the value's label on Choice 1.
- *  - chip2[v]      the value's label on Choice 2.
+ *  - chip1[v]      the value's label under Choice 1.
+ *  - chip2[v]      the value's label under Choice 2.
  *
  * A value's name and highlight end where the next value begins (the last one,
- * at the "all" beat). The labels stay.
+ * at the "all" beat). The labels stay. The sweep runs for the sentence's
+ * reading time and then holds at 1; it does not rewind when the tint clears.
  */
 export interface ValueSteps {
   name: Record<Value, number>;
   highlight: Record<Value, number>;
+  sweep: Record<Value, number>;
   dim: number;
   chip1: Record<Value, number>;
   chip2: Record<Value, number>;
@@ -42,8 +45,12 @@ export function valueSteps(t: number): ValueSteps {
 
   const name = record((v) => rampAt(v) * clear(v));
   const highlight = record((v) => rampAt(`${v}Highlight`) * clear(v));
+  const sweep = record((v) => {
+    const start = at("framework", `${v}Highlight`);
+    return ramp(t, start, start + highlightSweepMs(v));
+  });
   const chip1 = record((v) => rampAt(`${v}Chip1`));
   const chip2 = record((v) => rampAt(`${v}Chip2`));
   const dim = Math.max(...VALUE_ORDER.map((v) => highlight[v]));
-  return { name, highlight, dim, chip1, chip2 };
+  return { name, highlight, sweep, dim, chip1, chip2 };
 }

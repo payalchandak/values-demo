@@ -431,8 +431,8 @@ function TagChip({ v, tag }: { v: Value; tag: Tag }) {
   return (
     <span
       aria-label={`${VALUES[v].name}: ${meta.word} (${meta.code})`}
-      className="inline-flex max-w-full flex-wrap items-center gap-x-[0.35em] rounded-[1em] border px-[0.65em] py-[0.12em] font-semibold"
-      style={{ ...style, fontSize: "0.9em", borderWidth: meta.chip === "outlined" ? 1.5 : 1 }}
+      className="inline-flex max-w-full items-center gap-x-[0.3em] whitespace-nowrap rounded-[1em] border px-[0.55em] py-[0.12em] font-semibold"
+      style={{ ...style, fontSize: "0.82em", borderWidth: meta.chip === "outlined" ? 1.5 : 1 }}
     >
       <span aria-hidden="true">{VALUES[v].name}</span>
       <span aria-hidden="true" className="inline-flex items-center gap-[0.25em]">
@@ -444,10 +444,10 @@ function TagChip({ v, tag }: { v: Value; tag: Tag }) {
 }
 
 /**
- * The labels of a choice in a column, A B N J order. A row mounts when its
- * label starts to land, so the card stays compact until then, and a label
- * already on screen stays put when the next one arrives. Choice 1's label
- * lands first, then Choice 2's.
+ * The labels of one decision, outside the choice button, in a 2×2:
+ * Autonomy, Beneficence / Nonmaleficence, Justice. A pill mounts in its cell
+ * when its label starts to land, and a label already on screen stays put when
+ * the next one arrives. Choice 1's label lands first, then Choice 2's.
  */
 function Chips({ index, t }: { index: 0 | 1; t: number }) {
   const steps = valueSteps(t);
@@ -456,12 +456,12 @@ function Chips({ index, t }: { index: 0 | 1; t: number }) {
   const shown = VALUE_ORDER.filter((v) => weight[v] > 0);
   if (shown.length === 0) return null;
   return (
-    <div className="mt-[0.5em] flex w-full flex-col items-center gap-[0.2em]">
+    <div className="grid w-full grid-cols-2 gap-x-[0.4em] gap-y-[0.35em]">
       {shown.map((v) => (
         <div
           key={v}
-          className="flex min-h-[1.6em] max-w-full items-center"
-          style={{ opacity: weight[v], transform: `scale(${0.85 + 0.15 * weight[v]})`, transformOrigin: "center" }}
+          className="flex min-w-0 justify-center"
+          style={{ opacity: weight[v], transform: `scale(${0.92 + 0.08 * weight[v]})`, transformOrigin: "center" }}
         >
           <TagChip v={v} tag={tags[v]} />
         </div>
@@ -483,21 +483,18 @@ function OptionCard({
 }) {
   const frame = selected ? OPTION_ACCENT : `color-mix(in srgb, ${NEUTRAL.ink} 28%, white)`;
   return (
-    <li
-      aria-current={selected ? "true" : undefined}
-      className="flex flex-col items-center justify-center rounded-[0.7em] border bg-white px-[0.85em] py-[0.4em] text-center transition-colors duration-75 ease-out"
-      style={{
-        borderColor: frame,
-        backgroundColor: selected ? "#F4F4F5" : "#FFFFFF",
-        boxShadow: selected ? `0 0 0 1px ${OPTION_ACCENT}` : "0 1px 2px rgba(16,24,40,0.06)",
-        color: NEUTRAL.ink,
-      }}
-    >
-      <div className="relative flex w-full items-center justify-center">
-        <p
-          className="font-semibold leading-snug"
-          style={{ fontSize: "1.05em" }}
-        >
+    <li className="flex min-w-0 flex-col gap-[0.45em] @md:col-span-1 @md:row-span-2 @md:grid @md:grid-rows-subgrid @md:gap-y-[0.45em]">
+      <div
+        aria-current={selected ? "true" : undefined}
+        className="flex h-full items-center justify-center rounded-[0.7em] border bg-white px-[0.85em] py-[0.4em] text-center transition-colors duration-75 ease-out"
+        style={{
+          borderColor: frame,
+          backgroundColor: selected ? "#F4F4F5" : "#FFFFFF",
+          boxShadow: selected ? `0 0 0 1px ${OPTION_ACCENT}` : "0 1px 2px rgba(16,24,40,0.06)",
+          color: NEUTRAL.ink,
+        }}
+      >
+        <p className="font-semibold leading-snug" style={{ fontSize: "1.05em" }}>
           {openingCase.choices[index]}
         </p>
       </div>
@@ -660,7 +657,7 @@ const SceneBody = memo(function SceneBody({
       {showOptions && (
         <Block probe={probe} className="w-full" layout={!headingMoving && !optionsMoving}>
           <FadeSlot enter={optionsEnter}>
-            <ul className="grid w-full grid-cols-1 items-stretch gap-[0.6em] @md:grid-cols-2">
+            <ul className="grid w-full grid-cols-1 gap-y-[0.7em] @md:grid-cols-2 @md:grid-rows-[auto_auto] @md:gap-x-[0.6em] @md:gap-y-[0.45em]">
               <OptionCard index={0} t={t} selected={selectedIndex === 0} showChips={showChips} />
               <OptionCard index={1} t={t} selected={selectedIndex === 1} showChips={showChips} />
             </ul>

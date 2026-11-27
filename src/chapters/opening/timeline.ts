@@ -1,5 +1,6 @@
 import { beatStart, type Beat } from "../../types";
 import { FADE_MS, MOVE_MS, VALUE_ORDER } from "../../design";
+import type { Value } from "../../study/types";
 import { openingCase } from "./openingCase";
 import { triggerWords } from "./valueTriggers";
 
@@ -65,8 +66,14 @@ const EXTRACTED_AT = EXTRACT_AT + 1000;
 export const COLLAPSE_MS = 300;
 const COLLAPSE_AT = EXTRACTED_AT;
 const FIRST_DOT_AT = COLLAPSE_AT + COLLAPSE_MS;
+/**
+ * Choice each repeated query shows, in run order. 0 = choice 1, 1 = choice 2.
+ * The recorded runs all pick choice 1. The opening shows 9–1 instead: the slow
+ * second query picks choice 2, so one dot lands on the other side.
+ */
+const SHOWN_CHOICES = [0, 1, 0, 0, 0, 0, 0, 0, 0, 0] as const;
 /** Each repeat query: the mark turns once, then its dot lands. */
-const RUN_COUNT = openingCase.decisions.length;
+const RUN_COUNT = SHOWN_CHOICES.length;
 const RERUNS_AT = FIRST_DOT_AT + 500;
 /** The second decision takes its time; decisions 3 to 10 run much faster. */
 const SLOW_RERUN = { spinMs: 450, gapMs: 120 } as const;
@@ -89,11 +96,13 @@ const RERUNS_DONE_AT = RERUNS.length > 0 ? RERUNS[RERUNS.length - 1].endMs + FAS
 const FIRST_SPIN_DEG = 720;
 
 /**
- * One dot per repeated query, next to the provider mark, in chapter-local ms.
- * The first lands as the answer collapses. Each later one lands as a turn of the mark ends.
+ * One dot per repeated query, in chapter-local ms. Choice 1 dots sit with the
+ * mark; the choice 2 dot sits on the other side. The first lands as the answer
+ * collapses. Each later one lands as a turn of the mark ends.
  */
-export const RUN_DOTS: readonly { startMs: number }[] = Array.from({ length: RUN_COUNT }, (_, i) => ({
+export const RUN_DOTS: readonly { startMs: number; choice: 0 | 1 }[] = SHOWN_CHOICES.map((choice, i) => ({
   startMs: i === 0 ? FIRST_DOT_AT - MOVE_MS : RERUNS[i - 1].endMs,
+  choice,
 }));
 
 /** Rotation of the provider mark in degrees at chapter-local time `e`. Cumulative, so every turn ends upright. */
@@ -153,16 +162,23 @@ const round100 = (ms: number): number => Math.round(ms / 100) * 100;
  * the reset: the model answer leaves and the plain vignette arrives with the
  * headline. Inside each value's window:
  *   <v>           its full name and definition appear; the vignette is plain
- *   <v>Highlight  its trigger sentence is highlighted, the rest dims
- *   <v>Chip1      its label lands on Choice 1
- *   <v>Chip2      its label lands on Choice 2
- * The next value begins once the second label has landed. That beat clears
- * the highlight and starts over. The labels already added stay on the choices.
+ *   <v>Highlight  the tint starts across its trigger sentence; the rest dims
+ *   <v>Chip1      its label lands under Choice 1
+ *   <v>Chip2      its label lands under Choice 2
+ * The tint travels one word at a time for the per-word allowance, then holds
+ * still until the first label. The next value begins once the second label
+ * has landed. That beat clears the highlight and starts over. Labels already
+ * added stay under the choices.
  */
 const NAME_MS = 1500; // name and definition on a plain vignette
-const HIGHLIGHT_BASE_MS = 900; // plus a reading allowance per word of the trigger sentence
-const HIGHLIGHT_PER_WORD_MS = 180;
+const HIGHLIGHT_BASE_MS = 900; // still hold of the fully tinted sentence, before the first label
+const HIGHLIGHT_PER_WORD_MS = 180; // the tint crosses one word in this long
 const CHIP_GAP_MS = 700; // Choice 1 label, then Choice 2 label
+
+/** How long the tint takes to travel across a value's trigger sentence. */
+export function highlightSweepMs(v: Value): number {
+  return HIGHLIGHT_PER_WORD_MS * triggerWords(v);
+}
 
 const framework = (() => {
   const beats: Beat[] = [{ name: "framework", startMs: 0 }]; // "Clinical decisions require ..."

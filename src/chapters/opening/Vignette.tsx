@@ -9,31 +9,74 @@ const DIM_OF_REST = 0.72;
 /** Focused layout: how much larger the active sentence is than a resting one. */
 const FOCUS_GROW = 0.25;
 
+const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
+
 /**
- * A trigger sentence. It is plain text until its value's turn; then it gets a
- * charcoal tint (never an underline) and the rest of the vignette dims.
+ * A trigger sentence stays in the flow at all times. On its value's turn the
+ * rest of the vignette dims, and a charcoal tint travels across the sentence
+ * word by word. The tint is never an underline, and it never covers the
+ * sentence in one step.
  */
-function triggerStyle(h: number, dim: number): CSSProperties {
-  return {
-    opacity: 1 - DIM_OF_REST * dim * (1 - h),
-    backgroundColor: `color-mix(in srgb, ${CHARCOAL_TINT} ${h * 100}%, transparent)`,
-    boxDecorationBreak: "clone",
-    WebkitBoxDecorationBreak: "clone",
-    borderRadius: "0.2em",
-    padding: "0.05em 0.1em",
-    margin: "0 -0.1em",
-  };
+function TriggerText({
+  text,
+  presence,
+  sweep,
+  dim,
+}: {
+  text: string;
+  presence: number;
+  sweep: number;
+  dim: number;
+}) {
+  const words = text.match(/\S+\s*/g) ?? [text];
+  const n = words.length;
+  const dimmed = 1 - DIM_OF_REST * dim;
+  const tint = `color-mix(in srgb, ${CHARCOAL_TINT} ${presence * 100}%, transparent)`;
+  return (
+    <span
+      style={{
+        boxDecorationBreak: "clone",
+        WebkitBoxDecorationBreak: "clone",
+        borderRadius: "0.2em",
+        padding: "0.05em 0.1em",
+        margin: "0 -0.1em",
+      }}
+    >
+      {words.map((word, i) => {
+        const fill = clamp01(sweep * n - i);
+        // Unreached words stay with the dimmed vignette. Each word brightens
+        // as the tint arrives, so the sentence does not pop on all at once.
+        const opacity = presence > 0 ? dimmed + (1 - dimmed) * fill : dimmed;
+        const style: CSSProperties = {
+          opacity,
+          backgroundImage: `linear-gradient(${tint}, ${tint})`,
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "0 0",
+          backgroundSize: `${fill * 100}% 100%`,
+          boxDecorationBreak: "clone",
+          WebkitBoxDecorationBreak: "clone",
+        };
+        return (
+          <span key={i} style={style}>
+            {word}
+          </span>
+        );
+      })}
+    </span>
+  );
 }
 
 function Segment({ seg, s }: { seg: VignetteSegment; s: ValueSteps }) {
   if (seg.value === null) return <span style={{ opacity: 1 - DIM_OF_REST * s.dim }}>{seg.text}</span>;
-  return <span style={triggerStyle(s.highlight[seg.value], s.dim)}>{seg.text}</span>;
+  const v = seg.value;
+  return <TriggerText text={seg.text} presence={s.highlight[v]} sweep={s.sweep[v]} dim={s.dim} />;
 }
 
 /**
  * The full case vignette, verbatim. It arrives plain with the framework
- * chapter, then one trigger sentence at a time takes a charcoal tint (never
- * an underline) while the rest recedes, and returns to plain between values.
+ * chapter, then one trigger sentence at a time takes a charcoal tint that
+ * travels across the words (never an underline, never the whole sentence at
+ * once) while the rest recedes, and returns to plain between values.
  *
  * `focused` is the narrow-screen layout: only the trigger sentences are shown
  * (the rest of the vignette collapses to an ellipsis), and the sentence being
@@ -88,7 +131,7 @@ function FocusedText({ s }: { s: ValueSteps }) {
         style={{ fontSize: `${1 + FOCUS_GROW * h}em` }}
       >
         {gapBefore && mark}
-        <span style={triggerStyle(h, s.dim)}>{seg.text}</span>
+        <TriggerText text={seg.text} presence={h} sweep={s.sweep[v]} dim={s.dim} />
         {gapAfter && (
           <span aria-hidden="true" style={{ color: NEUTRAL.inkFaint, opacity: 1 - DIM_OF_REST * s.dim }}>
             {" ..."}
