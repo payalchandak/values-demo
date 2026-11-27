@@ -53,7 +53,7 @@ export default function Hud({
   onSeek,
 }: HudProps) {
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 rounded-2xl border border-line bg-white/70 p-2 shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-md">
+    <div data-playback-ui className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 rounded-2xl border border-line bg-white/70 p-2 shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-md">
       <div className="flex items-center gap-1">
         <HudButton label="Previous (←)" onClick={onPrev} disabled={currentStep === 0}>
           <svg className={icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

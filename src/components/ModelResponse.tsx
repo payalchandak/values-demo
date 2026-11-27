@@ -1,5 +1,5 @@
 import { useMemo, type CSSProperties } from "react";
-import type { ModelResponseConfig, ModelResponseTiming } from "../data/demoData";
+import type { ModelResponseConfig } from "../data/demoData";
 import ProviderIcon from "./ProviderIcon";
 
 /** Clamp to 0..1. */
@@ -12,8 +12,26 @@ const ramp = (t: number, start: number, end: number): number =>
 /** Short fade used for the small labels, in ms. */
 const LABEL_FADE_MS = 250;
 
+/**
+ * Window boundaries of the response chapter, in ms from the chapter's start.
+ * Built from the chapter's beats (see `demoChapters.tsx`), not stored in data.
+ */
+export interface ModelResponseTiming {
+  /** Response phrase groups fade in across [revealStartMs, revealEndMs]. */
+  revealStartMs: number;
+  revealEndMs: number;
+  /** Fade-in length of a single phrase group. */
+  groupFadeMs: number;
+  /** Recommendation span highlight sweeps across this window. */
+  highlightStartMs: number;
+  highlightEndMs: number;
+  /** Matching recommendation card is outlined across this window. */
+  outlineStartMs: number;
+  outlineEndMs: number;
+}
+
 export interface ResponseProgress {
-  /** Elapsed time actually used (the end of the step when none is supplied). */
+  /** Elapsed time used. */
   elapsedMs: number;
   /** 0..1 sweep of the recommendation-span highlight. */
   highlight: number;
@@ -28,18 +46,14 @@ export interface ResponseProgress {
 }
 
 /**
- * Everything the response step shows is a pure function of the step's elapsed
+ * Everything the response chapter shows is a pure function of the chapter's elapsed
  * time. No timers live here, so whatever supplies `elapsedMs` (the playback
  * clock) fully controls pausing, scrubbing, and replay.
- *
- * `elapsedMs === undefined` means "no clock available": show the settled end
- * state (full response, highlighted span, outlined choice).
  */
 export function getResponseProgress(
-  elapsedMs: number | undefined,
+  e: number,
   timing: ModelResponseTiming,
 ): ResponseProgress {
-  const e = elapsedMs ?? timing.durationMs;
   const outline = ramp(e, timing.outlineStartMs, timing.outlineEndMs);
   return {
     elapsedMs: e,
@@ -117,8 +131,9 @@ interface ModelResponseProps {
   config: ModelResponseConfig;
   /** URL of the provider logo. */
   iconSrc: string;
-  /** Step-local playback time in ms. Omit to show the settled end state. */
-  elapsedMs?: number;
+  /** Chapter-local playback time in ms. */
+  elapsedMs: number;
+  timing: ModelResponseTiming;
 }
 
 /**
@@ -126,8 +141,7 @@ interface ModelResponseProps {
  * phrase group, then the recommendation span is highlighted. Purely
  * presentational: all motion is derived from `elapsedMs`.
  */
-export default function ModelResponse({ config, iconSrc, elapsedMs }: ModelResponseProps) {
-  const { timing } = config;
+export default function ModelResponse({ config, iconSrc, elapsedMs, timing }: ModelResponseProps) {
   const layout = useMemo(
     () => layoutResponse(config.text, config.recommendationSpan, config.revealWordsPerGroup),
     [config.text, config.recommendationSpan, config.revealWordsPerGroup],

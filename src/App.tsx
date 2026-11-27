@@ -1,6 +1,6 @@
 import DemoPlayer from "./DemoPlayer";
-import { steps } from "./demoSteps";
+import { chapters } from "./demoChapters";
 
 export default function App() {
-  return <DemoPlayer steps={steps} />;
+  return <DemoPlayer chapters={chapters} />;
 }

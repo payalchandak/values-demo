@@ -21,8 +21,8 @@ export default function PausedBadge({ visible }: { visible: boolean }) {
           className="pointer-events-none fixed bottom-[6.25rem] right-5 z-50 md:bottom-auto md:left-1/2 md:right-auto md:top-4 md:-translate-x-1/2"
         >
           <div className="rounded-full border border-line bg-white/80 px-3 py-1 font-mono text-[11px] font-medium tracking-wide text-gray-600 shadow-sm backdrop-blur md:px-4 md:py-1.5">
-            PAUSED
-            <span className="hidden md:inline"> — press Space to continue</span>
+            Paused
+            <span className="hidden md:inline">. Press Space to continue</span>
           </div>
         </motion.div>
       )}

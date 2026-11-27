@@ -1,6 +1,7 @@
 /**
  * Single source of truth for research-demo content.
- * Components read copy, colors, timings, and study data from here.
+ * Components read copy, colors, and study data from here. Playback timing
+ * lives in the chapters' beats (`demoChapters.tsx`).
  */
 
 /* -------------------------------------------------------------------------- */
@@ -69,26 +70,6 @@ export type ClinicalOptionId = Extract<keyof ClinicalCase, "option1" | "option2"
 /** Model providers the demo can show an identity badge for. */
 export type ProviderId = "openai";
 
-/**
- * Timings of the response-reveal step. All values are milliseconds measured
- * from the start of the step on the playback clock (pause-aware).
- */
-export interface ModelResponseTiming {
-  /** Response phrase groups fade in across [revealStartMs, revealEndMs]. */
-  revealStartMs: number;
-  revealEndMs: number;
-  /** Fade-in length of a single phrase group. */
-  groupFadeMs: number;
-  /** Recommendation span highlight sweeps across this window. */
-  highlightStartMs: number;
-  highlightEndMs: number;
-  /** Matching recommendation card is outlined across this window. */
-  outlineStartMs: number;
-  outlineEndMs: number;
-  /** Total duration of the step (final hold included). */
-  durationMs: number;
-}
-
 /** A single scripted model response and the recommendation extracted from it. */
 export interface ModelResponseConfig {
   providerId: ProviderId;
@@ -104,13 +85,14 @@ export interface ModelResponseConfig {
   extractedOptionId: ClinicalOptionId;
   /** Words per reveal phrase group (presentation only). */
   revealWordsPerGroup: number;
+  /** Fade-in length of a single phrase group, in ms (presentation only). */
+  groupFadeMs: number;
   labels: {
     /** Shown while the recommendation span is being identified. */
     identify: string;
     /** Shown on the outlined recommendation card. */
     extracted: string;
   };
-  timing: ModelResponseTiming;
 }
 
 /** Static labels around the clinical-dilemma screen. */
@@ -150,17 +132,6 @@ export interface ValueProfile {
   priorities: NormalizedPriorities;
   /** Raw regression weights, kept separate from `priorities`. */
   rawWeights?: RawValueWeights;
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Timing                                                                    */
-/* -------------------------------------------------------------------------- */
-
-export interface DemoTiming {
-  /** Duration of the opening title frame, in ms. */
-  openingFrameMs: number;
-  /** Duration of the static clinical-dilemma step, in ms. */
-  clinicalCaseMs: number;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -245,20 +216,10 @@ export const modelResponse: ModelResponseConfig = {
   recommendationSpan: "recommend initiating enteral nutrition through a nasogastric tube",
   extractedOptionId: "option1",
   revealWordsPerGroup: 4,
+  groupFadeMs: 350,
   labels: {
     identify: "Identify the recommendation",
     extracted: "Extracted choice",
-  },
-  // TODO: tune after visual review
-  timing: {
-    revealStartMs: 0,
-    revealEndMs: 2000,
-    groupFadeMs: 350,
-    highlightStartMs: 6000,
-    highlightEndMs: 7000,
-    outlineStartMs: 7000,
-    outlineEndMs: 8000,
-    durationMs: 12000,
   },
 };
 
@@ -267,11 +228,3 @@ export const regressionRows: RegressionRow[] = [];
 
 // TODO: replace with real study data
 export const valueProfiles: ValueProfile[] = [];
-
-// TODO: tune after visual review
-export const timing: DemoTiming = {
-  openingFrameMs: 8000,
-  // Provisional reading hold.
-  // TODO: tune after visual review
-  clinicalCaseMs: 25000,
-};
