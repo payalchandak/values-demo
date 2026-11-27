@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-canvas: #fbfaf7; /* warm white */
+  --color-line: #e5e7eb;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden; /* zero page scrolling */
+}
+
+body {
+  background: var(--color-canvas);
+  color: #111827;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
