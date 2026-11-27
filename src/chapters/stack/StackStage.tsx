@@ -50,6 +50,21 @@ interface StackStageProps {
   profileLabel?: string;
   /** Note under the case count. Used when the table is held after the stack. */
   caption?: ReactNode;
+  /** Table-to-profile hand-off, all 0..1 except `headersHidden`. Omit for the plain table. */
+  handoff?: TableHandoff;
+}
+
+/**
+ * The four value headers carry `data-anchor="hdr-<value>"`, so whatever takes
+ * them over measures them. `rest` is the opacity of everything but the
+ * headers (rows, decision bars, ellipsis, case count, the other header cells).
+ */
+export interface TableHandoff {
+  emphasis: number;
+  rest: number;
+  caption: number;
+  /** The headers are drawn elsewhere: keep their place, hide their ink. */
+  headersHidden: boolean;
 }
 
 /**
@@ -64,6 +79,7 @@ export default function StackStage({
   profileKey,
   profileLabel,
   caption,
+  handoff,
 }: StackStageProps) {
   if (cases.length < 3) throw new Error("StackStage needs at least 3 cases");
   const times = useMemo(() => resolveBeats(beats), [beats]);
@@ -150,9 +166,10 @@ export default function StackStage({
             opacity: frame.headerOpacity,
           }}
         >
-          <TableHeader profileLabel={profileLabel ?? profileKey} compact={L.compactRows} />
+          <TableHeader profileLabel={profileLabel ?? profileKey} compact={L.compactRows} handoff={handoff} />
         </div>
 
+        <div style={{ opacity: handoff?.rest ?? 1 }}>
         {frame.cards.map((card) =>
           card.opacity <= 0 ? null : (
             <StackCard
@@ -175,6 +192,7 @@ export default function StackStage({
             {cases.length} cases
           </span>
         </Centered>
+        </div>
         {caption && (
           <div
             style={{
@@ -185,7 +203,7 @@ export default function StackStage({
               boxSizing: "border-box",
               padding: "0 16px",
               textAlign: "center",
-              opacity: frame.countLabelOpacity,
+              opacity: frame.countLabelOpacity * (handoff?.caption ?? 1),
               pointerEvents: "none",
               color: "#4b5563",
               fontSize: 16,
@@ -490,7 +508,16 @@ function Chip({ value, tag }: { value: Value; tag: Tag }) {
 const GRID = "140px repeat(4, 96px) 1fr";
 const GRID_COMPACT = "62px repeat(4, 34px) 1fr";
 
-function TableHeader({ profileLabel, compact }: { profileLabel: string; compact: boolean }) {
+function TableHeader({
+  profileLabel,
+  compact,
+  handoff,
+}: {
+  profileLabel: string;
+  compact: boolean;
+  handoff?: TableHandoff;
+}) {
+  const rest = handoff ? { opacity: handoff.rest } : undefined;
   const label = {
     fontSize: compact ? 10 : 10,
     letterSpacing: "0.04em",
@@ -519,18 +546,37 @@ function TableHeader({ profileLabel, compact }: { profileLabel: string; compact:
           borderBottom: "1px solid #d1d5db",
           paddingBottom: 3,
           margin: compact ? "0 4px" : "0 10px",
+          ...rest,
         }}
       >
         {compact ? "\u0394 tags" : "\u0394 tags, choice 1 minus choice 2"}
       </span>
       <span />
-      <span style={{ ...label, textAlign: "left" }}>Case</span>
-      {VALUES.map((v) => (
-        <span key={v} style={compact ? { ...label, color: VALUE_COLORS[v], fontWeight: 700, fontSize: 12 } : label}>
-          {compact ? v : VALUE_NAMES[v]}
-        </span>
-      ))}
-      <span style={{ ...label, textAlign: "left", paddingLeft: compact ? 10 : 20 }}>
+      <span style={{ ...label, textAlign: "left", ...rest }}>Case</span>
+      {VALUES.map((v) => {
+        const e = handoff?.emphasis ?? 0;
+        return (
+          <span key={v} style={compact ? { ...label, color: VALUE_COLORS[v], fontWeight: 700, fontSize: 12 } : label}>
+            <span
+              data-anchor={`hdr-${v}`}
+              style={{
+                borderRadius: 4,
+                visibility: handoff?.headersHidden ? "hidden" : undefined,
+                ...(e > 0
+                  ? {
+                      color: `color-mix(in srgb, ${INK} ${e * 100}%, ${compact ? VALUE_COLORS[v] : "#6b7280"})`,
+                      background: `rgba(27,36,51,${0.07 * e})`,
+                      boxShadow: `0 0 0 3px rgba(27,36,51,${0.07 * e})`,
+                    }
+                  : null),
+              }}
+            >
+              {compact ? v : VALUE_NAMES[v]}
+            </span>
+          </span>
+        );
+      })}
+      <span style={{ ...label, textAlign: "left", paddingLeft: compact ? 10 : 20, ...rest }}>
         {compact ? `${profileLabel} chose 1` : `${profileLabel} chose option 1`}
       </span>
     </div>

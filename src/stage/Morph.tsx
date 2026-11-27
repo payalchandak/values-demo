@@ -57,11 +57,19 @@ export default function Morph({
   profile,
   elapsedMs,
   barGrow = 1,
+  names = 1,
+  numbers = 1,
+  barShare,
 }: {
   profile: Profile;
   elapsedMs: number;
   /** 0..1 length of the horizontal bars. The stage leaves this at 1. */
   barGrow?: number;
+  /** 0..1 opacity of the bar names, and of the percents with the line under the bars. */
+  names?: number;
+  numbers?: number;
+  /** Shares the bars are drawn at (default: the profile's own priorities). The ring always uses the profile's. */
+  barShare?: Profile["priorities"];
 }) {
   useFontEpoch();
   const t = Math.max(0, elapsedMs);
@@ -69,6 +77,7 @@ export default function Morph({
   const { width: W, height: H } = useBox(viewport);
 
   const p = profile.priorities;
+  const share = barShare ?? p;
   const enter = clamp01(t / MORPH_HANDOFF_MS);
   const stackP = clamp01((t - at("stack")) / MORPH_TIMING.stackMs);
   // Bars first spread into their end-to-end places (staircase), then drop into one row.
@@ -76,9 +85,9 @@ export default function Morph({
   const yP = easeInOut(clamp01((stackP - 0.6) / 0.4));
   const bendP = easeInOut(clamp01((t - at("bend")) / MORPH_TIMING.bendMs));
   const labelP = easeInOut(clamp01((t - at("labels")) / MORPH_TIMING.labelsMs));
-  // While bars grow in over a fading table, hold the words back until the rows are gone.
-  const labelMix = barGrow < 1 ? Math.max(0, (barGrow - 0.45) / 0.55) : 1;
-  const textOpacity = (1 - clamp01(xP * 2.5)) * labelMix;
+  const textOpacity = 1 - clamp01(xP * 2.5);
+  const nameOpacity = textOpacity * names;
+  const numberOpacity = textOpacity * numbers;
 
   let svg = null;
   let hole = null;
@@ -103,7 +112,7 @@ export default function Morph({
 
     const bars = VALUE_ORDER.map((v, i) => {
       const span = spans[i];
-      const len0 = p[v] * track * barGrow;
+      const len0 = share[v] * track * barGrow;
       const x = lerp(barX, stripLeft + span.u0 * C, xP);
       const len = lerp(len0, (span.u1 - span.u0) * C, xP);
       const y = lerp(rowY(i), cy, yP);
@@ -133,17 +142,31 @@ export default function Morph({
           spans.map((sp) => <path key={sp.value} d={bentSegmentPath(bend, sp.u0, sp.u1)} fill={DONUT_INK} fillOpacity={opacityOf(sp.value)} />)}
         {bendP >= 1 && <SegmentPaths scene={scene} />}
 
-        {textOpacity > 0 && (
-          <g style={{ opacity: textOpacity }} fontFamily={FONT_STACK}>
+        {nameOpacity > 0 && (
+          <g style={{ opacity: nameOpacity }} fontFamily={FONT_STACK}>
             {bars.map((b) => (
-              <g key={b.v}>
-                <text x={barX - GAP} y={rowY(b.i)} dy="0.35em" textAnchor="end" fontSize={NAME_FS * f} fontWeight={600} fill={DONUT_INK}>
-                  {VALUES[b.v].name}
-                </text>
-                <text x={barX + p[b.v] * track * barGrow + GAP} y={rowY(b.i)} dy="0.35em" fontSize={PERCENT_FS * f} fill={DONUT_MUTED}>
-                  {Math.round(p[b.v] * 100)}%
-                </text>
-              </g>
+              <text
+                key={b.v}
+                data-anchor={`bar-name-${b.v}`}
+                x={barX - GAP}
+                y={rowY(b.i)}
+                dy="0.35em"
+                textAnchor="end"
+                fontSize={NAME_FS * f}
+                fontWeight={600}
+                fill={DONUT_INK}
+              >
+                {VALUES[b.v].name}
+              </text>
+            ))}
+          </g>
+        )}
+        {numberOpacity > 0 && (
+          <g style={{ opacity: numberOpacity }} fontFamily={FONT_STACK}>
+            {bars.map((b) => (
+              <text key={b.v} x={barX + share[b.v] * track * barGrow + GAP} y={rowY(b.i)} dy="0.35em" fontSize={PERCENT_FS * f} fill={DONUT_MUTED}>
+                {Math.round(p[b.v] * 100)}%
+              </text>
             ))}
             <text x={cx} y={rowY(3) + 36 * s} textAnchor="middle" fontSize={12 * f} fill={NEUTRAL.inkFaint}>
               {BAR_SUBCAPTION}

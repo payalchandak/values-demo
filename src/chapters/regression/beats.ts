@@ -1,4 +1,4 @@
-import { FADE_MS, MOVE_MS } from "../../design/motion";
+import { FADE_MS } from "../../design/motion";
 import type { Beat } from "../../types";
 
 /**
@@ -112,26 +112,63 @@ export function textAt(
 /* -------------------------------------------------------------------------- */
 
 /**
- * Shown once under the stack table. The detail headlines above stay on the
- * dev route; autoplay keeps the stack headline until the profile.
+ * Autoplay bridge between the stack table and the bars-to-ring morph:
+ * "decisions and trade-offs in, four numbers out". No equation, no weights.
  */
-export const COMPRESS_CAPTION =
-  "A logistic regression finds the four value weights that best explain these choices.";
-
-/** How long that caption holds before the table gives way to the profile bars. */
-export const CAPTION_HOLD_MS = 4000;
-
-const profileAt = CAPTION_HOLD_MS;
-const compressEnd = profileAt + MOVE_MS;
+export const COMPRESS_CAPTION = "Which priorities best explain these choices?";
 
 /**
- * Autoplay between the stack table and the bars-to-radar morph.
- *   caption  the table holds, with the one-line regression caption
- *   profile  rows fade, priority bars grow, the profile headline takes over
+ * Timings local to this transition. `design/motion.ts` is deliberately very
+ * short (a cut, for UI changes), so the travel and the grow need their own.
+ * TODO: tune after visual review
+ */
+export const COMPRESS_TIMING = {
+  /** The table holds with the caption; the four headers get a soft emphasis. */
+  captionHoldMs: 2500,
+  /** The headers ease to full emphasis over this long, from the start of the hold. */
+  emphasisMs: 700,
+  /** Rows, per-row bars and the ellipsis dim back. */
+  ghostMs: 500,
+  /** The four header words travel into the bar label list. */
+  travelMs: 600,
+  /** A bar grows beside each word. */
+  growMs: 700,
+} as const;
+
+/** How faint the rows, the decision bars, the ellipsis and the case count get while the headers stay. */
+export const GHOST_LEVEL = 0.22;
+/** Share of the travel over which the dimmed table, caption and case count fade out completely. */
+export const TRAVEL_CLEAR = 0.35;
+/** Share of the grow after which the percent numbers fade in, once the bars have settled. */
+export const NUMBERS_AT = 0.72;
+
+/**
+ * When true, the bars start at an equal 25% each and ease to their fitted
+ * lengths during the grow. No percent numbers show until they have settled.
+ * Off by default.
+ */
+export const TILT_FROM_EQUAL = false;
+
+/** Kept for existing imports: how long the caption holds. */
+export const CAPTION_HOLD_MS = COMPRESS_TIMING.captionHoldMs;
+
+const ghostAt = COMPRESS_TIMING.captionHoldMs;
+const travelAt = ghostAt + COMPRESS_TIMING.ghostMs;
+const growAt = travelAt + COMPRESS_TIMING.travelMs;
+const compressEnd = growAt + COMPRESS_TIMING.growMs;
+
+/**
+ * Autoplay between the stack table and the bars-to-ring morph.
+ *   caption  the table holds under one question; the four headers get emphasis
+ *   ghost    rows, per-row bars and the ellipsis dim back; headers stay
+ *   travel   the header words move into the bar label list
+ *   grow     a bar grows beside each word; the profile headline takes over
  *   end      chapter end marker
  */
 export const compressBeats = [
   { name: "caption", startMs: 0 },
-  { name: "profile", startMs: profileAt },
+  { name: "ghost", startMs: ghostAt },
+  { name: "travel", startMs: travelAt },
+  { name: "grow", startMs: growAt },
   { name: "end", startMs: compressEnd },
 ] as const satisfies readonly Beat[];
