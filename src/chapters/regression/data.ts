@@ -1,124 +1,66 @@
-import { valueDefinitions, type ValueId } from "../../data/demoData";
-import type { Delta, Profile, StudyCase, Tag, Value } from "../../study/types";
+import { VALUE_ORDER } from "../../design";
+import { TEMPERATURE } from "../../study/verify";
+import type { Delta, Profile, StudyCase, Value } from "../../study/types";
 
 /**
- * Placeholder content for the regression chapter, written against the study
- * contract (`src/study/types.ts`). Swap `placeholderCases` / `placeholderProfile`
- * for real study data; nothing else in the chapter hard-codes a number.
+ * Pure math for the regression chapter. No study numbers live here: weights,
+ * priorities, tags, and counts all come from the `Profile` / `StudyCase` props
+ * (see `dataset.ts` for where the real ones are loaded).
  */
 
-/** Display order of the four values everywhere in the chapter. */
-export const VALUE_ORDER: readonly Value[] = ["A", "B", "N", "J"];
+export { TEMPERATURE, VALUE_ORDER };
 
-const VALUE_ID: Record<Value, ValueId> = {
-  A: "autonomy",
-  B: "beneficence",
-  N: "nonmaleficence",
-  J: "justice",
-};
-
-export const valueMeta = (v: Value) => ({
-  code: v,
-  label: valueDefinitions[VALUE_ID[v]].label,
-  color: valueDefinitions[VALUE_ID[v]].color,
-});
-
-/** Softmax temperature from the study contract: priorities = softmax(weights / τ). */
-export const TEMPERATURE = 0.262;
-
-/** Physicians per case behind `physicianVotesChoice1`. */
-export const PHYSICIANS_PER_CASE = 25;
-
-/* -------------------------------------------------------------------------- */
-/*  Math                                                                      */
-/* -------------------------------------------------------------------------- */
+/** Model queries per case (the denominator of `modelChoice1Counts`). */
+export const MODEL_RUNS = 10;
 
 export const sigmoid = (x: number): number => 1 / (1 + Math.exp(-x));
 
-/** `tags[0] − tags[1]`, per value: how Option 1 differs from Option 2. */
+/** `tags[0] - tags[1]`, per value: how Option 1 differs from Option 2. */
 export function deltaOf(c: StudyCase): Delta {
-  const out = {} as Delta;
-  for (const v of VALUE_ORDER) out[v] = (c.tags[0][v] - c.tags[1][v]) as Delta[Value];
-  return out;
+  const diff = (v: Value) => c.tags[0][v] - c.tags[1][v];
+  const toStep = (n: number): Delta[Value] => {
+    if (n === -2 || n === -1 || n === 0 || n === 1 || n === 2) return n;
+    throw new Error(`tag difference ${n} is outside -2..2 (case ${c.id})`);
+  };
+  return { A: toStep(diff("A")), B: toStep(diff("B")), N: toStep(diff("N")), J: toStep(diff("J")) };
 }
 
-/** The linear predictor Σ w·Δ for one case under one set of shared weights. */
+/** The linear predictor w . delta for one case under one set of shared weights. */
 export function logit(weights: Record<Value, number>, delta: Delta): number {
   return VALUE_ORDER.reduce((sum, v) => sum + weights[v] * delta[v], 0);
 }
 
-export function predictedChoice1(weights: Record<Value, number>, c: StudyCase): number {
-  return sigmoid(logit(weights, deltaOf(c)));
-}
-
 export interface SoftmaxSteps {
-  /** exp(w / τ): strictly positive. */
+  /** exp(w / tau): strictly positive. */
   exps: Record<Value, number>;
-  /** Σ exp(w / τ). */
+  /** Sum of the exps. */
   sum: number;
   /** exp / sum: nonnegative, sums to 1. */
   priorities: Record<Value, number>;
 }
 
 export function softmaxSteps(weights: Record<Value, number>, tau = TEMPERATURE): SoftmaxSteps {
-  const exps = {} as Record<Value, number>;
-  let sum = 0;
-  for (const v of VALUE_ORDER) {
-    exps[v] = Math.exp(weights[v] / tau);
-    sum += exps[v];
-  }
-  const priorities = {} as Record<Value, number>;
-  for (const v of VALUE_ORDER) priorities[v] = exps[v] / sum;
-  return { exps, sum, priorities };
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Placeholder rows                                                          */
-/* -------------------------------------------------------------------------- */
-
-/** A tag pair (Option 1, Option 2) that realizes a given difference. */
-const TAGS_FOR_DELTA: Record<number, [Tag, Tag]> = {
-  2: [1, -1],
-  1: [1, 0],
-  0: [0, 0],
-  [-1]: [0, 1],
-  [-2]: [-1, 1],
-};
-
-function placeholderCase(id: string, d: Delta, physicianVotesChoice1: number): StudyCase {
-  const tags0 = {} as Record<Value, Tag>;
-  const tags1 = {} as Record<Value, Tag>;
-  for (const v of VALUE_ORDER) [tags0[v], tags1[v]] = TAGS_FOR_DELTA[d[v]];
+  const exps = {
+    A: Math.exp(weights.A / tau),
+    B: Math.exp(weights.B / tau),
+    N: Math.exp(weights.N / tau),
+    J: Math.exp(weights.J / tau),
+  };
+  const sum = exps.A + exps.B + exps.N + exps.J;
   return {
-    id,
-    vignette: "Placeholder case",
-    choices: ["Option 1", "Option 2"],
-    tags: [tags0, tags1],
-    physicianVotesChoice1,
-    modelChoice1Counts: {},
+    exps,
+    sum,
+    priorities: { A: exps.A / sum, B: exps.B / sum, N: exps.N / sum, J: exps.J / sum },
   };
 }
 
-// TODO: replace with real study data
-export const placeholderCases: readonly StudyCase[] = [
-  placeholderCase("placeholder-1", { A: 2, B: 1, N: -2, J: 0 }, 13),
-  // The case that expands: a genuine trade-off, observed ≈ predicted.
-  placeholderCase("placeholder-2", { A: 1, B: 2, N: -1, J: -1 }, 15),
-  placeholderCase("placeholder-3", { A: -1, B: 0, N: 2, J: 1 }, 16),
-  placeholderCase("placeholder-4", { A: 0, B: -2, N: 1, J: 2 }, 12),
-  placeholderCase("placeholder-5", { A: 1, B: -1, N: 2, J: -2 }, 21),
-];
+/** Largest absolute gap between the softmax of `profile.weights` and `profile.priorities`. */
+export function priorityMismatch(profile: Profile): number {
+  const computed = softmaxSteps(profile.weights).priorities;
+  return Math.max(...VALUE_ORDER.map((v) => Math.abs(computed[v] - profile.priorities[v])));
+}
 
-/** Index (into `placeholderCases`) of the row that expands. */
-export const FOCUS_ROW = 1;
-
-const placeholderWeights: Record<Value, number> = { A: 0.42, B: 0.18, N: 0.5, J: -0.08 };
-
-// TODO: replace with real study data
-export const placeholderProfile: Profile = {
-  key: "placeholder-pooled-physicians",
-  kind: "pooled-physician",
-  displayName: "Physicians",
-  weights: placeholderWeights,
-  priorities: softmaxSteps(placeholderWeights).priorities,
-};
+/** Observed share of Option 1 for this profile on this case, as a count out of `MODEL_RUNS`. */
+export function observedCount(c: StudyCase, profile: Profile): number | undefined {
+  return c.modelChoice1Counts[profile.key];
+}
