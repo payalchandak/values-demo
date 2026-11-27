@@ -234,10 +234,10 @@ const caseBeats = [
 const responseBeats = [
   { name: "reveal", startMs: 0 }, // response text fades in by phrase group
   { name: "revealed", startMs: 2000 },
-  { name: "highlight", startMs: 3500 }, // recommendation span sweeps
-  { name: "extract", startMs: 4500 }, // matching option is outlined
-  { name: "extracted", startMs: 5500 },
-  { name: "end", startMs: 9500 }, // final hold
+  { name: "highlight", startMs: 6000 }, // recommendation span sweeps
+  { name: "extract", startMs: 7000 }, // matching option is outlined
+  { name: "extracted", startMs: 8000 },
+  { name: "end", startMs: 12000 }, // final hold
 ] as const;
 
 const responseTiming: ModelResponseTiming = {
