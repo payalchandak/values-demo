@@ -21,13 +21,8 @@ export interface CaseCount {
 /** profile key -> case id -> counts. This is src/study/data/decisions.json. */
 export type DecisionCounts = Record<string, Record<string, CaseCount>>;
 
-/** Paper Table 8 targets, in A,B,N,J order. */
-export const TABLE_8_TARGETS: Record<string, Record<Value, number>> = {
-  gpt: { A: 0.061, B: 0.676, N: 0.121, J: 0.142 },
-  claude: { A: 0.205, B: 0.218, N: 0.526, J: 0.051 },
-  gemini: { A: 0.312, B: 0.355, N: 0.222, J: 0.111 },
-  physicians: { A: 0.437, B: 0.286, N: 0.148, J: 0.129 },
-};
+/** Paper Table 8 targets (A,B,N,J), keyed by profile key. Loaded from src/study/data/table8.json. */
+export type Table8Targets = Record<string, Record<Value, number>>;
 
 export function deltaRow(c: StudyCase): number[] {
   return VALUE_ORDER.map((v) => c.tags[0][v] - c.tags[1][v]);
@@ -135,7 +130,9 @@ export interface VerifyResult {
   integrity: string[];
 }
 
-export function verify(cases: readonly StudyCase[], decisions: DecisionCounts, profiles: readonly Profile[]): VerifyResult {
+export function verify(cases: readonly StudyCase[], decisions: DecisionCounts, profiles: readonly Profile[],
+  targets: Table8Targets = {},
+): VerifyResult {
   const integrity: string[] = [];
 
   // StudyCase fields must agree with the raw counts they were derived from.
@@ -158,7 +155,7 @@ export function verify(cases: readonly StudyCase[], decisions: DecisionCounts, p
     if (!counts) throw new Error(`no decisions for profile ${p.key}`);
     const fit = fitBinomialLogit(cases, counts);
     const pri = softmaxPriorities(fit.weights);
-    const target = TABLE_8_TARGETS[p.key];
+    const target = targets[p.key];
     return {
       key: p.key,
       displayName: p.displayName,

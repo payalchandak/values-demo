@@ -5,20 +5,25 @@ import PrinciplistFramework from "../components/PrinciplistFramework";
 import RadarChart from "../components/RadarChart";
 import ValueBadge from "../components/ValueBadge";
 import { NEUTRAL, RECOMMENDATION_COLORS, TAGS, TAG_ORDER, VALUES, VALUE_COLORS, VALUE_ORDER } from "../design";
-import type { Tag, Value } from "../study/types";
+import profilesData from "../study/data/profiles.json";
+import type { Profile, Tag, Value } from "../study/types";
 
 /**
  * Dev page for the design primitives: #/dev/primitives
  *
- * Profile numbers are the published normalized priorities, softmax(weights / 0.262),
- * copied from `PAPER_LLMS` in value-prism/scripts/check_attribution.py (the paper table).
- * Order is A, B, N, J; each row sums to 1.
+ * Profiles come from src/study/data/profiles.json (the published paper profiles);
+ * no numbers are hardcoded here. Order is A, B, N, J; each row sums to 1.
  */
-const PROFILES: readonly { key: string; name: string; priorities: Record<Value, number> }[] = [
-  { key: "openai/gpt-5.2", name: "GPT 5.2", priorities: { A: 0.061, B: 0.676, N: 0.121, J: 0.142 } },
-  { key: "anthropic/claude-opus-4.5", name: "Claude Opus 4.5", priorities: { A: 0.205, B: 0.218, N: 0.526, J: 0.051 } },
-  { key: "google/gemini-3-pro-preview", name: "Gemini 3 Pro", priorities: { A: 0.312, B: 0.355, N: 0.222, J: 0.111 } },
-];
+const PROFILE_KEYS = ["gpt", "claude", "gemini"] as const;
+const PROFILES: readonly { key: string; name: string; priorities: Record<Value, number> }[] =
+  PROFILE_KEYS.map((key) => {
+    const p = (profilesData as Profile[]).find((q) => q.key === key);
+    if (!p) throw new Error(`missing profile ${key}`);
+    return { key: p.key, name: p.displayName, priorities: p.priorities };
+  });
+
+/** Edge-case fixture: the same value on every axis. */
+const uniform = (n: number): Record<Value, number> => ({ A: n, B: n, N: n, J: n });
 
 const pct = (n: number): string => `${(n * 100).toFixed(1)}%`;
 
@@ -98,13 +103,13 @@ function AnimatedRadar() {
             {p.name}
           </button>
         ))}
-        <button type="button" className={buttonClass(active === "zero")} onClick={() => go("zero", { A: 0, B: 0, N: 0, J: 0 })}>
+        <button type="button" className={buttonClass(active === "zero")} onClick={() => go("zero", uniform(0))}>
           Zero
         </button>
         <button
           type="button"
           className={buttonClass(active === "over")}
-          onClick={() => go("over", { A: 1, B: 1, N: 1, J: 1 })}
+          onClick={() => go("over", uniform(1))}
         >
           All at 1 (outer ring)
         </button>
@@ -224,7 +229,7 @@ export default function PrimitivesPage() {
           <div className="w-40">
             <RadarChart
               mode="compact"
-              priorities={{ A: 1.4, B: 0.2, N: 0.2, J: 0.2 }}
+              priorities={{ ...PROFILES[0].priorities, A: 1.4 }}
               title="Invalid example"
               description="Autonomy is outside the 0 to 1 scale."
             />
