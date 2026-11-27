@@ -41,7 +41,7 @@ const only = process.env.ONLY?.split(",");
 const TARGETS = [
   { name: "main", hash: "", ms: MAIN_MS },
   ...devNames.map((name) => ({ name, hash: `#/dev/${name}`, ms: DEV_MS })),
-].filter((t) => t.name !== "primitives" && (!only || only.includes(t.name))); // primitives is a gallery, not a chapter
+].filter((t) => t.name !== "primitives" && t.name !== "stage" && (!only || only.includes(t.name))); // primitives is a gallery, not a chapter
 
 async function freePort(): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -187,9 +187,64 @@ async function runTarget(vp: { width: number; height: number }, target: (typeof 
   await context.close();
 }
 
+/**
+ * Frozen frames: every chapter of the integrated stage, sampled across its whole
+ * clock via `?chapter=<id>&t=<ms>#/dev/stage`. No real time involved.
+ */
+const FROZEN_STEP_MS = Number(process.env.FROZEN_STEP_MS ?? 750);
+async function runFrozen(vp: { width: number; height: number }) {
+  const vpTag = `${vp.width}x${vp.height}`;
+  const context = await browser.newContext({ viewport: vp, deviceScaleFactor: 1 });
+  const page = await context.newPage();
+  const logs: string[] = [];
+  page.on("pageerror", (e) => logs.push(`pageerror: ${e}`));
+  page.on("console", (msg) => msg.type() === "error" && logs.push(`error: ${msg.text()}`));
+  const frame = (id: string, t: number) => `${server.url}/?chapter=${id}&t=${Math.round(t)}#/dev/stage`;
+  await page.goto(frame("opening-hook", 0));
+  await page.waitForSelector("[data-stage]");
+  const chapters = (await page.evaluate(() => (window as any).__chapters)) as {
+    id: string;
+    durationMs: number;
+    beats: number[];
+  }[];
+  const only = process.env.ONLY_CHAPTER?.split(",");
+  for (const ch of chapters.filter((c) => !only || only.includes(c.id))) {
+    const times = new Set<number>([0, ch.durationMs]);
+    for (let t = 0; t < ch.durationMs; t += FROZEN_STEP_MS) times.add(t);
+    for (const b of ch.beats) {
+      times.add(b);
+      times.add(b + 250);
+    }
+    const seen = new Set<string>();
+    let samples = 0;
+    for (const t of [...times].filter((x) => x <= ch.durationMs).sort((a, b) => a - b)) {
+      await page.goto(frame(ch.id, t));
+
+      await page.waitForSelector("[data-stage]");
+      await page.waitForTimeout(120);
+      for (const p of await page.evaluate(measure)) {
+        if (seen.has(p)) continue;
+        seen.add(p);
+        fail(`${vpTag} ${ch.id} @${t}ms`, p);
+        await page.screenshot({ path: join(OUT_DIR, `${vpTag}-${ch.id}-${t}.png`) });
+      }
+      samples++;
+    }
+    console.log(`${vpTag} ${ch.id}: ${samples} frames`);
+  }
+  for (const line of logs) fail(vpTag, `console ${line}`);
+  await context.close();
+}
+
 try {
+  if (!process.env.LIVE) {
+    for (const vp of VIEWPORTS) await runFrozen(vp);
+    throw null;
+  }
   // Real time, so run every viewport x target at once: wall time is the longest target.
   await Promise.all(VIEWPORTS.flatMap((vp) => TARGETS.map((t) => runTarget(vp, t))));
+} catch (e) {
+  if (e !== null) throw e;
 } finally {
   await browser.close();
   server.stop();
