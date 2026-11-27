@@ -1,8 +1,9 @@
 import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { motion } from "framer-motion";
+import PrinciplistFramework from "../../components/PrinciplistFramework";
 import ProviderIcon from "../../components/ProviderIcon";
 import ModelResponse, { type ModelResponseTiming } from "../../components/ModelResponse";
-import { openingFrame, type ModelResponseConfig } from "../../data/demoData";
+import type { ModelResponseConfig } from "../../data/demoData";
 import openaiLogo from "../../assets/providers/openai.svg";
 import {
   NEUTRAL,
@@ -14,20 +15,22 @@ import {
   valueInk,
 } from "../../design";
 import type { Value } from "../../study/types";
-import { CHOICE_LABELS, openingCase } from "./openingData";
-import { PrinciplistFramework } from "./framework";
+import { CHOICE_LABELS, openingCase } from "./openingCase";
 import { MARK_INTERVAL_MS, OPENING_BEATS, OFFSETS, at, ramp, visibility } from "./timeline";
 
 /* -------------------------------------------------------------------------- */
 /*  Copy                                                                       */
 /* -------------------------------------------------------------------------- */
 
+const EYEBROW = "NeurIPS 2026";
+
+/** Storyboard copy, verbatim. */
 const HEADLINES = [
-  { text: openingFrame.title, size: "2.6em" }, // hook
-  { text: "What would you recommend?", size: "1.7em" }, // patient dilemma
-  { text: "Ask again.", size: "1.7em" }, // model decision
-  { text: "Each choice prioritizes some values over others.", size: "1.7em" }, // trade-off
-  { text: "Four principles of medical ethics", size: "1.7em" }, // framework (TODO: confirm copy)
+  { text: "Do Language Models Share Your Doctor's Priorities?", size: "2.6em" }, // ch1
+  { text: "What would you recommend?", size: "1.7em" }, // ch2
+  { text: "Ask again.", size: "1.7em" }, // ch3
+  { text: "Each choice prioritizes some values over others.", size: "1.7em" }, // ch4
+  { text: "Clinical decisions require prioritizing competing values.", size: "1.7em" }, // ch5
 ] as const;
 
 /** Display name only. Never a model version. */
@@ -334,10 +337,10 @@ function SceneBody({ t, probe }: { t: number; probe: boolean }) {
       {showLabel && (
         <Block probe={probe}>
           <p
-            className="font-mono font-medium uppercase tracking-[0.28em]"
+            className="font-mono font-medium tracking-[0.28em]"
             style={{ fontSize: "0.8em", color: NEUTRAL.inkMuted, opacity: labelOpacity }}
           >
-            {openingFrame.eyebrow}
+            {EYEBROW}
           </p>
         </Block>
       )}
@@ -391,7 +394,7 @@ function SceneBody({ t, probe }: { t: number; probe: boolean }) {
       {showFramework && (
         <Block probe={probe} className="w-full">
           <div style={{ opacity: ramp(t, at("framework", "framework"), at("framework", "framework") + 500) }}>
-            <PrinciplistFramework highlight={frameworkHighlight(t)} />
+            <PrinciplistFramework heading={null} highlight={frameworkHighlight(t)} />
           </div>
         </Block>
       )}

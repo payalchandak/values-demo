@@ -1,5 +1,5 @@
 import { beatStart, type Beat } from "../../types";
-import { openingCase } from "./openingData";
+import { openingCase } from "./openingCase";
 
 /**
  * Beats for the five opening chapters (data, ms from each chapter's start).
