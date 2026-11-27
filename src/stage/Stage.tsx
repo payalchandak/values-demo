@@ -228,7 +228,7 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
     <div ref={rootRef} data-stage className="relative h-full w-full">
       {showOpening && (
         <div className="absolute inset-0" key="opening">
-          <OpeningScene t={openingT} sharedIcon hidePatient={segment === "stack"} />
+          <OpeningScene t={openingT} sharedIcon hidePatient={segment === "stack"} recallPatient />
         </div>
       )}
 

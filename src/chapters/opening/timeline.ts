@@ -1,5 +1,7 @@
 import { beatStart, type Beat } from "../../types";
+import { VALUE_ORDER } from "../../design";
 import { openingCase } from "./openingCase";
+import { triggerWords } from "./valueTriggers";
 
 /**
  * Beats for the five opening chapters (data, ms from each chapter's start).
@@ -42,21 +44,36 @@ const model = [
 
 const tradeoff = [
   { name: "statement", startMs: 0 }, // "Each choice prioritizes some values over others."
-  { name: "choice1", startMs: 1500 }, // what choice 1 promotes / violates
-  { name: "choice2", startMs: 3800 }, // what choice 2 promotes / violates
-  { name: "end", startMs: 10500 },
+  { name: "vignette", startMs: 400 }, // the full vignette, plain
+  { name: "underline", startMs: 3200 }, // the four trigger sentences are underlined, neutral
+  { name: "end", startMs: 9000 },
 ] as const satisfies readonly Beat[];
 
-const framework = [
-  { name: "framework", startMs: 0 }, // the four principles
-  { name: "A", startMs: 2000 },
-  { name: "B", startMs: 3400 },
-  { name: "N", startMs: 4800 },
-  { name: "J", startMs: 6200 },
-  { name: "all", startMs: 7600 }, // no emphasis: all four together
-  { name: "recall", startMs: 9000 }, // principles fade; the patient card returns, ready to become the stack's first card
-  { name: "end", startMs: 10800 },
-] as const satisfies readonly Beat[];
+/** Gap between one trigger sentence being underlined and the next, in chapter 4. */
+export const UNDERLINE_STAGGER_MS = 450;
+
+/** Inside each value's window: its tag chips land on the choices, then its caption. */
+export const CHIP_DELAY_MS = 800;
+export const CAPTION_DELAY_MS = 1400;
+/** A value is held for this long plus a reading allowance per word of its trigger sentence. */
+const HOLD_BASE_MS = 1600;
+const HOLD_PER_WORD_MS = 180;
+
+const framework = (() => {
+  const beats: Beat[] = [{ name: "framework", startMs: 0 }]; // "Clinical decisions require ..."
+  let cursor = 1200;
+  for (const v of VALUE_ORDER) {
+    beats.push(
+      { name: v, startMs: cursor }, // name chip + definition; sentence highlighted, rest dims
+      { name: `${v}Chips`, startMs: cursor + CHIP_DELAY_MS },
+      { name: `${v}Caption`, startMs: cursor + CAPTION_DELAY_MS },
+    );
+    cursor += Math.round((HOLD_BASE_MS + HOLD_PER_WORD_MS * triggerWords(v)) / 100) * 100;
+  }
+  beats.push({ name: "all", startMs: cursor }); // all four highlights, all chips, nothing dimmed
+  beats.push({ name: "end", startMs: cursor + 5000 });
+  return beats as readonly Beat[];
+})();
 
 export const OPENING_BEATS = { hook, dilemma, model, tradeoff, framework } as const;
 export type OpeningChapterKey = keyof typeof OPENING_BEATS;
@@ -73,12 +90,6 @@ export const OFFSETS: Readonly<Record<OpeningChapterKey, number>> = (() => {
   }
   return out;
 })();
-
-/** Total length of the five opening chapters on the shared opening clock. */
-export const OPENING_END_MS: number = ORDER.reduce(
-  (sum, key) => sum + OPENING_BEATS[key][OPENING_BEATS[key].length - 1].startMs,
-  0,
-);
 
 /** Absolute opening time of a named beat. Throws on unknown names. */
 export const at = (chapter: OpeningChapterKey, beat: string): number =>

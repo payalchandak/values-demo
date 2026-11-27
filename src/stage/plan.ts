@@ -1,4 +1,4 @@
-import { OPENING_BEATS, OPENING_END_MS, OFFSETS as OPENING_OFFSETS, type OpeningChapterKey } from "../chapters/opening/timeline";
+import { OPENING_BEATS, OFFSETS as OPENING_OFFSETS, type OpeningChapterKey } from "../chapters/opening/timeline";
 import { stackBeats } from "../chapters/stack/beats";
 import { headlines as regressionHeadlines, regressionBeats } from "../chapters/regression/beats";
 import { closingBeats, individualBeats } from "../chapters/ending";
@@ -54,7 +54,10 @@ export const SEGMENT_OFFSET: Record<SegmentId, number> = (() => {
 
 export const isOpening = (id: SegmentId) => id in OPENING_KEY;
 export const openingTime = (id: SegmentId, elapsedMs: number) => OPENING_OFFSETS[OPENING_KEY[id]!] + elapsedMs;
-export { OPENING_END_MS };
+
+/** End of the five opening chapters on the shared opening clock: sum of the opening-v2 chapter durations. */
+export const OPENING_END_MS =
+  OPENING_OFFSETS.framework + chapterDuration({ beats: OPENING_BEATS.framework });
 
 /* -------------------------------------------------------------------------- */
 /*  Headlines from the stack on (the opening draws its own, in the scene)     */
