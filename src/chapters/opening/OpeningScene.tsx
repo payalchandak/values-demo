@@ -66,8 +66,11 @@ export const ICON_LEAVE_MS = MOVE_MS;
 /** How long before the opening's last beat the patient card returns, when the stage asks for the stack handoff. */
 const RECALL_LEAD_MS = 1800;
 
-/** Option accent colors come from the recommendation palette, never the value colors. */
-const OPTION_COLORS = [RECOMMENDATION_COLORS.option1, RECOMMENDATION_COLORS.option2] as const;
+/**
+ * Both options share one neutral accent. Rose would read as a judgment, and
+ * the two choices are equal until a model actually picks one.
+ */
+const OPTION_ACCENT = RECOMMENDATION_COLORS.option2;
 
 /* -------------------------------------------------------------------------- */
 /*  Fit: pick the largest font size at which every chapter fits the viewport   */
@@ -82,11 +85,10 @@ const MAX_FONT_PX = 22;
 const MIN_READABLE_PX = 12;
 
 /**
- * The hook title gives its space to the question inside the case. Both move
- * on this one clock, and the move finishes as the dilemma chapter starts.
- * Long enough that the reflow reads as a single motion.
+ * The paper title is replaced, in the same place, by "What would you recommend?".
+ * The crossfade finishes as the dilemma chapter starts.
  */
-const HEADING_SWAP_MS = 640;
+const HEADING_SWAP_MS = 520;
 
 /** Gap between stacked blocks. The heading clip folds one of these into itself. */
 const STACK_GAP = "0.9em";
@@ -140,49 +142,73 @@ function Block({
   );
 }
 
-/**
- * Height follows `progress` (0 collapsed, 1 the content's own height) on the
- * opening clock, so a seek lands on the same frame playback would. The settled
- * state uses auto height and is what the fit probes measure.
- */
-function Clip({
-  progress,
-  opacity = 1,
-  trailGap = false,
-  children,
-}: {
-  progress: number;
-  opacity?: number;
-  /** Shrink the parent stack gap away with the content, instead of leaving it behind. */
-  trailGap?: boolean;
-  children: ReactNode;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [full, setFull] = useState(0);
+function useBoxHeight() {
+  const [node, setNode] = useState<HTMLDivElement | null>(null);
+  const [height, setHeight] = useState(0);
   useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const measure = () => setFull(el.offsetHeight);
+    if (!node) return;
+    const measure = () => setHeight(node.offsetHeight);
     measure();
     const ro = new ResizeObserver(measure);
-    ro.observe(el);
+    ro.observe(node);
     return () => ro.disconnect();
-  }, []);
-  const p = Math.min(1, Math.max(0, progress));
-  if (p <= 0) return null;
-  const open = p >= 1;
+  }, [node]);
+  return [setNode, height] as const;
+}
+
+/**
+ * Crossfade from the paper title to the question in one slot. Height follows
+ * the opening clock, so a seek lands on the same frame playback would, and the
+ * case card eases up instead of jumping. The gap under the heading is inside
+ * the measured box so it shrinks away with the extra title lines.
+ */
+function HeadlineReplace({
+  mix,
+  exit = 0,
+  leaveOpacity,
+  arriveOpacity,
+  leave,
+  arrive,
+}: {
+  /** 0 = the paper title's box, 1 = the question's box. */
+  mix: number;
+  /** 1 collapses the question after it has replaced the title. */
+  exit?: number;
+  leaveOpacity: number;
+  arriveOpacity: number;
+  leave: ReactNode;
+  arrive: ReactNode;
+}) {
+  const [leaveRef, leaveH] = useBoxHeight();
+  const [arriveRef, arriveH] = useBoxHeight();
+  const p = Math.min(1, Math.max(0, mix));
+  const gone = Math.min(1, Math.max(0, exit));
+  const showingLeave = p <= 0 && gone <= 0;
+  const showingArrive = p >= 1 && gone <= 0;
+  const target = leaveH === 0 || arriveH === 0 ? undefined : (leaveH + (arriveH - leaveH) * p) * (1 - gone);
   return (
     <div
-      className="w-full"
+      className="relative w-full"
       style={{
-        height: open ? "auto" : full === 0 ? 0 : full * p,
-        overflow: open ? "visible" : "hidden",
-        marginBottom: trailGap ? `calc(${STACK_GAP} * -1)` : undefined,
+        height: showingLeave || showingArrive || target === undefined ? "auto" : target,
+        overflow: showingLeave || showingArrive ? "visible" : "hidden",
+        marginBottom: `calc(${STACK_GAP} * -1)`,
       }}
     >
-      <div ref={ref} style={{ display: "flow-root", opacity }}>
-        {children}
-        {trailGap && <div aria-hidden style={{ height: STACK_GAP }} />}
+      {leaveOpacity > 0 && (
+        <div ref={leaveRef} aria-hidden={leaveOpacity < 0.5}>
+          <div style={{ opacity: leaveOpacity }}>{leave}</div>
+          <div aria-hidden style={{ height: STACK_GAP }} />
+        </div>
+      )}
+      <div
+        ref={arriveRef}
+        className={showingArrive ? undefined : "absolute inset-x-0 top-0"}
+        style={{ opacity: arriveOpacity * (1 - gone) }}
+        aria-hidden={arriveOpacity < 0.5}
+      >
+        {arrive}
+        <div aria-hidden style={{ height: STACK_GAP }} />
       </div>
     </div>
   );
@@ -275,7 +301,7 @@ function Marks({ index, t }: { index: 0 | 1; t: number }) {
             className="block aspect-square min-w-0 shrink rounded-full"
             style={{
               flex: "0 1 0.85em",
-              backgroundColor: OPTION_COLORS[index],
+              backgroundColor: OPTION_ACCENT,
               opacity: p,
               transform: `scale(${0.5 + 0.5 * p})`,
             }}
@@ -354,9 +380,10 @@ function OptionCard({
   showChips: boolean;
   sharedIcon: boolean;
 }) {
-  // Chapters 4 and 5: neutral cards, no accent bar.
+  // Chapters 4 and 5: neutral cards, no accent bar. Before that, both options
+  // share one graphite accent. A red bar on one choice would read as a judgment.
   const neutral = t >= at("tradeoff", "statement");
-  const color = neutral ? NEUTRAL.line : OPTION_COLORS[index];
+  const frame = selected ? OPTION_ACCENT : NEUTRAL.line;
   const iconHere =
     sharedIcon &&
     index === openingCase.response.chosen &&
@@ -377,12 +404,12 @@ function OptionCard({
       style={{
         borderLeftWidth: neutral ? 1 : "0.3em",
         paddingLeft: neutral ? "calc(0.8em + 0.3em - 1px)" : undefined,
-        borderTopColor: selected ? color : NEUTRAL.line,
-        borderRightColor: selected ? color : NEUTRAL.line,
-        borderBottomColor: selected ? color : NEUTRAL.line,
-        borderLeftColor: color,
+        borderTopColor: frame,
+        borderRightColor: frame,
+        borderBottomColor: frame,
+        borderLeftColor: neutral ? NEUTRAL.line : OPTION_ACCENT,
         backgroundColor: selected ? "#F4F4F5" : "#FAFAFA",
-        boxShadow: selected ? `0 0 0 1px ${color}` : "none",
+        boxShadow: selected ? `0 0 0 1px ${OPTION_ACCENT}` : "none",
         color: NEUTRAL.ink,
       }}
     >
@@ -460,16 +487,15 @@ const SceneBody = memo(function SceneBody({
   const dilemmaStart = at("dilemma", "question");
   const thinkAt = at("model", "think");
   const ask = at("model", "ask");
-  // The hook title and the in-case question trade space. Done by the dilemma chapter.
-  // Glyphs fade clear before the clip reaches them, then the open space moves into the case.
+  // The paper title and the question overlap in the heading slot, then the extra lines close up.
   const swap = ease(ramp(t, dilemmaStart - HEADING_SWAP_MS, dilemmaStart));
-  const textLeave = Math.min(1, swap / 0.36);
-  const space = Math.min(1, Math.max(0, (swap - 0.24) / 0.76));
-  const titleOpacity = ramp(t, HEADLINE_STARTS[0], HEADLINE_STARTS[0] + FADE_MS) * (1 - textLeave);
-  const labelOpacity = ramp(t, at("hook", "label"), at("hook", "label") + FADE_MS) * (1 - textLeave);
+  const titleLeave = Math.min(1, swap / 0.55);
+  const questionIn = Math.min(1, Math.max(0, (swap - 0.2) / 0.6));
+  const space = Math.min(1, Math.max(0, (swap - 0.3) / 0.7));
+  const titleEntrance = ramp(t, HEADLINE_STARTS[0], HEADLINE_STARTS[0] + FADE_MS);
+  const labelEntrance = ramp(t, at("hook", "label"), at("hook", "label") + FADE_MS);
   // The question leaves at the model chapter, before the language-model header.
-  const questionFadeIn = Math.min(1, Math.max(0, (space - 0.78) / 0.22));
-  const questionOpacity = questionFadeIn * (1 - ramp(t, ask, ask + FADE_MS));
+  const questionExit = ramp(t, ask, ask + FADE_MS);
 
   // The verbatim case stays up through the model chapter; the response sits below it.
   // With the stack handoff, it returns once the framework has cleared, in time for the last beat.
@@ -499,7 +525,8 @@ const SceneBody = memo(function SceneBody({
   const showChips = t >= at("framework", "framework");
 
   const showStrip = t >= at("framework", "framework") && !cleared;
-  const headingSettled = space <= 0 || space >= 1;
+  const headingMoving = (space > 0 && space < 1) || (questionExit > 0 && questionExit < 1 && t < thinkAt);
+  const showQuestionHeading = h === 0 || (h === 1 && questionExit < 1);
 
   return (
     <div
@@ -508,23 +535,37 @@ const SceneBody = memo(function SceneBody({
       }`}
       style={{ gap: STACK_GAP }}
     >
-      {h === 0 && (
-        <Clip progress={1 - space} trailGap>
-          <div className="flex w-full flex-col items-center" style={{ gap: STACK_GAP }} aria-hidden={textLeave > 0.5}>
-            <p
-              className="font-mono font-medium tracking-[0.28em]"
-              style={{ fontSize: "0.8em", color: NEUTRAL.inkMuted, opacity: labelOpacity }}
-            >
-              {EYEBROW}
-            </p>
+      {showQuestionHeading && (
+        <HeadlineReplace
+          mix={h === 0 ? space : 1}
+          exit={h === 0 ? 0 : questionExit}
+          leaveOpacity={h === 0 ? 1 - titleLeave : 0}
+          arriveOpacity={h === 0 ? questionIn : 1}
+          leave={
+            <div className="flex w-full flex-col items-center" style={{ gap: STACK_GAP }}>
+              <p
+                className="font-mono font-medium tracking-[0.28em]"
+                style={{ fontSize: "0.8em", color: NEUTRAL.inkMuted, opacity: labelEntrance }}
+              >
+                {EYEBROW}
+              </p>
+              <h1
+                className="mx-auto w-full max-w-[30em] text-balance text-center font-semibold leading-[1.12] tracking-tight"
+                style={{ fontSize: HEADLINES[0].size, color: NEUTRAL.ink, opacity: titleEntrance }}
+              >
+                {HEADLINES[0].text}
+              </h1>
+            </div>
+          }
+          arrive={
             <h1
               className="mx-auto w-full max-w-[30em] text-balance text-center font-semibold leading-[1.12] tracking-tight"
-              style={{ fontSize: HEADLINES[0].size, color: NEUTRAL.ink, opacity: titleOpacity }}
+              style={{ fontSize: HEADLINES[1].size, color: NEUTRAL.ink }}
             >
-              {HEADLINES[0].text}
+              {HEADLINES[1].text}
             </h1>
-          </div>
-        </Clip>
+          }
+        />
       )}
 
       {h > 1 && (
@@ -539,30 +580,10 @@ const SceneBody = memo(function SceneBody({
       )}
 
       {showSummary && (
-        <Block probe={probe} className="w-full" layout={headingSettled}>
+        <Block probe={probe} className="w-full" layout={!headingMoving}>
           <div style={{ opacity: summaryOpacity }} aria-hidden={summaryOpacity === 0 || hidePatient}>
             <div style={{ visibility: hidePatient ? "hidden" : undefined }}>
-              <PatientCard
-                shared={!probe}
-                typedChars={caseCharsAt(t)}
-                question={
-                  space > 0 && t < ask + FADE_MS ? (
-                    <Clip progress={space} opacity={questionOpacity}>
-                      <h1
-                        className="font-semibold leading-[1.15] tracking-tight"
-                        style={{
-                          fontSize: HEADLINES[1].size,
-                          marginTop: "0.75em",
-                          paddingTop: "0.65em",
-                          borderTop: `1px solid ${NEUTRAL.line}`,
-                        }}
-                      >
-                        {HEADLINES[1].text}
-                      </h1>
-                    </Clip>
-                  ) : undefined
-                }
-              />
+              <PatientCard shared={!probe} typedChars={caseCharsAt(t)} />
             </div>
           </div>
         </Block>

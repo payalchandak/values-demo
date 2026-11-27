@@ -43,6 +43,8 @@ const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 const CHOICE_COLORS = ["#D1495B", "#475569"] as const;
+/** Option text stays in one ink. Red would read as a judgment on one choice. */
+const OPTION_INK = "#475569";
 const INK = "#1B2433";
 
 interface StackStageProps {
@@ -498,12 +500,12 @@ const CardFront = memo(function CardFront({ study }: { study: StudyCase }) {
               padding: "4px 7px",
               borderRadius: 6,
               background: "#FAFAFA",
-              borderLeft: `3px solid ${CHOICE_COLORS[i]}`,
+              borderLeft: `3px solid ${OPTION_INK}`,
               fontSize: 10.5,
               lineHeight: 1.25,
             }}
           >
-            <span className="font-mono" style={{ color: CHOICE_COLORS[i], fontWeight: 600 }}>
+            <span className="font-mono" style={{ color: OPTION_INK, fontWeight: 600 }}>
               {i + 1}
             </span>
             <span style={{ ...clamp(1), minWidth: 0 }}>{choice}</span>
@@ -532,7 +534,7 @@ const CardBack = memo(function CardBack({ study }: { study: StudyCase }) {
           <div key={i}>
             <div
               className="font-mono"
-              style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: CHOICE_COLORS[i], fontWeight: 600 }}
+              style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: OPTION_INK, fontWeight: 600 }}
             >
               Choice {i + 1}
             </div>
