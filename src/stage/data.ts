@@ -1,3 +1,4 @@
+import { STACK_CARDS_SHOWN } from "../chapters/stack/caseCards";
 import { pickForegroundCases } from "../chapters/stack/pickForeground";
 import { allCases } from "../chapters/regression/dataset";
 import { ALL_MODELS } from "../chapters/ending/profiles";
@@ -24,8 +25,11 @@ export const foregroundCases: [StudyCase, StudyCase, StudyCase] = (() => {
   return [opening, second, third];
 })();
 
-/** The stack: the trio, then every other real case as the background of the pile. */
+/**
+ * The pile. The first three are the foreground trio. The rest are saved
+ * summary cards, up to `STACK_CARDS_SHOWN` (see src/chapters/stack/caseCards.ts).
+ */
 export const stackCases: readonly StudyCase[] = [
   ...foregroundCases,
   ...allCases.filter((c) => !foregroundCases.includes(c)),
-];
+].slice(0, STACK_CARDS_SHOWN);

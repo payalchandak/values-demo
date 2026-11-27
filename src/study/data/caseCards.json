@@ -1,0 +1,252 @@
+[
+  {
+    "id": "065d7abf-3671-43a2-8375-79fb6e87ed78",
+    "specialty": "Vascular surgery",
+    "summary": "He lacks capacity and refuses surgery for a foot infection antibiotics are unlikely to control."
+  },
+  {
+    "id": "0b5a2bcb-0946-461a-8ba1-8f29213f01c5",
+    "specialty": "Psychiatry",
+    "summary": "A capacitated man asks to leave after a suicide attempt, and a hold would delay other patients."
+  },
+  {
+    "id": "0c790bb1-dd0d-4724-8502-e8613968dd04",
+    "specialty": "Genetics",
+    "summary": "She leaves tomorrow wanting an Alzheimer-risk result that counseling cannot explain in time."
+  },
+  {
+    "id": "0dd9fa12-e3fa-4243-8a4f-2b34052734dc",
+    "specialty": "Infectious disease",
+    "summary": "He leaves tomorrow with new HIV and refuses any help notifying his partners."
+  },
+  {
+    "id": "10199c7b-b781-474f-a9e3-751bdfd9288a",
+    "specialty": "Neurosurgery",
+    "summary": "His parents refuse blood during urgent brain surgery, and it is unclear he shares their faith."
+  },
+  {
+    "id": "1b570980-2a9a-41a3-87a8-d3a7439f5ed5",
+    "specialty": "Internal medicine",
+    "summary": "Chest tightness has eased at shift change, and a protocol would take a scarce monitored bed."
+  },
+  {
+    "id": "1f92a8ed-c2ad-4856-b7c4-272f9a68d2a6",
+    "specialty": "Pediatrics",
+    "summary": "Parents refuse newborn sickle cell screening, and the sample must leave before the next pickup."
+  },
+  {
+    "id": "2529588f-f37c-4af4-86d8-1d5eb99466f5",
+    "specialty": "Orthopedics",
+    "summary": "Her wrist fracture needs reduction tonight, and no parent can consent for anesthesia."
+  },
+  {
+    "id": "282a2bc8-6ccb-4f34-a265-ff9540f7d2dc",
+    "specialty": "Nephrology",
+    "summary": "She may lack capacity, and without dialysis she could die of high potassium within days."
+  },
+  {
+    "id": "2f51d70e-facc-45fa-a520-ec3d2fc17b44",
+    "specialty": "Pediatrics",
+    "summary": "His parents want surgery for ears that draw teasing, and the referral must be made or deferred today."
+  },
+  {
+    "id": "3e0c9fbc-7c0c-464a-881a-1cad43601591",
+    "specialty": "Reproductive medicine",
+    "summary": "They want embryo screening for a BRCA variant the public insurer does not usually cover."
+  },
+  {
+    "id": "4aab5d3c-9a4e-40c2-b074-b4d9be1c4116",
+    "specialty": "Surgery",
+    "summary": "She will accept only a high-risk mastectomy, not the safer lumpectomy that would spare the ICU."
+  },
+  {
+    "id": "4b731f8c-84a3-4191-9eb2-28aae57e1bc9",
+    "specialty": "Oncology",
+    "summary": "She wants chemotherapy whose benefit is uncertain and that may cost her remaining alert time."
+  },
+  {
+    "id": "54cefefd-cafa-410f-8ccc-eee8b9bf4ab0",
+    "specialty": "Critical care",
+    "summary": "She may have a repairable perforation, and her children say she rejected lasting machine dependence."
+  },
+  {
+    "id": "5ce660f0-67cd-48b5-8316-e147b578a7c9",
+    "specialty": "Neonatology",
+    "summary": "A stable premature newborn must get a new central line or be extubated for comfort care."
+  },
+  {
+    "id": "6519444e-8565-4d94-882b-19d5cd4f08a7",
+    "specialty": "Reproductive medicine",
+    "summary": "She wants to trigger ovulation despite several follicles, and this is her last covered cycle."
+  },
+  {
+    "id": "665d81cb-3074-4457-8af0-bb437f386b7b",
+    "specialty": "Neurology",
+    "summary": "If aid in dying is declined, his hands may fail before he can see another physician."
+  },
+  {
+    "id": "71073932-0517-418a-9e0d-40423a4f1755",
+    "specialty": "Psychiatry",
+    "summary": "He reports persistent thoughts of killing a former partner, and he will leave today."
+  },
+  {
+    "id": "7129cbd9-42d9-42da-86e6-7132d1f0369c",
+    "specialty": "Surgery",
+    "summary": "He refuses amputation for a spreading foot infection, and his capacity is in dispute."
+  },
+  {
+    "id": "731f6c10-7da1-4140-97ea-dbc609c428d6",
+    "specialty": "Oncology",
+    "summary": "He wants the cancer diagnosis today, and disclosure may set off another dangerous panic attack."
+  },
+  {
+    "id": "7b8a4a5e-4119-48e2-ab3d-72c2d0684718",
+    "specialty": "Pediatrics",
+    "summary": "An unvaccinated toddler will return to a classroom where measles exposure is still being investigated."
+  },
+  {
+    "id": "7bd46c3e-76f0-4cdc-bf02-016e944c77cd",
+    "specialty": "Reproductive medicine",
+    "summary": "Both embryos must be used or discarded today, and twins could threaten her kidney transplant."
+  },
+  {
+    "id": "7f52898a-aca8-476f-ad50-4b9851fca821",
+    "specialty": "Critical care",
+    "summary": "He has not woken after ten days on a ventilator, and the next step is a tracheostomy or comfort care."
+  },
+  {
+    "id": "82d191f9-5472-4905-8c3d-de170b9dc85b",
+    "specialty": "Critical care",
+    "summary": "She needs one surrogate now, and there is a documented concern of violence by her husband."
+  },
+  {
+    "id": "88292af4-c4be-4a91-81c6-3f7c7fd4b574",
+    "specialty": "Pulmonology",
+    "summary": "She agreed to a brief ICU trial if the illness was reversible, and she can no longer confirm it."
+  },
+  {
+    "id": "8c1c8374-ab03-4bf7-a4ef-b5b225422685",
+    "specialty": "Nephrology",
+    "summary": "He is dying of AIDS with kidney failure, and the dialysis slot closes unless it starts now."
+  },
+  {
+    "id": "9b7e0b45-ee7a-4de7-8961-eab9091bc99e",
+    "specialty": "Obstetrics",
+    "summary": "She is pregnant with a detectable viral load and fears harm if her partner learns she has HIV."
+  },
+  {
+    "id": "9cf163fb-fb6c-4f2d-949f-c34d8d430d52",
+    "specialty": "Genetics",
+    "summary": "If this 15-year-old is not tested for Huntington disease now, she may wait another year."
+  },
+  {
+    "id": "a00e045a-a1ad-4635-bc4d-860f71ca01e0",
+    "specialty": "Neurology",
+    "summary": "He refuses admission for treatable hydrocephalus, and he may not grasp the risk of that refusal."
+  },
+  {
+    "id": "a4bf234a-6888-4825-8fb4-40e6afe55489",
+    "specialty": "Occupational medicine",
+    "summary": "She refuses a flu shot and still wants clearance for a unit full of high-risk patients."
+  },
+  {
+    "id": "a8d7dbba-43b5-48ab-9855-e65266ae2f23",
+    "specialty": "Surgery",
+    "summary": "She wants both breasts removed because fear is making her skip screening, and her risk is uncertain."
+  },
+  {
+    "id": "ae2ddcf4-a8c7-4e49-9a40-81a56cfeb2fc",
+    "specialty": "Critical care",
+    "summary": "She is brain-dead and pregnant, and machines cannot help her but might carry the pregnancy."
+  },
+  {
+    "id": "b01b61b0-5f1e-4030-acd3-dfefa7136ca4",
+    "specialty": "Critical care",
+    "summary": "He is brain-dead and a registered donor, and his parents ask to wait until tomorrow."
+  },
+  {
+    "id": "b0a439fe-8ab8-450b-9e72-dbce2726a37e",
+    "specialty": "Oncology",
+    "summary": "She was assigned three years of leukemia treatment and now wants the two-year plan instead."
+  },
+  {
+    "id": "b3f8664c-ddaf-4d9a-81b8-6bb06c11e9c6",
+    "specialty": "Infectious disease",
+    "summary": "She refuses HIV staging labs unless the visit explains today how serious the illness may be."
+  },
+  {
+    "id": "b94607ef-e355-4a64-b564-2a558c0eea71",
+    "specialty": "Psychiatry",
+    "summary": "He has barely drunk in two days, and IV fluids would mean restraints on a psychiatry ward."
+  },
+  {
+    "id": "ba711ccb-a7ab-493f-84c5-39f735feb806",
+    "specialty": "Psychiatry",
+    "summary": "She has ongoing suicidal thoughts, refuses hospital care, and a hold is optional while risk is unclear."
+  },
+  {
+    "id": "beef02d0-02a4-45a5-b020-906846fe8bd8",
+    "specialty": "Pediatrics",
+    "summary": "A chart error suggests duplicate vaccines, and her anxious mother will not be called until tomorrow."
+  },
+  {
+    "id": "bf65986f-b06d-43eb-b7a9-e9febd1ca6cd",
+    "specialty": "Psychiatry",
+    "summary": "She insists on reading a note about paranoid traits alone before she leaves."
+  },
+  {
+    "id": "c66799aa-41ba-497c-824c-1e2e9b66b60c",
+    "specialty": "Pediatrics",
+    "summary": "He panics when weight comes up, and his mother wants diet counseling before the visit ends."
+  },
+  {
+    "id": "ca48bd78-c209-4c82-80c4-37438e90e68a",
+    "specialty": "Psychiatry",
+    "summary": "Consultants disagree about whether more treatment could help, and the committee meets in two days."
+  },
+  {
+    "id": "d9b904c3-80de-486b-9b63-0bdb58f733a3",
+    "specialty": "Geriatrics",
+    "summary": "He has no terminal illness, he has capacity, and he wants assisted dying started this week."
+  },
+  {
+    "id": "dee07a00-bf07-49ab-b334-35158bab1b9d",
+    "specialty": "Hematology",
+    "summary": "His guardian must accept or refuse induction for leukemia that is unlikely to cure him."
+  },
+  {
+    "id": "e0c6ee6e-c005-4b00-9ea9-478fceda1e19",
+    "specialty": "Emergency medicine",
+    "summary": "A child's lip must be repaired tonight, and waiting for plastics would let swelling blur the border."
+  },
+  {
+    "id": "ec137441-228d-4234-b595-32e6772f3b3f",
+    "specialty": "Critical care",
+    "summary": "Her advance decision refuses ICU ventilation, but it may not cover a reversible overdose."
+  },
+  {
+    "id": "ecdf28d6-3d88-4916-9b3c-67ef077fafc5",
+    "specialty": "Transplant",
+    "summary": "He says the kidney donation is voluntary, and his family warns his community is pressuring him."
+  },
+  {
+    "id": "eee77bbb-0416-4c4c-b1d5-26165571eb9b",
+    "specialty": "Geriatrics",
+    "summary": "He refused tubes and restraints, and a feeding tube would likely require both."
+  },
+  {
+    "id": "f184f7c6-1a27-4ba7-a02a-74f3eeeb558b",
+    "specialty": "Critical care",
+    "summary": "He is a registered donor, his parents object, and waiting past tonight would waste the organs."
+  },
+  {
+    "id": "f35da35f-257c-4b85-9b8c-5ebcd8a464d4",
+    "specialty": "Psychiatry",
+    "summary": "He has already run toward traffic, and observation may not legally stop him leaving again."
+  },
+  {
+    "id": "feec8675-056c-445c-a654-28dc91e1c511",
+    "specialty": "Obstetrics",
+    "summary": "They may end the pregnancy if the fetus is unaffected, and a transfer would miss the legal deadline."
+  }
+]

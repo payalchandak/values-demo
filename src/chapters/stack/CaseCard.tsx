@@ -31,8 +31,8 @@ const firstSentence = (vignette: string): string =>
   vignette.match(/^[^.!?]+[.!?]/)?.[0] ?? vignette;
 
 /**
- * The card for a study case. Authored cases come from `caseCards`; placeholder
- * cards use their scenario specialty and their one-sentence vignette.
+ * The card for a study case. Saved cards come from study/data/caseCards.json.
+ * Placeholder cards use their scenario specialty and their one-sentence vignette.
  */
 export function caseCardFor(study: StudyCase): CaseCardItem {
   const authored = caseCardCopy(study.id);
