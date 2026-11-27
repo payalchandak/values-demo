@@ -1,4 +1,4 @@
-import { FADE_MS } from "../../design/motion";
+import { FADE_MS, MOVE_MS } from "../../design/motion";
 import type { Beat } from "../../types";
 
 /**
@@ -52,11 +52,14 @@ export const motionAt = (elapsedMs: number, name: RegressionBeat, maxMs?: number
 /*  On-screen text                                                            */
 /* -------------------------------------------------------------------------- */
 
+/** Profile headline, shared by the detail chapter and autoplay. */
+export const PROFILE_HEADLINE = "A value profile, inferred from decisions.";
+
 /** Chapter headlines, verbatim. Each takes over at the named beat. */
 export const headlines: Partial<Record<RegressionBeat, string>> = {
   rows: "Decisions and trade-offs become data.",
   weights: "Which value weights explain these choices?",
-  fit: "A value profile, inferred from decisions.",
+  fit: PROFILE_HEADLINE,
 };
 
 /** Per-beat captions, each 8 words or fewer. `model` is the profile's display name. */
@@ -103,3 +106,32 @@ export function textAt(
   }
   return { current, previous, mix: previous ? clamp01((elapsedMs - since) / SWAP_MS) : 1 };
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Autoplay bridge                                                           */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Shown once under the stack table. The detail headlines above stay on the
+ * dev route; autoplay keeps the stack headline until the profile.
+ */
+export const COMPRESS_CAPTION =
+  "A logistic regression finds the four value weights that best explain these choices.";
+
+/** How long that caption holds before the table gives way to the profile bars. */
+export const CAPTION_HOLD_MS = 4000;
+
+const profileAt = CAPTION_HOLD_MS;
+const compressEnd = profileAt + MOVE_MS;
+
+/**
+ * Autoplay between the stack table and the bars-to-radar morph.
+ *   caption  the table holds, with the one-line regression caption
+ *   profile  rows fade, priority bars grow, the profile headline takes over
+ *   end      chapter end marker
+ */
+export const compressBeats = [
+  { name: "caption", startMs: 0 },
+  { name: "profile", startMs: profileAt },
+  { name: "end", startMs: compressEnd },
+] as const satisfies readonly Beat[];

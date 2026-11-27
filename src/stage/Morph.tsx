@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { RADAR_AXES } from "../components/RadarChart";
 import { NEUTRAL, VALUES, VALUE_COLORS, VALUE_ORDER, valueInk } from "../design";
 import Radar, { RADAR_ASPECT } from "../chapters/ending/Radar";
@@ -15,12 +15,17 @@ const CX = W / 2;
 const CY = H / 2;
 const R = 104;
 
-/** Bar layout before rotating: left edge, row pitch, thickness, and the length of a priority of 1. */
+/** Bar layout before rotating: fallback left edge, row pitch, thickness, and the length of a priority of 1. */
 const BAR_X = 104;
 const BAR_PITCH = 40;
 const BAR_THICK = 16;
 const BAR_TRACK = 230;
 const STEM_THICK = 3;
+const LABEL_INSET = 8;
+const LABEL_GAP = 8;
+
+/** Small line under the four priority bars. Fades with the bar labels. */
+const BAR_SUBCAPTION = "Relative priorities across the four values.";
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const span = (t: number, from: string, to: string) =>
@@ -28,16 +33,78 @@ const span = (t: number, from: string, to: string) =>
 
 const rad = (deg: number) => (deg * Math.PI) / 180;
 
+let measureCanvas: CanvasRenderingContext2D | null = null;
+const textWidth = (text: string, font: string) => {
+  if (!measureCanvas) measureCanvas = document.createElement("canvas").getContext("2d");
+  if (!measureCanvas) return 0;
+  measureCanvas.font = font;
+  return measureCanvas.measureText(text).width;
+};
+const svgLength = (svg: SVGSVGElement | null, selector: string) => {
+  if (!svg) return 0;
+  let max = 0;
+  for (const node of svg.querySelectorAll<SVGTextElement>(selector)) {
+    try {
+      max = Math.max(max, node.getComputedTextLength());
+    } catch {
+      /* not laid out yet */
+    }
+  }
+  return max;
+};
+
 /**
  * The four normalized priority bars rotate onto the radar's axes, the polygon
  * draws, and the whole thing resolves into the profile's real radar (the same
  * chart, size and position the first individual profile uses).
  */
-export default function Morph({ profile, elapsedMs }: { profile: Profile; elapsedMs: number }) {
+export default function Morph({
+  profile,
+  elapsedMs,
+  barGrow = 1,
+}: {
+  profile: Profile;
+  elapsedMs: number;
+  /** 0..1 length of the horizontal bars. The stage leaves this at 1. */
+  barGrow?: number;
+}) {
   const t = Math.max(0, elapsedMs);
   const viewport = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
   const { width, height } = useElementSize(viewport);
   const radarWidth = individualRadarWidth(width, height);
+  // Label column is the longest value name, in viewBox units, so it fits at every scale.
+  const [labelWidth, setLabelWidth] = useState(0);
+  const [percentWidth, setPercentWidth] = useState(0);
+  useLayoutEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const read = () => {
+      const names = VALUE_ORDER.map((v) => VALUES[v].name);
+      const percents = VALUE_ORDER.map((v) => `${Math.round(profile.priorities[v] * 100)}%`);
+      const lw = Math.max(svgLength(svg, "[data-bar-label]"), names.reduce((max, name) => Math.max(max, textWidth(name, "600 13px Inter")), 0));
+      const pw = Math.max(
+        svgLength(svg, "[data-bar-percent]"),
+        percents.reduce((max, label) => Math.max(max, textWidth(label, "400 12px Inter")), 0),
+      );
+      if (lw > 0) setLabelWidth((w) => (Math.abs(w - lw) < 0.5 ? w : lw));
+      if (pw > 0) setPercentWidth((w) => (Math.abs(w - pw) < 0.5 ? w : pw));
+    };
+    read();
+    let cancel = false;
+    document.fonts?.ready.then(() => {
+      if (!cancel) read();
+    });
+    return () => {
+      cancel = true;
+    };
+  }, [width, height, profile]);
+
+  const barX = labelWidth > 0 ? LABEL_INSET + labelWidth + LABEL_GAP : BAR_X;
+  const barTrack =
+    labelWidth > 0 && percentWidth > 0
+      ? Math.max(48, W - barX - LABEL_GAP - percentWidth - LABEL_INSET)
+      : BAR_TRACK;
 
   const enter = clamp01(t / MORPH_HANDOFF_MS);
   const rotate = easeInOut(span(t, "rotate", "polygon"));
@@ -47,10 +114,10 @@ export default function Morph({ profile, elapsedMs }: { profile: Profile; elapse
   const rows = VALUE_ORDER.map((v, i) => {
     const p = profile.priorities[v];
     const axis = RADAR_AXES.find((a) => a.value === v)!.angle;
-    const ox = lerp(BAR_X, CX, rotate);
+    const ox = lerp(barX, CX, rotate);
     const oy = lerp(CY + (i - 1.5) * BAR_PITCH, CY, rotate);
     const angle = lerp(0, axis, rotate);
-    const length = lerp(p * BAR_TRACK, p * R, rotate);
+    const length = lerp(p * barTrack, p * R, rotate) * barGrow;
     const tipX = CX + p * R * Math.cos(rad(axis));
     const tipY = CY + p * R * Math.sin(rad(axis));
     return { v, p, axis, ox, oy, angle, length, tipX, tipY, rowY: CY + (i - 1.5) * BAR_PITCH };
@@ -60,6 +127,8 @@ export default function Morph({ profile, elapsedMs }: { profile: Profile; elapse
   const ringOpacity = clamp01(rotate / 0.5);
   const textOpacity = 1 - clamp01(rotate / 0.35);
   const stemOpacity = 1 - clamp01((polygon - 0.5) / 0.5);
+  // While bars grow in over a fading table, hold the words back until the rows are gone.
+  const labelMix = barGrow < 1 ? Math.max(0, (barGrow - 0.45) / 0.55) : 1;
 
   const ringPoints = (f: number) =>
     RADAR_AXES.map(
@@ -78,6 +147,7 @@ export default function Morph({ profile, elapsedMs }: { profile: Profile; elapse
               <Radar profile={profile} width={radarWidth} mode="full" />
             </div>
             <svg
+              ref={svgRef}
               aria-hidden="true"
               viewBox={`0 0 ${W} ${H}`}
               className="absolute inset-0 block h-full w-full"
@@ -149,11 +219,12 @@ export default function Morph({ profile, elapsedMs }: { profile: Profile; elapse
                 ))}
               </g>
 
-              <g style={{ opacity: textOpacity }}>
+              <g style={{ opacity: textOpacity * labelMix }}>
                 {rows.map((r) => (
                   <g key={r.v}>
                     <text
-                      x={BAR_X - 8}
+                      data-bar-label=""
+                      x={barX - LABEL_GAP}
                       y={r.rowY}
                       dy="0.35em"
                       textAnchor="end"
@@ -163,7 +234,14 @@ export default function Morph({ profile, elapsedMs }: { profile: Profile; elapse
                     >
                       {VALUES[r.v].name}
                     </text>
-                    <text x={BAR_X + r.p * BAR_TRACK + 8} y={r.rowY} dy="0.35em" fontSize={12} fill={NEUTRAL.inkMuted}>
+                    <text
+                      data-bar-percent=""
+                      x={barX + r.p * barTrack * barGrow + LABEL_GAP}
+                      y={r.rowY}
+                      dy="0.35em"
+                      fontSize={12}
+                      fill={NEUTRAL.inkMuted}
+                    >
                       {Math.round(r.p * 100)}%
                     </text>
                   </g>
@@ -194,6 +272,15 @@ export default function Morph({ profile, elapsedMs }: { profile: Profile; elapse
                 />
               ))}
             </svg>
+            <p
+              className="pointer-events-none absolute inset-x-0 text-center text-xs leading-snug text-gray-500"
+              style={{
+                top: ((CY + 1.5 * BAR_PITCH + 26) / H) * radarWidth * RADAR_ASPECT.full,
+                opacity: textOpacity * labelMix,
+              }}
+            >
+              {BAR_SUBCAPTION}
+            </p>
           </div>
           <div style={{ opacity: resolve }}>
             {/* The stage's persistent icon lands on this slot as the radar resolves. */}

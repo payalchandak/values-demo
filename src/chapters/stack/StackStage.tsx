@@ -1,4 +1,4 @@
-import { memo, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { memo, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { MOVE_MS } from "../../design/motion";
 import type { StudyCase, Tag, Value } from "../../study/types";
 import type { Beat } from "../../types";
@@ -60,6 +60,8 @@ interface StackStageProps {
    * turns into the stack's first card.
    */
   bridge?: PatientBridge | null;
+  /** Note under the case count. Used when the table is held after the stack. */
+  caption?: ReactNode;
 }
 
 /**
@@ -67,7 +69,15 @@ interface StackStageProps {
  * The stage is a fixed logical box scaled to fit, so geometry never depends on
  * the viewport.
  */
-export default function StackStage({ cases, beats, elapsedMs, profileKey, profileLabel, bridge }: StackStageProps) {
+export default function StackStage({
+  cases,
+  beats,
+  elapsedMs,
+  profileKey,
+  profileLabel,
+  bridge,
+  caption,
+}: StackStageProps) {
   if (cases.length < 3) throw new Error("StackStage needs at least 3 cases");
   const times = useMemo(() => resolveBeats(beats), [beats]);
   const counts = useMemo(
@@ -135,6 +145,13 @@ export default function StackStage({ cases, beats, elapsedMs, profileKey, profil
         }
       : null;
 
+  // Cards stay centered. As they become rows, the stage rises so the table
+  // header sits just under the headline instead of in the middle of the scene.
+  const shiftSpan = times.highlight - times.morph;
+  const shiftP =
+    shiftSpan <= 0 ? (elapsedMs >= times.morph ? 1 : 0) : easeInOut(clamp01((elapsedMs - times.morph) / shiftSpan));
+  const stageTop = lerp(fit.top, 8 - L.headerY * fit.scale, shiftP);
+
   return (
     <div ref={hostRef} className="relative h-full w-full" data-testid="stack-host">
       <div
@@ -142,7 +159,7 @@ export default function StackStage({ cases, beats, elapsedMs, profileKey, profil
         style={{
           position: "absolute",
           left: fit.left,
-          top: fit.top,
+          top: stageTop,
           width: L.stageW,
           height: L.stageH,
           transform: `scale(${fit.scale})`,
@@ -200,10 +217,30 @@ export default function StackStage({ cases, beats, elapsedMs, profileKey, profil
           </span>
         </Centered>
         <Centered layout={L} y={L.countLabelY} opacity={frame.countLabelOpacity}>
-          <span className="text-lg font-semibold tracking-tight" style={{ color: `${INK}cc` }}>
+          <span data-stack-footer className="text-lg font-semibold tracking-tight" style={{ color: `${INK}cc` }}>
             {cases.length} cases
           </span>
         </Centered>
+        {caption && (
+          <div
+            style={{
+              position: "absolute",
+              left: (L.stageW - L.rowW) / 2,
+              top: L.countLabelY + 22,
+              width: L.rowW,
+              boxSizing: "border-box",
+              padding: "0 16px",
+              textAlign: "center",
+              opacity: frame.countLabelOpacity,
+              pointerEvents: "none",
+              color: "#4b5563",
+              fontSize: 16,
+              lineHeight: 1.35,
+            }}
+          >
+            {caption}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -30,8 +30,10 @@ function devRows(): RegressionProps["rows"] {
 }
 
 /**
- * `#/dev/regression`: the chapter alone, on the real chapter clock, with the
- * usual transport plus a jump-to-beat strip.
+ * `#/dev/regression`: the full method, on the real chapter clock, with the
+ * usual transport plus a jump-to-beat strip. Autoplay does not play these
+ * steps. The demo HUD only moves through autoplay chapters, so the detail
+ * stays on this route.
  *
  *   ?beat=weighted   open paused on that beat
  *   ?profile=claude  show a different profile (default: gpt)

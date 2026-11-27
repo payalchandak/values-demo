@@ -1,12 +1,12 @@
 import { OPENING_BEATS, OFFSETS as OPENING_OFFSETS, type OpeningChapterKey } from "../chapters/opening/timeline";
 import { stackBeats } from "../chapters/stack/beats";
-import { headlines as regressionHeadlines, regressionBeats } from "../chapters/regression/beats";
+import { compressBeats, PROFILE_HEADLINE } from "../chapters/regression/beats";
 import { closingBeats, individualBeats } from "../chapters/ending";
 import { FADE_MS } from "../design/motion";
 import { beatStart, chapterDuration, type Beat } from "../types";
 import { morphBeats } from "./morphBeats";
 
-/** Chapter ids, in play order: opening (5), stack, regression, morph, ending (2). */
+/** Chapter ids, in play order: opening (5), stack, regression bridge, morph, ending (2). */
 export const SEGMENTS = [
   "opening-hook",
   "opening-dilemma",
@@ -36,7 +36,7 @@ export const SEGMENT_BEATS: Record<SegmentId, readonly Beat[]> = {
   "opening-tradeoff": OPENING_BEATS.tradeoff,
   "opening-framework": OPENING_BEATS.framework,
   stack: stackBeats,
-  regression: regressionBeats,
+  regression: compressBeats,
   morph: morphBeats,
   "individual-models": individualBeats,
   "models-and-physicians": closingBeats,
@@ -84,10 +84,7 @@ export const HEADLINE_ENTRIES: readonly HeadlineEntry[] = [
   { at: stackAt("card"), text: STACK_HEADLINES.start },
   { at: stackAt("markers"), text: STACK_HEADLINES.markers },
   { at: stackAt("flip"), text: STACK_HEADLINES.flip },
-  ...regressionBeats.flatMap((b) => {
-    const text = (regressionHeadlines as Partial<Record<string, string>>)[b.name];
-    return text === undefined ? [] : [{ at: SEGMENT_OFFSET.regression + b.startMs, text }];
-  }),
+  { at: SEGMENT_OFFSET.regression + beatStart(compressBeats, "profile"), text: PROFILE_HEADLINE },
   { at: SEGMENT_OFFSET["individual-models"], text: INDIVIDUAL_HEADLINE },
   { at: SEGMENT_OFFSET["models-and-physicians"] + beatStart(closingBeats, "question"), text: "" },
 ];

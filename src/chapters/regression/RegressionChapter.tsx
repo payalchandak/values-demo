@@ -24,6 +24,7 @@ import {
   softmaxSteps,
 } from "./data";
 import { DEFAULT_PROFILE_KEY, TOTAL_CASES, profileByKey } from "./dataset";
+import { CompressBridge } from "./Compress";
 
 /* -------------------------------------------------------------------------- */
 /*  Props                                                                     */
@@ -753,6 +754,11 @@ export function RegressionScene({
   expandedIndex = bestFitIndex(rows, profile),
   showHeadline = true,
 }: RegressionProps & { elapsedMs: number }) {
+  // The stage draws headlines itself and passes showHeadline={false}. That path is
+  // the short autoplay bridge. The dev route keeps this detail sequence.
+  if (!showHeadline) {
+    return <CompressBridge elapsedMs={elapsedMs} profile={profile} />;
+  }
   // The engine's first tick can land a few ms below zero; nothing here is defined before 0.
   const t = Math.max(0, elapsedMs);
   if (!Number.isInteger(expandedIndex) || expandedIndex < 0 || expandedIndex >= rows.length) {
