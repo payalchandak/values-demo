@@ -106,9 +106,35 @@ export function markSpinDeg(e: number): number {
   return deg;
 }
 
+/**
+ * The question leaves and the response arrives as one motion, from the model
+ * chapter's start. Long enough that the case eases up instead of jumping.
+ * Settled just as the mark begins to spin.
+ */
+export const MODEL_HANDOFF_MS = 520;
+
+const easeInOut = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - ((-2 * x + 2) ** 3) / 2);
+
+/**
+ * Chapter-local handoff at the start of the model chapter.
+ * The question fades, then its slot closes, while the response grows in.
+ */
+export function modelHandoff(elapsedMs: number): {
+  questionFade: number;
+  questionCollapse: number;
+  responseEnter: number;
+} {
+  const rise = ramp(elapsedMs, 0, MODEL_HANDOFF_MS);
+  return {
+    questionFade: easeInOut(Math.min(1, rise / 0.42)),
+    questionCollapse: easeInOut(Math.min(1, Math.max(0, (rise - 0.16) / 0.84))),
+    responseEnter: easeInOut(Math.min(1, Math.max(0, (rise - 0.1) / 0.9))),
+  };
+}
+
 const model = [
-  { name: "ask", startMs: 0 }, // "What would you recommend?" leaves; no headline yet
-  { name: "think", startMs: THINK_AT }, // thinking panel; the question has already left
+  { name: "ask", startMs: 0 }, // "What would you recommend?" starts leaving; the response eases in with it
+  { name: "think", startMs: THINK_AT }, // mark spins; the panel has just settled
   { name: "reveal", startMs: REVEAL_AT }, // answer starts typing
   { name: "revealed", startMs: REVEALED_AT }, // last character is on screen
   { name: "highlight", startMs: HIGHLIGHT_AT }, // recommendation sentence sweeps

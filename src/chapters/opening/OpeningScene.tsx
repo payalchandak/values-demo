@@ -20,7 +20,7 @@ import ValueStrip from "./ValueStrip";
 import Vignette from "./Vignette";
 import { CHARCOAL, CHARCOAL_FAINT } from "./charcoal";
 import { valueSteps } from "./valueSteps";
-import { COLLAPSE_MS, OPENING_BEATS, OFFSETS, at, caseCharsAt, ramp, visibility } from "./timeline";
+import { COLLAPSE_MS, OPENING_BEATS, OFFSETS, at, caseCharsAt, modelHandoff, ramp, visibility } from "./timeline";
 
 /* -------------------------------------------------------------------------- */
 /*  Copy                                                                       */
@@ -87,10 +87,13 @@ const MAX_FONT_PX = 22;
 const MIN_READABLE_PX = 12;
 
 /**
- * The paper title is replaced, in the same place, by "What would you recommend?".
- * The crossfade finishes as the dilemma chapter starts.
+ * The paper title leaves, the heading eases down to one line, then
+ * "What would you recommend?" fades in whole. Readable type is never clipped.
+ * The move finishes as the dilemma chapter starts.
  */
-const HEADING_SWAP_MS = 520;
+const HEADING_SWAP_MS = 980;
+/** The two choices fade in and the case eases up to make room. */
+const OPTIONS_IN_MS = 680;
 
 /** Gap between stacked blocks. The heading clip folds one of these into itself. */
 const STACK_GAP = "0.9em";
@@ -123,20 +126,23 @@ function Block({
   probe,
   className = "",
   layout = true,
+  style,
   children,
 }: {
   probe: boolean;
   className?: string;
   /** Off while a clock-driven height change is already moving this block. */
   layout?: boolean;
+  style?: { marginTop?: string };
   children: ReactNode;
 }) {
-  if (probe) return <div className={className}>{children}</div>;
+  if (probe) return <div className={className} style={style}>{children}</div>;
   return (
     <motion.div
       layout={layout ? "position" : false}
       transition={{ duration: FADE_MS / 1000, ease: "easeOut" }}
       className={className}
+      style={style}
     >
       {children}
     </motion.div>
@@ -155,6 +161,53 @@ function useBoxHeight() {
     return () => ro.disconnect();
   }, [node]);
   return [setNode, height] as const;
+}
+
+/**
+ * Opens a slot with `enter` while the content fades in at full size, unclipped.
+ * At rest the slot is the content's own height, with no transform left on the type.
+ */
+function FadeSlot({ enter, children }: { enter: number; children: ReactNode }) {
+  const [ref, measured] = useBoxHeight();
+  const p = Math.min(1, Math.max(0, enter));
+  const settled = p >= 1;
+  return (
+    <div className="relative w-full" style={{ height: settled || measured === 0 ? (settled ? "auto" : 0) : measured * p }}>
+      <div
+        ref={ref}
+        className="w-full"
+        style={{
+          opacity: p,
+          position: settled ? undefined : "absolute",
+          top: settled ? undefined : 0,
+          left: settled ? undefined : 0,
+          width: "100%",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/** Grows a block up from nothing so a new panel eases into the column. */
+function GrowIn({ enter, children }: { enter: number; children: ReactNode }) {
+  const [ref, measured] = useBoxHeight();
+  const p = Math.min(1, Math.max(0, enter));
+  const settled = p >= 1;
+  return (
+    <div
+      className="w-full"
+      style={{
+        height: settled || measured === 0 ? (settled ? "auto" : 0) : measured * p,
+        overflow: settled ? "visible" : "hidden",
+      }}
+    >
+      <div ref={ref} style={{ opacity: p }}>
+        {children}
+      </div>
+    </div>
+  );
 }
 
 const HEADING_CLASS =
@@ -206,6 +259,7 @@ function OpeningMark({
 function HeadlineReplace({
   mix,
   exit = 0,
+  drift = 0,
   titleOpacity,
   questionOpacity,
 }: {
@@ -213,6 +267,8 @@ function HeadlineReplace({
   mix: number;
   /** 1 collapses the question after it has replaced the title. */
   exit?: number;
+  /** 0..1. The question drifts up while it fades, ahead of the slot closing. */
+  drift?: number;
   titleOpacity: number;
   questionOpacity: number;
 }) {
@@ -256,7 +312,8 @@ function HeadlineReplace({
             gridArea: "1 / 1",
             fontSize: HEADLINES[1].size,
             color: NEUTRAL.ink,
-            opacity: questionOpacity * (1 - gone),
+            opacity: questionOpacity,
+            transform: drift > 0 ? `translateY(${drift * -0.35}em)` : undefined,
             position: settledTitle ? "absolute" : undefined,
           }}
           aria-hidden={questionOpacity < 0.5}
@@ -471,7 +528,6 @@ const SceneBody = memo(function SceneBody({
       : 1 - ramp(t, next - FADE_MS, next));
 
   const dilemmaStart = at("dilemma", "question");
-  const thinkAt = at("model", "think");
   const ask = at("model", "ask");
   // The paper title and the question overlap in the heading slot, then the extra lines close up.
   const swap = ease(ramp(t, dilemmaStart - HEADING_SWAP_MS, dilemmaStart));
@@ -485,8 +541,9 @@ const SceneBody = memo(function SceneBody({
   const logoFade = ease(Math.min(1, riseT / 0.62));
   const logoLift = ease(Math.min(1, Math.max(0, (riseT - 0.5) / 0.5)));
   const logoOpacity = logoOpen * (1 - logoFade);
-  // The question leaves at the model chapter. Nothing replaces it; the response panel is next.
-  const questionExit = ramp(t, ask, ask + FADE_MS);
+  // The question fades, then its slot closes, while the response grows in below the options.
+  const handoff = modelHandoff(t - ask);
+  const questionExit = handoff.questionCollapse;
 
   // The verbatim case stays up through the model chapter; the response sits below it.
   // With the stack handoff, it returns once the framework has cleared, in time for the last beat.
@@ -496,15 +553,10 @@ const SceneBody = memo(function SceneBody({
       ? ramp(t, recall + FADE_MS, recall + FADE_MS * 2)
       : visibility(t, at("hook", "patient"), at("hook", "patient") + FADE_MS, FRAMEWORK_AT - FADE_MS, FRAMEWORK_AT);
   // The mark stays after the framework starts, only until the stage icon has left for its dock.
-  const showResponse = t >= thinkAt && t < FRAMEWORK_AT + ICON_LEAVE_MS;
+  const responseEnter = handoff.responseEnter;
+  const showResponse = t >= ask && responseEnter > 0 && t < FRAMEWORK_AT + ICON_LEAVE_MS;
   const collapse = ramp(t, at("model", "collapse"), at("model", "collapse") + COLLAPSE_MS);
-  const responseOpacity = visibility(
-    t,
-    beat("think") + OFFSETS.model,
-    beat("think") + OFFSETS.model + FADE_MS,
-    FRAMEWORK_AT - FADE_MS,
-    FRAMEWORK_AT,
-  );
+  const responseFadeOut = 1 - ramp(t, FRAMEWORK_AT - FADE_MS, FRAMEWORK_AT);
 
   // The annotatable vignette replaces the case card as the framework chapter starts.
   const showVignette = t >= FRAMEWORK_AT && !cleared;
@@ -516,7 +568,8 @@ const SceneBody = memo(function SceneBody({
   const showChips = t >= FRAMEWORK_AT;
 
   const showStrip = t >= at("framework", "framework") && !cleared;
-  const headingMoving = (space > 0 && space < 1) || (questionExit > 0 && questionExit < 1 && t < thinkAt);
+  const handoffMoving = (questionExit > 0 && questionExit < 1) || (responseEnter > 0 && responseEnter < 1);
+  const headingMoving = (space > 0 && space < 1) || handoffMoving;
   const showQuestionHeading = h === 0 || (h === 1 && questionExit < 1);
 
   return (
@@ -534,8 +587,9 @@ const SceneBody = memo(function SceneBody({
         <HeadlineReplace
           mix={h === 0 ? space : 1}
           exit={h === 0 ? 0 : questionExit}
+          drift={h === 0 ? 0 : handoff.questionFade}
           titleOpacity={h === 0 ? logoOpen * (1 - titleLeave) : 0}
-          questionOpacity={h === 0 ? questionIn : 1}
+          questionOpacity={h === 0 ? questionIn : 1 - handoff.questionFade}
         />
       )}
 
@@ -577,7 +631,7 @@ const SceneBody = memo(function SceneBody({
       )}
 
       {showOptions && (
-        <Block probe={probe} className="w-full">
+        <Block probe={probe} className="w-full" layout={!headingMoving}>
           <ul
             className="grid w-full grid-cols-1 items-stretch gap-[0.6em] @md:grid-cols-2"
             style={{ opacity: optionsOpacity }}
@@ -589,22 +643,29 @@ const SceneBody = memo(function SceneBody({
       )}
 
       {showResponse && (
-        <Block probe={probe} className="w-full">
-          <div style={{ opacity: responseOpacity }}>
-            <OpeningResponse
-              text={openingCase.response.text}
-              recommendationSpan={openingCase.response.recommendationSpan}
-              wordsPerGroup={RESPONSE.wordsPerGroup}
-              identifyLabel={RESPONSE.identifyLabel}
-              panelLabel={RESPONSE.panelLabel}
-              iconSrc={PROVIDER.logo}
-              iconLabel={PROVIDER.name}
-              elapsedMs={Math.max(0, t - OFFSETS.model)}
-              timing={RESPONSE_TIMING}
-              collapse={collapse}
-              hideIcon={sharedIcon}
-            />
-          </div>
+        <Block
+          probe={probe}
+          className="w-full"
+          layout={!headingMoving}
+          style={responseEnter < 1 ? { marginTop: `calc(${STACK_GAP} * ${responseEnter - 1})` } : undefined}
+        >
+          <GrowIn enter={responseEnter}>
+            <div style={{ opacity: responseFadeOut }}>
+              <OpeningResponse
+                text={openingCase.response.text}
+                recommendationSpan={openingCase.response.recommendationSpan}
+                wordsPerGroup={RESPONSE.wordsPerGroup}
+                identifyLabel={RESPONSE.identifyLabel}
+                panelLabel={RESPONSE.panelLabel}
+                iconSrc={PROVIDER.logo}
+                iconLabel={PROVIDER.name}
+                elapsedMs={Math.max(0, t - OFFSETS.model)}
+                timing={RESPONSE_TIMING}
+                collapse={collapse}
+                hideIcon={sharedIcon}
+              />
+            </div>
+          </GrowIn>
         </Block>
       )}
     </div>

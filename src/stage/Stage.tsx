@@ -5,7 +5,7 @@ import ProviderIcon from "../components/ProviderIcon";
 import openaiLogo from "../assets/providers/openai.svg";
 import OpeningScene from "../chapters/opening/OpeningScene";
 import { ICON_LEAVE_MS } from "../chapters/opening/OpeningScene";
-import { OPENING_BEATS, markSpinDeg } from "../chapters/opening/timeline";
+import { markSpinDeg, modelHandoff } from "../chapters/opening/timeline";
 import StackStage, { type PatientBridge } from "../chapters/stack/StackStage";
 import { stackBeats } from "../chapters/stack/beats";
 import { RegressionScene } from "../chapters/regression/RegressionChapter";
@@ -60,10 +60,8 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
     case "opening-hook":
     case "opening-dilemma":
       return { from: null, mix: 0, opacity: 0 };
-    case "opening-model": {
-      const b = (n: string) => beatStart(OPENING_BEATS.model, n);
-      return { from: "icon-response", mix: 0, opacity: ramp(e, b("think"), b("think") + FADE_MS) };
-    }
+    case "opening-model":
+      return { from: "icon-response", mix: 0, opacity: modelHandoff(e).responseEnter };
     case "opening-framework":
       return { from: "icon-response", to: "dock", mix: easeInOut(ramp(e, 0, ICON_LEAVE_MS)), opacity: 1 };
     case "stack":
