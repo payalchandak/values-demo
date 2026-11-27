@@ -2,6 +2,7 @@ import { memo, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import ProviderIcon from "../../components/ProviderIcon";
 import type { ModelResponseTiming } from "../../components/ModelResponse";
+import neuripsLogo from "../../assets/neurips-logo.svg";
 import openaiLogo from "../../assets/providers/openai.svg";
 import {
   FADE_MS,
@@ -26,15 +27,12 @@ import { MARK_INTERVAL_MS, OPENING_BEATS, OFFSETS, at, caseCharsAt, ramp, visibi
 /*  Copy                                                                       */
 /* -------------------------------------------------------------------------- */
 
-const EYEBROW = "NeurIPS 2026";
-
 /** Storyboard copy, verbatim. */
 const HEADLINES = [
   { text: "Do Language Models Share Your Doctor's Priorities?", size: "2.6em" }, // ch1
   { text: "What would you recommend?", size: "1.7em" }, // ch2
   { text: "Let's ask a language model.", size: "1.7em" }, // ch3, with thinking
-  { text: "Each choice prioritizes some values over others.", size: "1.7em" }, // ch4
-  { text: "Clinical decisions require prioritizing competing values.", size: "1.7em" }, // ch5
+  { text: "Clinical decisions require prioritizing competing values.", size: "1.7em" }, // ch4
 ] as const;
 
 /** Display name only. Never a model version. */
@@ -60,7 +58,13 @@ const RESPONSE_TIMING: ModelResponseTiming = {
   outlineEndMs: beat("extract") + MOVE_MS,
 };
 
-/** After the trade-off statement starts, the shared icon needs its option slot for this long while it leaves. */
+/**
+ * The framework chapter's first beat. The model answer leaves here and the
+ * plain vignette arrives with the new headline; the value walk follows.
+ */
+const FRAMEWORK_AT = at("framework", "framework");
+
+/** After that beat, the shared icon needs its option slot for this long while it leaves. */
 export const ICON_LEAVE_MS = MOVE_MS;
 
 /** How long before the opening's last beat the patient card returns, when the stage asks for the stack handoff. */
@@ -98,8 +102,8 @@ const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - ((-2 * x + 2) ** 3) /
 /**
  * Times inside each chapter at which that chapter's layout is at its fullest.
  * Hidden copies of the scene at these times are measured, so the font size is
- * chosen once per viewport and never changes during playback. Chapter 5 is
- * probed once per value (at its highlight and once both labels have landed)
+ * chosen once per viewport and never changes during playback. The framework
+ * chapter is probed once per value (at its highlight and once both labels have landed)
  * because the focused layout enlarges a different sentence for each. The hook
  * is probed before the heading swap, while the title still occupies its full space.
  */
@@ -107,7 +111,6 @@ const PROBE_TIMES: readonly number[] = [
   at("hook", "end") - HEADING_SWAP_MS - 1,
   at("dilemma", "end") - 1,
   at("model", "extracted"),
-  at("tradeoff", "end") - 1,
   ...VALUE_ORDER.map((v) => at("framework", `${v}Highlight`) + 400),
   ...VALUE_ORDER.map((v) => at("framework", `${v}Chip2`) + FADE_MS),
   at("framework", "all") + 800,
@@ -159,6 +162,44 @@ function useBoxHeight() {
 const HEADING_CLASS =
   "mx-auto w-full max-w-[30em] text-balance text-center font-semibold leading-[1.12] tracking-tight";
 
+/** NeurIPS mark above the title. Its slot closes as it fades, so the title eases up. */
+function OpeningMark({
+  opacity,
+  lift,
+  drift,
+  open,
+}: {
+  opacity: number;
+  lift: number;
+  drift: number;
+  open: number;
+}) {
+  const [ref, measured] = useBoxHeight();
+  const p = Math.min(1, Math.max(0, lift));
+  return (
+    <div
+      className="w-full overflow-hidden"
+      style={{
+        height: p <= 0 || measured === 0 ? "auto" : measured * (1 - p),
+        marginBottom: `calc(${STACK_GAP} * -1)`,
+      }}
+    >
+      <div ref={ref} className="flex flex-col items-center">
+        <img
+          src={neuripsLogo}
+          alt="NeurIPS"
+          className="w-[min(16em,68%)]"
+          style={{
+            opacity,
+            transform: `translateY(${drift * -0.45}em) scale(${0.94 + 0.06 * open})`,
+          }}
+        />
+        <div aria-hidden style={{ height: STACK_GAP }} />
+      </div>
+    </div>
+  );
+}
+
 /**
  * The paper title and the question occupy one heading. They crossfade in place,
  * and the box eases from the title's height to the question's, so the case
@@ -167,7 +208,6 @@ const HEADING_CLASS =
 function HeadlineReplace({
   mix,
   exit = 0,
-  labelOpacity,
   titleOpacity,
   questionOpacity,
 }: {
@@ -175,11 +215,9 @@ function HeadlineReplace({
   mix: number;
   /** 1 collapses the question after it has replaced the title. */
   exit?: number;
-  labelOpacity: number;
   titleOpacity: number;
   questionOpacity: number;
 }) {
-  const [labelRef, labelH] = useBoxHeight();
   const [titleRef, titleH] = useBoxHeight();
   const [questionRef, questionH] = useBoxHeight();
   const p = Math.min(1, Math.max(0, mix));
@@ -189,20 +227,8 @@ function HeadlineReplace({
   const from = titleH === 0 ? questionH : titleH;
   const to = questionH === 0 ? titleH : questionH;
   const headingH = (from + (to - from) * p) * (1 - gone);
-  const labelSpace = labelH * (1 - p) * (1 - gone);
   return (
     <div className="w-full" style={{ marginBottom: `calc(${STACK_GAP} * -1)` }}>
-      <div style={{ height: settledTitle ? "auto" : labelSpace, overflow: "hidden" }}>
-        <div ref={labelRef}>
-          <p
-            className="text-center font-mono font-medium tracking-[0.28em]"
-            style={{ fontSize: "0.8em", color: NEUTRAL.inkMuted, opacity: labelOpacity }}
-          >
-            {EYEBROW}
-          </p>
-          <div aria-hidden style={{ height: STACK_GAP }} />
-        </div>
-      </div>
       <div
         className="relative grid"
         style={{
@@ -316,7 +342,7 @@ function Marks({ index, t }: { index: 0 | 1; t: number }) {
   const mine = openingCase.decisions
     .map((choice, i) => ({ choice, i }))
     .filter((d) => d.choice === index);
-  const fadeOut = ramp(t, at("tradeoff", "statement") - FADE_MS, at("tradeoff", "statement"));
+  const fadeOut = ramp(t, FRAMEWORK_AT - FADE_MS, FRAMEWORK_AT);
   return (
     <div
       role="img"
@@ -374,16 +400,20 @@ function TagChip({ v, tag }: { v: Value; tag: Tag }) {
 }
 
 /**
- * The four labels of a choice in a column, A B N J order, each in its own
- * slot so nothing shifts as they land. Choice 1's label lands first, then Choice 2's.
+ * The labels of a choice in a column, A B N J order. A row mounts when its
+ * label starts to land, so the card stays compact until then, and a label
+ * already on screen stays put when the next one arrives. Choice 1's label
+ * lands first, then Choice 2's.
  */
 function Chips({ index, t }: { index: 0 | 1; t: number }) {
   const steps = valueSteps(t);
   const tags = openingCase.tags[index];
   const weight = index === 0 ? steps.chip1 : steps.chip2;
+  const shown = VALUE_ORDER.filter((v) => weight[v] > 0);
+  if (shown.length === 0) return null;
   return (
     <div className="mt-[0.5em] flex flex-col items-start gap-[0.2em]">
-      {VALUE_ORDER.map((v) => (
+      {shown.map((v) => (
         <div
           key={v}
           className="flex min-h-[1.6em] max-w-full items-center"
@@ -411,21 +441,21 @@ function OptionCard({
   showChips: boolean;
   sharedIcon: boolean;
 }) {
-  // Chapters 4 and 5: neutral cards, no accent bar. Before that, both options
-  // share one graphite accent. A red bar on one choice would read as a judgment.
-  const neutral = t >= at("tradeoff", "statement");
+  // Framework chapter: both cards are neutral, with no accent bar. A red bar
+  // on one choice would read as a judgment.
+  const neutral = t >= FRAMEWORK_AT;
   const frame = selected ? OPTION_ACCENT : NEUTRAL.line;
   const iconHere =
     sharedIcon &&
     index === openingCase.response.chosen &&
     t >= at("model", "extract") &&
-    t < at("tradeoff", "statement") + ICON_LEAVE_MS;
+    t < FRAMEWORK_AT + ICON_LEAVE_MS;
   const badge = visibility(
     t,
     at("model", "extract"),
     at("model", "extract") + FADE_MS,
-    at("tradeoff", "statement") - FADE_MS,
-    at("tradeoff", "statement"),
+    FRAMEWORK_AT - FADE_MS,
+    FRAMEWORK_AT,
   );
   const showIcon = sharedIcon ? iconHere : selected;
   return (
@@ -474,8 +504,7 @@ const HEADLINE_STARTS = [
   at("hook", "headline"),
   at("dilemma", "question"),
   at("model", "think"), // arrives with the thinking panel, after the recommendation question has left
-  at("tradeoff", "statement"),
-  at("framework", "framework"),
+  FRAMEWORK_AT,
 ] as const;
 
 const SceneBody = memo(function SceneBody({
@@ -514,7 +543,6 @@ const SceneBody = memo(function SceneBody({
         : 1
       : 1 - ramp(t, next - FADE_MS, next));
 
-  const statement = at("tradeoff", "statement");
   const dilemmaStart = at("dilemma", "question");
   const thinkAt = at("model", "think");
   const ask = at("model", "ask");
@@ -523,37 +551,41 @@ const SceneBody = memo(function SceneBody({
   const titleLeave = Math.min(1, swap / 0.55);
   const questionIn = Math.min(1, Math.max(0, (swap - 0.2) / 0.6));
   const space = Math.min(1, Math.max(0, (swap - 0.3) / 0.7));
-  const titleEntrance = ramp(t, HEADLINE_STARTS[0], HEADLINE_STARTS[0] + FADE_MS);
-  const labelEntrance = ramp(t, at("hook", "label"), at("hook", "label") + FADE_MS);
+  // Logo and title open on the same curve. The logo then fades as the case starts.
+  const logoOpen = ease(ramp(t, at("hook", "logo"), at("hook", "logoHold")));
+  const riseT = ramp(t, at("hook", "logoRise"), at("hook", "logoGone"));
+  // Fade in place first, then close the slot once the mark is gone.
+  const logoFade = ease(Math.min(1, riseT / 0.62));
+  const logoLift = ease(Math.min(1, Math.max(0, (riseT - 0.5) / 0.5)));
+  const logoOpacity = logoOpen * (1 - logoFade);
   // The question leaves at the model chapter, before the language-model header.
   const questionExit = ramp(t, ask, ask + FADE_MS);
 
   // The verbatim case stays up through the model chapter; the response sits below it.
   // With the stack handoff, it returns once the framework has cleared, in time for the last beat.
-  const showSummary = (t >= at("hook", "patient") && t < statement) || (recallPatient && t >= recall + FADE_MS);
+  const showSummary = (t >= at("hook", "patient") && t < FRAMEWORK_AT) || (recallPatient && t >= recall + FADE_MS);
   const summaryOpacity =
     recallPatient && t >= recall
       ? ramp(t, recall + FADE_MS, recall + FADE_MS * 2)
-      : visibility(t, at("hook", "patient"), at("hook", "patient") + FADE_MS, statement - FADE_MS, statement);
-  const showResponse = t >= thinkAt && t < statement;
+      : visibility(t, at("hook", "patient"), at("hook", "patient") + FADE_MS, FRAMEWORK_AT - FADE_MS, FRAMEWORK_AT);
+  const showResponse = t >= thinkAt && t < FRAMEWORK_AT;
   const responseOpacity = visibility(
     t,
     beat("think") + OFFSETS.model,
     beat("think") + OFFSETS.model + FADE_MS,
-    statement - FADE_MS,
-    statement,
+    FRAMEWORK_AT - FADE_MS,
+    FRAMEWORK_AT,
   );
 
-  // From chapter 4 on, the same vignette is shown with value marks, until the handoff clears it.
-  const showVignette = t >= statement && !cleared;
-  const vignetteOpacity =
-    ramp(t, at("tradeoff", "vignette"), at("tradeoff", "vignette") + FADE_MS) * (1 - clearP);
+  // The annotatable vignette replaces the case card as the framework chapter starts.
+  const showVignette = t >= FRAMEWORK_AT && !cleared;
+  const vignetteOpacity = ramp(t, FRAMEWORK_AT, FRAMEWORK_AT + FADE_MS) * (1 - clearP);
 
   const showOptions = t >= at("dilemma", "options") && !cleared;
   const optionsOpacity = ramp(t, at("dilemma", "options"), at("dilemma", "options") + FADE_MS) * (1 - clearP);
-  const selectedIndex = t >= at("model", "extract") && t < statement ? openingCase.response.chosen : null;
-  const showMarks = t < statement; // chapter 4 shows the choices plain; chapter 5 adds the labels
-  const showChips = t >= at("framework", "framework");
+  const selectedIndex = t >= at("model", "extract") && t < FRAMEWORK_AT ? openingCase.response.chosen : null;
+  const showMarks = t < FRAMEWORK_AT;
+  const showChips = t >= FRAMEWORK_AT;
 
   const showStrip = t >= at("framework", "framework") && !cleared;
   const headingMoving = (space > 0 && space < 1) || (questionExit > 0 && questionExit < 1 && t < thinkAt);
@@ -561,17 +593,20 @@ const SceneBody = memo(function SceneBody({
 
   return (
     <div
-      className={`mx-auto flex w-full max-w-[46em] flex-col items-center ${
+      className={`relative mx-auto flex w-full max-w-[46em] flex-col items-center ${
         probe ? "" : "h-full justify-center"
       }`}
       style={{ gap: STACK_GAP }}
     >
+      {riseT < 1 && (
+        <OpeningMark opacity={logoOpacity} lift={logoLift} drift={logoFade} open={logoOpen} />
+      )}
+
       {showQuestionHeading && (
         <HeadlineReplace
           mix={h === 0 ? space : 1}
           exit={h === 0 ? 0 : questionExit}
-          labelOpacity={h === 0 ? labelEntrance * (1 - titleLeave) : 0}
-          titleOpacity={h === 0 ? titleEntrance * (1 - titleLeave) : 0}
+          titleOpacity={h === 0 ? logoOpen * (1 - titleLeave) : 0}
           questionOpacity={h === 0 ? questionIn : 1}
         />
       )}

@@ -3,7 +3,7 @@ import OpeningScene from "./OpeningScene";
 import { OFFSETS, OPENING_BEATS, type OpeningChapterKey } from "./timeline";
 
 /**
- * Opening chapters 1 to 5 of the storyboard. Every chapter renders the same
+ * Opening chapters 1 to 4 of the storyboard. Every chapter renders the same
  * persistent scene at its own point on the shared opening clock, so the
  * patient card, headline, and option cards carry over between chapters.
  */
@@ -17,6 +17,5 @@ export const openingChapters: Chapter[] = [
   make("hook", "opening-hook"),
   make("dilemma", "opening-dilemma"),
   make("model", "opening-model"),
-  make("tradeoff", "opening-tradeoff"),
   make("framework", "opening-framework"),
 ];

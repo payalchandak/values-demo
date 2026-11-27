@@ -7,7 +7,7 @@ import { SEGMENTS, SEGMENT_BEATS } from "./stage/plan";
  * never keyed by chapter, so it persists for the whole demo. A chapter is just
  * its beats plus which clock position the stage is drawn at.
  *
- * Order: opening (5), stack, regression, bars-to-radar morph, ending (2).
+ * Order: opening (4), stack, regression, bars-to-radar morph, ending (2).
  */
 export const chapters: Chapter[] = SEGMENTS.map((id) => ({
   id,

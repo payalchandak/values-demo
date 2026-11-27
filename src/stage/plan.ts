@@ -6,12 +6,11 @@ import { FADE_MS } from "../design/motion";
 import { beatStart, chapterDuration, type Beat } from "../types";
 import { morphBeats } from "./morphBeats";
 
-/** Chapter ids, in play order: opening (5), stack, regression bridge, morph, ending (2). */
+/** Chapter ids, in play order: opening (4), stack, regression bridge, morph, ending (2). */
 export const SEGMENTS = [
   "opening-hook",
   "opening-dilemma",
   "opening-model",
-  "opening-tradeoff",
   "opening-framework",
   "stack",
   "regression",
@@ -25,7 +24,6 @@ export const OPENING_KEY: Partial<Record<SegmentId, OpeningChapterKey>> = {
   "opening-hook": "hook",
   "opening-dilemma": "dilemma",
   "opening-model": "model",
-  "opening-tradeoff": "tradeoff",
   "opening-framework": "framework",
 };
 
@@ -33,7 +31,6 @@ export const SEGMENT_BEATS: Record<SegmentId, readonly Beat[]> = {
   "opening-hook": OPENING_BEATS.hook,
   "opening-dilemma": OPENING_BEATS.dilemma,
   "opening-model": OPENING_BEATS.model,
-  "opening-tradeoff": OPENING_BEATS.tradeoff,
   "opening-framework": OPENING_BEATS.framework,
   stack: stackBeats,
   regression: compressBeats,
@@ -56,7 +53,7 @@ export const SEGMENT_OFFSET: Record<SegmentId, number> = (() => {
 export const isOpening = (id: SegmentId) => id in OPENING_KEY;
 export const openingTime = (id: SegmentId, elapsedMs: number) => OPENING_OFFSETS[OPENING_KEY[id]!] + elapsedMs;
 
-/** End of the five opening chapters on the shared opening clock: sum of the opening-v2 chapter durations. */
+/** End of the four opening chapters on the shared opening clock: sum of their durations. */
 export const OPENING_END_MS =
   OPENING_OFFSETS.framework + chapterDuration({ beats: OPENING_BEATS.framework });
 

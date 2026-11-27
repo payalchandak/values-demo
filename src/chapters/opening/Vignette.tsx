@@ -31,9 +31,9 @@ function Segment({ seg, s }: { seg: VignetteSegment; s: ValueSteps }) {
 }
 
 /**
- * The full case vignette, verbatim and plain. Chapter 4 shows it as is.
- * Chapter 5 highlights one trigger sentence at a time (a charcoal tint, no
- * underline) while the rest recedes, and brings it back to plain between values.
+ * The full case vignette, verbatim. It arrives plain with the framework
+ * chapter, then one trigger sentence at a time takes a charcoal tint (never
+ * an underline) while the rest recedes, and returns to plain between values.
  *
  * `focused` is the narrow-screen layout: only the trigger sentences are shown
  * (the rest of the vignette collapses to an ellipsis), and the sentence being

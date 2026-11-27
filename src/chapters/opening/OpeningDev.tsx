@@ -5,7 +5,7 @@ import OpeningScene from "./OpeningScene";
 /**
  * Dev route #/dev/opening.
  *
- * - `/#/dev/opening` plays opening chapters 1 to 5 on their own.
+ * - `/#/dev/opening` plays opening chapters 1 to 4 on their own.
  * - `/?t=12000#/dev/opening` freezes the scene at that opening time (ms), in
  *   the same frame the player uses. For visual review at any viewport size.
  */

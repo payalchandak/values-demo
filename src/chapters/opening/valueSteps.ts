@@ -3,9 +3,9 @@ import type { Value } from "../../study/types";
 import { at, ramp } from "./timeline";
 
 /**
- * What chapter 5 shows about the values, as 0..1 weights that are a pure
- * function of the opening clock `t`. Chapter 4 shows none of it: it is a
- * plain reading hold.
+ * What the framework chapter shows about the values, as 0..1 weights that are
+ * a pure function of the opening clock `t`. Before that chapter every weight
+ * is 0, so the vignette stays plain.
  *
  *  - name[v]       the value's full name and definition (vignette still plain).
  *  - highlight[v]  its trigger sentence is highlighted; the rest dims.

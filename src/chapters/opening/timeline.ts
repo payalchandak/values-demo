@@ -4,7 +4,7 @@ import { openingCase } from "./openingCase";
 import { triggerWords } from "./valueTriggers";
 
 /**
- * Beats for the five opening chapters (data, ms from each chapter's start).
+ * Beats for the four opening chapters (data, ms from each chapter's start).
  * All timings are PROVISIONAL (TODO: tune after visual review).
  *
  * The scene is a pure function of one "opening time" T = chapter offset +
@@ -24,13 +24,22 @@ const CASE_TYPE_CPS = 68;
 /** Settled case on screen after the last character, before the chapter ends. */
 const CASE_HOLD_MS = 3200;
 
-const patientAt = 3200;
+/** Logo and title open together, hold, then the logo fades as the case starts. */
+const LOGO_IN_MS = 560;
+const LOGO_HOLD_MS = 1400;
+const LOGO_FADE_MS = 700;
+const caseAt = LOGO_IN_MS + LOGO_HOLD_MS;
+
+const patientAt = caseAt;
 const typedAt = patientAt + Math.ceil((openingCase.vignette.length / CASE_TYPE_CPS) * 1000);
 
 const hook = [
-  { name: "label", startMs: 0 }, // small "NeurIPS 2026" label
-  { name: "headline", startMs: 500 },
-  { name: "patient", startMs: patientAt }, // case begins typing beneath the title
+  { name: "logo", startMs: 0 }, // NeurIPS mark and the paper title open together
+  { name: "logoHold", startMs: LOGO_IN_MS },
+  { name: "headline", startMs: 0 },
+  { name: "logoRise", startMs: caseAt }, // logo fades as the case begins
+  { name: "patient", startMs: patientAt },
+  { name: "logoGone", startMs: caseAt + LOGO_FADE_MS },
   { name: "typed", startMs: typedAt }, // last character has landed
   { name: "end", startMs: typedAt + CASE_HOLD_MS },
 ] as const satisfies readonly Beat[];
@@ -67,21 +76,12 @@ const model = [
   { name: "end", startMs: MARKS_AT + openingCase.decisions.length * MARK_INTERVAL_MS + 2600 },
 ] as const satisfies readonly Beat[];
 
-/** Reading allowance, ms per word. Chapter 4 holds the full vignette for its word count at this rate. */
-const READ_MS_PER_WORD = 200;
-const words = (text: string): number => text.trim().split(/\s+/).length;
 const round100 = (ms: number): number => Math.round(ms / 100) * 100;
 
-const VIGNETTE_IN_MS = 400;
-const tradeoff = [
-  { name: "statement", startMs: 0 }, // "Each choice prioritizes some values over others."
-  { name: "vignette", startMs: VIGNETTE_IN_MS }, // the full vignette, plain, with both choices below it
-  // A reading hold: nothing is underlined, highlighted or labeled.
-  { name: "end", startMs: VIGNETTE_IN_MS + round100(READ_MS_PER_WORD * words(openingCase.vignette)) },
-] as const satisfies readonly Beat[];
-
 /*
- * Chapter 5 walks the four values one at a time. Inside each value's window:
+ * The framework chapter walks the four values one at a time. Its first beat is
+ * the reset: the model answer leaves and the plain vignette arrives with the
+ * headline. Inside each value's window:
  *   <v>           its full name and definition appear; the vignette is plain
  *   <v>Highlight  its trigger sentence is highlighted, the rest dims
  *   <v>Chip1      its label lands on Choice 1
@@ -114,10 +114,10 @@ const framework = (() => {
   return beats as readonly Beat[];
 })();
 
-export const OPENING_BEATS = { hook, dilemma, model, tradeoff, framework } as const;
+export const OPENING_BEATS = { hook, dilemma, model, framework } as const;
 export type OpeningChapterKey = keyof typeof OPENING_BEATS;
 
-const ORDER: readonly OpeningChapterKey[] = ["hook", "dilemma", "model", "tradeoff", "framework"];
+const ORDER: readonly OpeningChapterKey[] = ["hook", "dilemma", "model", "framework"];
 
 /** Start of each chapter on the shared opening clock. */
 export const OFFSETS: Readonly<Record<OpeningChapterKey, number>> = (() => {

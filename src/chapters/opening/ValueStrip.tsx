@@ -17,7 +17,7 @@ export function NameChip({ v }: { v: Value }) {
 }
 
 /**
- * Chapter 5's value area. One cell per value; all cells share one grid area
+ * The framework chapter's value area. One cell per value; all cells share one grid area
  * so the area is as tall as the tallest and nothing below it moves while the
  * cells cross-fade. Each cell is the name chip and its definition.
  */

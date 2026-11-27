@@ -69,9 +69,8 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
         opacity: ramp(e, b("think"), b("think") + FADE_MS),
       };
     }
-    case "opening-tradeoff":
-      return { from: "icon-option", to: "dock", mix: easeInOut(ramp(e, 0, ICON_LEAVE_MS)), opacity: 1 };
     case "opening-framework":
+      return { from: "icon-option", to: "dock", mix: easeInOut(ramp(e, 0, ICON_LEAVE_MS)), opacity: 1 };
     case "stack":
     case "regression":
       return { from: "dock", mix: 0, opacity: 1 };
