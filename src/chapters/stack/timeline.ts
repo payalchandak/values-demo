@@ -162,11 +162,12 @@ export function computeFrame(
   const L = layout;
   const n = choice1Counts.length;
 
-  const shrinkP = easeInOut(span(t, times, "shrink", "fan"));
-  const fanLinear = span(t, times, "fan", "markers");
-  const markersP = span(t, times, "markers", "lift");
+  const shrinkP = easeInOut(span(t, times, "shrink", "label"));
+  const labelLinear = span(t, times, "label", "lift");
   const liftP = easeInOut(span(t, times, "lift", "flip"));
   const flipP = span(t, times, "flip", "settle");
+  const unflipP = span(t, times, "unflip", "markers");
+  const markersP = span(t, times, "markers", "observed");
   const fadeP = easeInOut(span(t, times, "fade", "morph"));
   const morphP = span(t, times, "morph", "highlight");
   const highlightP = easeInOut(span(t, times, "highlight", "end"));
@@ -189,8 +190,10 @@ export function computeFrame(
       scale = lerp(scale, L.trioScale, liftP);
     }
 
-    // 2. Flip (foreground only): staggered across the flip phase.
-    const flipLocal = foreground ? easeInOut(clamp01((flipP - i * 0.2) / 0.6)) : 0;
+    // 2. Flip to the tag side, then back to the decision side (foreground only), staggered by card.
+    const flipOut = foreground ? easeInOut(clamp01((flipP - i * 0.2) / 0.6)) : 0;
+    const flipBack = foreground ? easeInOut(clamp01((unflipP - i * 0.2) / 0.6)) : 0;
+    const flipLocal = flipOut - flipBack;
 
     // 3. Morph into a table row (foreground only), staggered by row.
     const morphLocal = foreground ? easeInOut(clamp01((morphP - i * 0.12) / 0.76)) : 0;
@@ -234,7 +237,7 @@ export function computeFrame(
 
   return {
     cards,
-    stackLabel: easeOut(clamp01((fanLinear - 0.4) / 0.6)) * (1 - fadeP),
+    stackLabel: easeOut(clamp01((labelLinear - 0.4) / 0.6)) * (1 - fadeP),
     headerOpacity: clamp01((morphP - 0.5) / 0.4),
     ellipsisOpacity: clamp01((morphP - 0.6) / 0.3),
     countLabelOpacity: clamp01((morphP - 0.75) / 0.25),

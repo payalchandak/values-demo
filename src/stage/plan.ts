@@ -79,8 +79,8 @@ const stackAt = (name: string) => SEGMENT_OFFSET.stack + beatStart(stackBeats, n
 /** Whole-demo times at which the headline changes. "" clears it (the closing question takes over). */
 export const HEADLINE_ENTRIES: readonly HeadlineEntry[] = [
   { at: stackAt("card"), text: STACK_HEADLINES.start },
-  { at: stackAt("markers"), text: STACK_HEADLINES.markers },
   { at: stackAt("flip"), text: STACK_HEADLINES.flip },
+  { at: stackAt("markers"), text: STACK_HEADLINES.markers },
   { at: SEGMENT_OFFSET.regression + beatStart(compressBeats, "profile"), text: PROFILE_HEADLINE },
   { at: SEGMENT_OFFSET["individual-models"], text: INDIVIDUAL_HEADLINE },
   { at: SEGMENT_OFFSET["models-and-physicians"] + beatStart(closingBeats, "question"), text: "" },
