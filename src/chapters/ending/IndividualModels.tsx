@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { RADAR_ENTRANCE_MS } from "../../components/RadarChart";
 import { MOVE_MS } from "../../design/motion";
 import Radar, { RADAR_ASPECT } from "./Radar";
 import { clamp01, easeInOut, EndingHeader, Legend, ModelLabel, useElementSize } from "./shared";
@@ -14,6 +15,16 @@ export const modelStartMs = (i: number) => i * PITCH_MS;
 
 /** The chapter ends when the last model's hold does (no scroll after the last). */
 export const individualModelsEndMs = (count: number) => modelStartMs(count - 1) + MODEL_HOLD_MS;
+
+/**
+ * Entrance of model `i`. The first model is already the morph's resolved radar,
+ * so it stays settled. Each later model grows in as its scroll begins.
+ */
+export function modelEntrance(elapsedMs: number, index: number): number {
+  if (index === 0) return 1;
+  const start = modelStartMs(index) - MODEL_SCROLL_MS;
+  return clamp01((elapsedMs - start) / RADAR_ENTRANCE_MS);
+}
 
 /**
  * Scroll position in slots (0 = first model centered, 1 = second, ...).
@@ -85,7 +96,7 @@ export default function IndividualModels({
               style={{ top: i * height, height }}
               aria-hidden={i !== active}
             >
-              <Radar profile={model} width={radarWidth} mode="full" />
+              <Radar profile={model} width={radarWidth} mode="full" progress={modelEntrance(elapsedMs, i)} />
               <ModelLabel profile={model} iconSize={LABEL_ICON} large iconSlot={model.key === sharedIconFor} />
             </div>
           ))}

@@ -1,5 +1,19 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { RADAR_AXES } from "../components/RadarChart";
+import {
+  RADAR_AXES,
+  RADAR_FILL,
+  RADAR_FONT,
+  RADAR_INK,
+  RADAR_MUTED,
+  RADAR_STYLE,
+  percentText,
+  placeAxisLabel,
+  placeEqualWeight,
+  radarMetrics,
+  radarRingPoints,
+  topValue,
+  useRadarFontEpoch,
+} from "../components/RadarChart";
 import { NEUTRAL, VALUES, VALUE_COLORS, VALUE_ORDER, valueInk } from "../design";
 import Radar, { RADAR_ASPECT } from "../chapters/ending/Radar";
 import { individualRadarWidth } from "../chapters/ending/IndividualModels";
@@ -14,6 +28,16 @@ const H = 270;
 const CX = W / 2;
 const CY = H / 2;
 const R = 104;
+
+if (
+  W !== radarMetrics.full.width ||
+  H !== radarMetrics.full.height ||
+  CX !== radarMetrics.full.cx ||
+  CY !== radarMetrics.full.cy ||
+  R !== radarMetrics.full.radius
+) {
+  throw new Error("Morph radar frame does not match RadarChart.");
+}
 
 /** Bar layout before rotating: fallback left edge, row pitch, thickness, and the length of a priority of 1. */
 const BAR_X = 104;
@@ -68,6 +92,7 @@ export default function Morph({
   /** 0..1 length of the horizontal bars. The stage leaves this at 1. */
   barGrow?: number;
 }) {
+  useRadarFontEpoch();
   const t = Math.max(0, elapsedMs);
   const viewport = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -130,10 +155,9 @@ export default function Morph({
   // While bars grow in over a fading table, hold the words back until the rows are gone.
   const labelMix = barGrow < 1 ? Math.max(0, (barGrow - 0.45) / 0.55) : 1;
 
-  const ringPoints = (f: number) =>
-    RADAR_AXES.map(
-      ({ angle }) => `${(CX + R * f * Math.cos(rad(angle))).toFixed(2)},${(CY + R * f * Math.sin(rad(angle))).toFixed(2)}`,
-    ).join(" ");
+  const top = topValue(profile.priorities);
+  const equalWeight = placeEqualWeight(profile.priorities);
+  const full = RADAR_STYLE.full;
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -144,7 +168,7 @@ export default function Morph({
         >
           <div className="relative" style={{ width: radarWidth, height: radarWidth * RADAR_ASPECT.full }}>
             <div style={{ opacity: resolve }}>
-              <Radar profile={profile} width={radarWidth} mode="full" />
+              <Radar profile={profile} width={radarWidth} mode="full" progress={1} />
             </div>
             <svg
               ref={svgRef}
@@ -155,52 +179,79 @@ export default function Morph({
               data-testid="morph-svg"
             >
               <g style={{ opacity: ringOpacity }}>
-                {[0.25, 0.5, 0.75, 1].map((f) => (
-                  <polygon
-                    key={f}
-                    points={ringPoints(f)}
-                    fill="none"
-                    stroke={f === 1 ? NEUTRAL.axis : NEUTRAL.ring}
-                    strokeWidth={0.75}
-                  />
-                ))}
-                {RADAR_AXES.map(({ value, angle }) => (
-                  <line
-                    key={value}
-                    x1={CX}
-                    y1={CY}
-                    x2={CX + R * Math.cos(rad(angle))}
-                    y2={CY + R * Math.sin(rad(angle))}
-                    stroke={NEUTRAL.axis}
-                    strokeWidth={0.75}
-                  />
-                ))}
-                {RADAR_AXES.map(({ value, angle }) => {
-                  const tx = CX + R * Math.cos(rad(angle));
-                  const ty = CY + R * Math.sin(rad(angle));
-                  const pos =
-                    angle === -90
-                      ? { x: tx, y: ty - 12, anchor: "middle", dy: "0" }
-                      : angle === 90
-                        ? { x: tx, y: ty + 12 + 13 * 0.8, anchor: "middle", dy: "0" }
-                        : angle === 0
-                          ? { x: tx + 12, y: ty, anchor: "start", dy: "0.35em" }
-                          : { x: tx - 12, y: ty, anchor: "end", dy: "0.35em" };
+                <polygon
+                  points={radarRingPoints("full", 1)}
+                  fill="none"
+                  stroke={RADAR_INK}
+                  strokeOpacity={full.outerOpacity}
+                  strokeWidth={1}
+                />
+                <polygon
+                  points={radarRingPoints("full", 0.25)}
+                  fill="none"
+                  stroke={RADAR_INK}
+                  strokeOpacity={full.dashOpacity}
+                  strokeWidth={1}
+                  strokeDasharray={full.dash}
+                />
+                {rows.map((r) => {
+                  const emphasized = r.v === top;
                   return (
-                    <text
-                      key={value}
-                      x={pos.x}
-                      y={pos.y}
-                      dy={pos.dy}
-                      textAnchor={pos.anchor as "middle" | "start" | "end"}
-                      fontSize={13}
-                      fontWeight={600}
-                      style={{ fill: valueInk(value) }}
-                    >
-                      {VALUES[value].name}
+                    <line
+                      key={r.v}
+                      x1={CX}
+                      y1={CY}
+                      x2={r.tipX}
+                      y2={r.tipY}
+                      stroke={RADAR_INK}
+                      strokeWidth={emphasized ? full.spokeTop : full.spokeRest}
+                      strokeOpacity={emphasized ? 1 : full.spokeRestOpacity}
+                      strokeLinecap="round"
+                    />
+                  );
+                })}
+                {rows.map((r) => {
+                  const emphasized = r.v === top;
+                  const pct = percentText(r.p);
+                  const place = placeAxisLabel("full", r.v, emphasized, pct);
+                  const name = VALUES[r.v].name;
+                  const shared = {
+                    textAnchor: place.anchor,
+                    fontFamily: RADAR_FONT,
+                    fontSize: place.fontSize,
+                    fontWeight: place.fontWeight,
+                    fill: place.fill,
+                  } as const;
+                  return place.stacked ? (
+                    <g key={r.v}>
+                      <text x={place.x} y={place.splitY - 1} dominantBaseline="text-after-edge" {...shared}>
+                        {name}
+                      </text>
+                      <text x={place.x} y={place.splitY + 1} dominantBaseline="text-before-edge" {...shared}>
+                        {pct}
+                      </text>
+                    </g>
+                  ) : (
+                    <text key={r.v} x={place.x} y={place.y} dominantBaseline={place.baseline} {...shared}>
+                      {name} {pct}
                     </text>
                   );
                 })}
+                <text
+                  x={equalWeight.x}
+                  y={equalWeight.y}
+                  textAnchor="start"
+                  dominantBaseline="middle"
+                  fontFamily={RADAR_FONT}
+                  fontSize={10}
+                  fontWeight={500}
+                  fill={RADAR_MUTED}
+                  stroke={NEUTRAL.surface}
+                  strokeWidth={3}
+                  paintOrder="stroke"
+                >
+                  equal weight
+                </text>
               </g>
 
               {/* Bars, then stems: the same four shapes rotating about their start. */}
@@ -248,12 +299,12 @@ export default function Morph({
                 ))}
               </g>
 
-              {/* Polygon: outline draws, fill follows, dots arrive in value colors. */}
+              {/* Polygon: outline draws, fill follows, charcoal dots arrive. */}
               <polygon
                 points={polyPoints}
-                fill={NEUTRAL.polygonFill}
-                stroke={NEUTRAL.polygonStroke}
-                strokeWidth={1.5}
+                fill={RADAR_FILL}
+                stroke={RADAR_INK}
+                strokeWidth={full.polygon}
                 strokeLinejoin="round"
                 pathLength={1}
                 strokeDasharray={1}
@@ -265,10 +316,8 @@ export default function Morph({
                   key={r.v}
                   cx={r.tipX}
                   cy={r.tipY}
-                  r={5 * clamp01(polygon * 2)}
-                  fill={VALUE_COLORS[r.v]}
-                  stroke={NEUTRAL.surface}
-                  strokeWidth={1.5}
+                  r={(r.v === top ? full.dotTop : full.dotRest) * clamp01(polygon * 2)}
+                  fill={RADAR_INK}
                 />
               ))}
             </svg>
