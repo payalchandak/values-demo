@@ -55,8 +55,8 @@ const EXTRACTED_AT = EXTRACT_AT + 1000;
 const MARKS_AT = EXTRACTED_AT + 1200;
 
 const model = [
-  { name: "ask", startMs: 0 }, // headline: "Ask again."
-  { name: "think", startMs: THINK_AT }, // icon spins, panel reads "thinking…"
+  { name: "ask", startMs: 0 }, // "What would you recommend?" leaves; no headline yet
+  { name: "think", startMs: THINK_AT }, // "Let's ask a language model." and the thinking panel
   { name: "reveal", startMs: REVEAL_AT }, // answer starts typing
   { name: "revealed", startMs: REVEALED_AT }, // last character is on screen
   { name: "highlight", startMs: HIGHLIGHT_AT }, // recommendation sentence sweeps

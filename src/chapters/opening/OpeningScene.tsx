@@ -32,7 +32,7 @@ const EYEBROW = "NeurIPS 2026";
 const HEADLINES = [
   { text: "Do Language Models Share Your Doctor's Priorities?", size: "2.6em" }, // ch1
   { text: "What would you recommend?", size: "1.7em" }, // ch2
-  { text: "Ask again.", size: "1.7em" }, // ch3
+  { text: "Let's ask a language model.", size: "1.7em" }, // ch3, with thinking
   { text: "Each choice prioritizes some values over others.", size: "1.7em" }, // ch4
   { text: "Clinical decisions require prioritizing competing values.", size: "1.7em" }, // ch5
 ] as const;
@@ -82,14 +82,27 @@ const MAX_FONT_PX = 22;
 const MIN_READABLE_PX = 12;
 
 /**
+ * The hook title gives its space to the question inside the case. Both move
+ * on this one clock, and the move finishes as the dilemma chapter starts.
+ * Long enough that the reflow reads as a single motion.
+ */
+const HEADING_SWAP_MS = 560;
+
+/** Gap between stacked blocks. The heading clip folds one of these into itself. */
+const STACK_GAP = "0.9em";
+
+const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - ((-2 * x + 2) ** 3) / 2);
+
+/**
  * Times inside each chapter at which that chapter's layout is at its fullest.
  * Hidden copies of the scene at these times are measured, so the font size is
  * chosen once per viewport and never changes during playback. Chapter 5 is
  * probed once per value (at its highlight and at its caption) because the focused layout enlarges a different
- * sentence for each.
+ * sentence for each. The hook is probed before the heading swap, while the
+ * title still occupies its full space.
  */
 const PROBE_TIMES: readonly number[] = [
-  at("hook", "end") - 1,
+  at("hook", "end") - HEADING_SWAP_MS - 1,
   at("dilemma", "end") - 1,
   at("model", "extracted"),
   at("tradeoff", "end") - 1,
@@ -106,18 +119,72 @@ const PROBE_TIMES: readonly number[] = [
 function Block({
   probe,
   className = "",
+  layout = true,
   children,
 }: {
   probe: boolean;
   className?: string;
+  /** Off while a clock-driven height change is already moving this block. */
+  layout?: boolean;
   children: ReactNode;
 }) {
-  return probe ? (
-    <div className={className}>{children}</div>
-  ) : (
-    <motion.div layout="position" transition={{ duration: FADE_MS / 1000, ease: "easeOut" }} className={className}>
+  if (probe) return <div className={className}>{children}</div>;
+  return (
+    <motion.div
+      layout={layout ? "position" : false}
+      transition={{ duration: FADE_MS / 1000, ease: "easeOut" }}
+      className={className}
+    >
       {children}
     </motion.div>
+  );
+}
+
+/**
+ * Height follows `progress` (0 collapsed, 1 the content's own height) on the
+ * opening clock, so a seek lands on the same frame playback would. The settled
+ * state uses auto height and is what the fit probes measure.
+ */
+function Clip({
+  progress,
+  opacity = 1,
+  trailGap = false,
+  children,
+}: {
+  progress: number;
+  opacity?: number;
+  /** Shrink the parent stack gap away with the content, instead of leaving it behind. */
+  trailGap?: boolean;
+  children: ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [full, setFull] = useState(0);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => setFull(el.offsetHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const p = Math.min(1, Math.max(0, progress));
+  if (p <= 0) return null;
+  const open = p >= 1;
+  return (
+    <div
+      className="w-full"
+      style={{
+        height: open ? "auto" : full === 0 ? 0 : full * p,
+        overflow: open ? "visible" : "hidden",
+        marginBottom: trailGap ? `calc(${STACK_GAP} * -1)` : undefined,
+      }}
+    >
+      <div ref={ref} style={{ display: "flow-root", opacity }}>
+        {children}
+        {trailGap && <div aria-hidden style={{ height: STACK_GAP }} />}
+      </div>
+    </div>
   );
 }
 
@@ -348,7 +415,7 @@ function OptionCard({
 const HEADLINE_STARTS = [
   at("hook", "headline"),
   at("dilemma", "question"),
-  at("model", "ask"),
+  at("model", "think"), // arrives with the thinking panel, after the recommendation question has left
   at("tradeoff", "statement"),
   at("framework", "framework"),
 ] as const;
@@ -389,18 +456,16 @@ const SceneBody = memo(function SceneBody({
         : 1
       : 1 - ramp(t, next - FADE_MS, next));
 
-  const ask = at("model", "ask");
   const statement = at("tradeoff", "statement");
   const dilemmaStart = at("dilemma", "question");
-
-  const showLabel = t < dilemmaStart;
-  const labelOpacity = visibility(
-    t,
-    at("hook", "label"),
-    at("hook", "label") + FADE_MS,
-    dilemmaStart - FADE_MS,
-    dilemmaStart,
-  );
+  const thinkAt = at("model", "think");
+  const ask = at("model", "ask");
+  // The hook title and the in-case question trade space. Done by the dilemma chapter.
+  const swap = ease(ramp(t, dilemmaStart - HEADING_SWAP_MS, dilemmaStart));
+  const titleOpacity = ramp(t, HEADLINE_STARTS[0], HEADLINE_STARTS[0] + FADE_MS) * (1 - swap);
+  const labelOpacity = ramp(t, at("hook", "label"), at("hook", "label") + FADE_MS) * (1 - swap);
+  // The question leaves at the model chapter, before the language-model header.
+  const questionOpacity = swap * (1 - ramp(t, ask, ask + FADE_MS));
 
   // The verbatim case stays up through the model chapter; the response sits below it.
   // With the stack handoff, it returns once the framework has cleared, in time for the last beat.
@@ -409,7 +474,7 @@ const SceneBody = memo(function SceneBody({
     recallPatient && t >= recall
       ? ramp(t, recall + FADE_MS, recall + FADE_MS * 2)
       : visibility(t, at("hook", "patient"), at("hook", "patient") + FADE_MS, statement - FADE_MS, statement);
-  const showResponse = t >= ask && t < statement;
+  const showResponse = t >= thinkAt && t < statement;
   const responseOpacity = visibility(
     t,
     beat("think") + OFFSETS.model,
@@ -430,27 +495,35 @@ const SceneBody = memo(function SceneBody({
   const showChips = t >= at("framework", "framework");
 
   const showStrip = t >= at("framework", "framework") && !cleared;
-  // Chapter 2's question sits at the bottom of the case, not as a title above it.
-  const questionInCase = h === 1;
+  const headingSettled = swap <= 0 || swap >= 1;
 
   return (
     <div
-      className={`mx-auto flex w-full max-w-[46em] flex-col items-center gap-[0.9em] ${
+      className={`mx-auto flex w-full max-w-[46em] flex-col items-center ${
         probe ? "" : "h-full justify-center"
       }`}
+      style={{ gap: STACK_GAP }}
     >
-      {showLabel && (
-        <Block probe={probe}>
-          <p
-            className="font-mono font-medium tracking-[0.28em]"
-            style={{ fontSize: "0.8em", color: NEUTRAL.inkMuted, opacity: labelOpacity }}
-          >
-            {EYEBROW}
-          </p>
-        </Block>
+      {h === 0 && (
+        <Clip progress={1 - swap} trailGap>
+          <div className="flex w-full flex-col items-center" style={{ gap: STACK_GAP }} aria-hidden={swap > 0.5}>
+            <p
+              className="font-mono font-medium tracking-[0.28em]"
+              style={{ fontSize: "0.8em", color: NEUTRAL.inkMuted, opacity: labelOpacity }}
+            >
+              {EYEBROW}
+            </p>
+            <h1
+              className="mx-auto w-full max-w-[30em] text-balance text-center font-semibold leading-[1.12] tracking-tight"
+              style={{ fontSize: HEADLINES[0].size, color: NEUTRAL.ink, opacity: titleOpacity }}
+            >
+              {HEADLINES[0].text}
+            </h1>
+          </div>
+        </Clip>
       )}
 
-      {!questionInCase && (
+      {h > 1 && (
         <Block probe={probe} className="w-full">
           <h1
             className="mx-auto max-w-[30em] text-balance text-center font-semibold leading-[1.12] tracking-tight"
@@ -462,26 +535,27 @@ const SceneBody = memo(function SceneBody({
       )}
 
       {showSummary && (
-        <Block probe={probe} className="w-full">
+        <Block probe={probe} className="w-full" layout={headingSettled}>
           <div style={{ opacity: summaryOpacity }} aria-hidden={summaryOpacity === 0 || hidePatient}>
             <div style={{ visibility: hidePatient ? "hidden" : undefined }}>
               <PatientCard
                 shared={!probe}
                 typedChars={caseCharsAt(t)}
                 question={
-                  questionInCase ? (
-                    <h1
-                      className="font-semibold leading-[1.15] tracking-tight"
-                      style={{
-                        fontSize: HEADLINES[1].size,
-                        marginTop: "0.75em",
-                        paddingTop: "0.65em",
-                        borderTop: `1px solid ${NEUTRAL.line}`,
-                        opacity: headlineOpacity,
-                      }}
-                    >
-                      {HEADLINES[1].text}
-                    </h1>
+                  questionOpacity > 0 ? (
+                    <Clip progress={swap} opacity={questionOpacity}>
+                      <h1
+                        className="font-semibold leading-[1.15] tracking-tight"
+                        style={{
+                          fontSize: HEADLINES[1].size,
+                          marginTop: "0.75em",
+                          paddingTop: "0.65em",
+                          borderTop: `1px solid ${NEUTRAL.line}`,
+                        }}
+                      >
+                        {HEADLINES[1].text}
+                      </h1>
+                    </Clip>
                   ) : undefined
                 }
               />
