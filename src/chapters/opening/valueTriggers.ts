@@ -1,13 +1,12 @@
 /**
  * Where each value shows up inside the opening case: for A, B, N, J, the
- * sentence(s) of the vignette that trigger it, and one short caption. This is
- * data; the scene only renders it.
+ * sentence(s) of the vignette that trigger it. This is data; the scene only
+ * renders it.
  *
  * Guards (run when this module is first imported, so a bad edit fails the
  * dev server, the build's first import, and every scene render at once):
  *  - every trigger is an exact substring of the vignette;
  *  - triggers do not overlap;
- *  - Choice 1's tags in opening.json are the ones the captions are written for;
  *  - no on-screen string here contains an en or em dash.
  */
 import { VALUE_ORDER } from "../../design";
@@ -17,30 +16,24 @@ import { openingCase } from "./openingCase";
 export interface ValueTrigger {
   /** Exact substring of the vignette. */
   sentence: string;
-  /** One short caption shown while this value is active. */
-  caption: string;
 }
 
 export const TRIGGERS: Readonly<Record<Value, ValueTrigger>> = {
   A: {
     sentence:
       "He is awake, organized, and can explain the risks of leaving and alternatives. He requests discharge and refuses voluntary psychiatric admission.",
-    caption: "A hold overrides his refusal. Discharge honors it.",
   },
   B: {
     sentence:
       "Outpatient psychiatry cannot see him for several weeks, and he is uncertain he will return for repeat labs.",
-    caption: "A hold secures treatment he may otherwise miss.",
   },
   N: {
     sentence:
       "His spouse is present but works nights, and you cannot confirm means restriction at home or removal of other poisons.",
-    caption: "A hold lowers the risk of repeat self-poisoning.",
   },
   J: {
     sentence:
       "The inpatient psychiatric unit is at capacity, and a hold would likely board him in the ED and delay care for other high-risk patients.",
-    caption: "A hold delays care for other high-risk patients.",
   },
 };
 
@@ -50,26 +43,8 @@ export interface VignetteSegment {
   value: Value | null;
 }
 
-/**
- * Captions describe Choice 1, the hold. They assume that hold violates A and J
- * and promotes B and N. The tag numbers themselves stay in opening.json.
- */
-const HOLD_VIOLATES = new Set<Value>(["A", "J"]);
-const HOLD_PROMOTES = new Set<Value>(["B", "N"]);
-
 function build(): readonly VignetteSegment[] {
-  const { vignette, tags } = openingCase;
-  const choice1 = tags[0];
-
-  for (const v of VALUE_ORDER) {
-    const tag = choice1[v];
-    const ok = HOLD_VIOLATES.has(v) ? tag < 0 : HOLD_PROMOTES.has(v) && tag > 0;
-    if (!ok) {
-      throw new Error(
-        `opening.json: Choice 1 tag for ${v} is ${tag}, captions assume the hold ${HOLD_VIOLATES.has(v) ? "violates" : "promotes"} it`,
-      );
-    }
-  }
+  const { vignette } = openingCase;
 
   const found = VALUE_ORDER.map((v) => {
     const { sentence } = TRIGGERS[v];
@@ -91,8 +66,7 @@ function build(): readonly VignetteSegment[] {
   }
   if (cursor < vignette.length) segments.push({ text: vignette.slice(cursor), value: null });
 
-  const onScreen = [vignette, ...VALUE_ORDER.map((v) => TRIGGERS[v].caption)];
-  if (onScreen.some((s) => /[\u2013\u2014]/.test(s))) {
+  if (/[\u2013\u2014]/.test(vignette)) {
     throw new Error("valueTriggers: on-screen text contains a dash character");
   }
   return segments;

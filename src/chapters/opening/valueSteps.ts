@@ -12,10 +12,9 @@ import { at, ramp } from "./timeline";
  *  - dim           how far the rest of the vignette has receded.
  *  - chip1[v]      the value's label on Choice 1.
  *  - chip2[v]      the value's label on Choice 2.
- *  - caption[v]    the value's one-line caption.
  *
- * A value's name, highlight and caption end where the next value begins (the
- * last one, at the "all" beat). The labels stay.
+ * A value's name and highlight end where the next value begins (the last one,
+ * at the "all" beat). The labels stay.
  */
 export interface ValueSteps {
   name: Record<Value, number>;
@@ -23,7 +22,6 @@ export interface ValueSteps {
   dim: number;
   chip1: Record<Value, number>;
   chip2: Record<Value, number>;
-  caption: Record<Value, number>;
 }
 
 const record = (f: (v: Value) => number): Record<Value, number> => ({
@@ -44,9 +42,8 @@ export function valueSteps(t: number): ValueSteps {
 
   const name = record((v) => rampAt(v) * clear(v));
   const highlight = record((v) => rampAt(`${v}Highlight`) * clear(v));
-  const caption = record((v) => rampAt(`${v}Caption`) * clear(v));
   const chip1 = record((v) => rampAt(`${v}Chip1`));
   const chip2 = record((v) => rampAt(`${v}Chip2`));
   const dim = Math.max(...VALUE_ORDER.map((v) => highlight[v]));
-  return { name, highlight, dim, chip1, chip2, caption };
+  return { name, highlight, dim, chip1, chip2 };
 }

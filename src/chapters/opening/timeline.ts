@@ -1,5 +1,5 @@
 import { beatStart, type Beat } from "../../types";
-import { STAGGER_MS, VALUE_ORDER } from "../../design";
+import { FADE_MS, STAGGER_MS, VALUE_ORDER } from "../../design";
 import { openingCase } from "./openingCase";
 import { triggerWords } from "./valueTriggers";
 
@@ -86,16 +86,13 @@ const tradeoff = [
  *   <v>Highlight  its trigger sentence is highlighted, the rest dims
  *   <v>Chip1      its label lands on Choice 1
  *   <v>Chip2      its label lands on Choice 2
- *   <v>Caption    the one-line caption
- * The next value's beat clears the highlight and starts over. The labels
- * already added stay on the choices.
+ * The next value begins once the second label has landed. That beat clears
+ * the highlight and starts over. The labels already added stay on the choices.
  */
 const NAME_MS = 1500; // name and definition on a plain vignette
 const HIGHLIGHT_BASE_MS = 900; // plus a reading allowance per word of the trigger sentence
 const HIGHLIGHT_PER_WORD_MS = 180;
 const CHIP_GAP_MS = 700; // Choice 1 label, then Choice 2 label
-const CAPTION_AFTER_MS = 400; // caption after the second label
-const CAPTION_READ_MS = 1900;
 
 const framework = (() => {
   const beats: Beat[] = [{ name: "framework", startMs: 0 }]; // "Clinical decisions require ..."
@@ -104,15 +101,13 @@ const framework = (() => {
     const highlight = cursor + NAME_MS;
     const chip1 = highlight + round100(HIGHLIGHT_BASE_MS + HIGHLIGHT_PER_WORD_MS * triggerWords(v));
     const chip2 = chip1 + CHIP_GAP_MS;
-    const caption = chip2 + CAPTION_AFTER_MS;
     beats.push(
       { name: v, startMs: cursor },
       { name: `${v}Highlight`, startMs: highlight },
       { name: `${v}Chip1`, startMs: chip1 },
       { name: `${v}Chip2`, startMs: chip2 },
-      { name: `${v}Caption`, startMs: caption },
     );
-    cursor = caption + CAPTION_READ_MS;
+    cursor = chip2 + FADE_MS;
   }
   beats.push({ name: "all", startMs: cursor }); // highlight cleared, plain vignette, four labels on each choice
   beats.push({ name: "end", startMs: cursor + 5000 });

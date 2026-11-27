@@ -99,9 +99,9 @@ const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - ((-2 * x + 2) ** 3) /
  * Times inside each chapter at which that chapter's layout is at its fullest.
  * Hidden copies of the scene at these times are measured, so the font size is
  * chosen once per viewport and never changes during playback. Chapter 5 is
- * probed once per value (at its highlight and at its caption) because the focused layout enlarges a different
- * sentence for each. The hook is probed before the heading swap, while the
- * title still occupies its full space.
+ * probed once per value (at its highlight and once both labels have landed)
+ * because the focused layout enlarges a different sentence for each. The hook
+ * is probed before the heading swap, while the title still occupies its full space.
  */
 const PROBE_TIMES: readonly number[] = [
   at("hook", "end") - HEADING_SWAP_MS - 1,
@@ -109,7 +109,7 @@ const PROBE_TIMES: readonly number[] = [
   at("model", "extracted"),
   at("tradeoff", "end") - 1,
   ...VALUE_ORDER.map((v) => at("framework", `${v}Highlight`) + 400),
-  ...VALUE_ORDER.map((v) => at("framework", `${v}Caption`) + 400),
+  ...VALUE_ORDER.map((v) => at("framework", `${v}Chip2`) + FADE_MS),
   at("framework", "all") + 800,
 ];
 
