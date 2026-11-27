@@ -335,22 +335,7 @@ export function PatientCard({
 /** Height of the row under each choice: holds the repeat-query marks, then the tag chips. */
 const ROW_H = "1.9em";
 
-/**
- * The repeat-query dots for one choice. When the model chose this choice, its
- * icon sits right after the dots: either the stage's shared icon (an invisible
- * anchor it flies to) or a plain icon shown at `badge` opacity.
- */
-function Marks({
-  index,
-  t,
-  icon,
-  badge,
-}: {
-  index: 0 | 1;
-  t: number;
-  icon: "none" | "anchor" | "inline";
-  badge: number;
-}) {
+function Marks({ index, t }: { index: 0 | 1; t: number }) {
   const total = openingCase.decisions.length;
   const start = at("model", "marks");
   const mine = openingCase.decisions
@@ -362,7 +347,7 @@ function Marks({
       role="img"
       aria-label={`${mine.length} of ${total} repeated queries chose: ${openingCase.choices[index]}`}
       className="mt-[0.45em] flex items-center justify-center gap-[0.3em]"
-      style={{ height: ROW_H }}
+      style={{ height: ROW_H, opacity: 1 - fadeOut }}
     >
       {mine.map(({ i }) => {
         const p = ramp(t, start + i * MARK_INTERVAL_MS, start + i * MARK_INTERVAL_MS + FADE_MS);
@@ -373,27 +358,12 @@ function Marks({
             style={{
               flex: "0 1 0.85em",
               backgroundColor: OPTION_ACCENT,
-              opacity: p * (1 - fadeOut),
+              opacity: p,
               transform: `scale(${0.5 + 0.5 * p})`,
             }}
           />
         );
       })}
-      {icon === "anchor" && (
-        <span
-          data-anchor="icon-option"
-          className="ml-[0.2em] inline-flex shrink-0"
-          style={{ width: 32, height: 32, marginBlock: -8, zoom: "var(--z)", visibility: "hidden" }}
-        />
-      )}
-      {icon === "inline" && (
-        <span
-          className="ml-[0.2em] inline-flex shrink-0"
-          style={{ marginBlock: -8, opacity: badge, zoom: "var(--z)" }}
-        >
-          <ProviderIcon src={PROVIDER.logo} alt={PROVIDER.name} size={32} />
-        </span>
-      )}
     </div>
   );
 }
@@ -495,14 +465,30 @@ function OptionCard({
         color: NEUTRAL.ink,
       }}
     >
-      <p className="font-semibold leading-snug" style={{ fontSize: "1.05em" }}>
-        {openingCase.choices[index]}
-      </p>
-      {/* The shared icon outlasts the dots by one move, so the row stays mounted until it has left. */}
-      {(showMarks || iconHere) && (
-        <Marks index={index} t={t} icon={!showIcon ? "none" : sharedIcon ? "anchor" : "inline"} badge={badge} />
-      )}
-      {showChips ? <Chips index={index} t={t} /> : null}
+      <div className="relative flex w-full items-center justify-center">
+        <p
+          className="font-semibold leading-snug"
+          style={{ fontSize: "1.05em", paddingInline: showIcon ? "2.2em" : undefined }}
+        >
+          {openingCase.choices[index]}
+        </p>
+        {showIcon &&
+          (sharedIcon ? (
+            <span
+              data-anchor="icon-option"
+              className="absolute right-0 top-1/2 inline-flex -translate-y-1/2"
+              style={{ width: 32, height: 32, zoom: "var(--z)", visibility: "hidden" }}
+            />
+          ) : (
+            <span
+              className="absolute right-0 top-1/2 inline-flex -translate-y-1/2"
+              style={{ opacity: badge, zoom: "var(--z)" }}
+            >
+              <ProviderIcon src={PROVIDER.logo} alt={PROVIDER.name} size={32} />
+            </span>
+          ))}
+      </div>
+      {showChips ? <Chips index={index} t={t} /> : showMarks ? <Marks index={index} t={t} /> : null}
     </li>
   );
 }
