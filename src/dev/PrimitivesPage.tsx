@@ -1,32 +1,11 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { animate, useMotionValue } from "framer-motion";
 import PrinciplistFramework from "../components/PrinciplistFramework";
-import RadarChart from "../components/RadarChart";
 import ValueBadge from "../components/ValueBadge";
 import { NEUTRAL, RECOMMENDATION_COLORS, TAGS, TAG_ORDER, VALUES, VALUE_COLORS, VALUE_ORDER } from "../design";
-import profilesData from "../study/data/profiles.json";
-import type { Profile, Tag, Value } from "../study/types";
+import type { Tag } from "../study/types";
 
-/**
- * Dev page for the design primitives: #/dev/primitives
- *
- * Profiles come from src/study/data/profiles.json (the published paper profiles);
- * no numbers are hardcoded here. Order is A, B, N, J; each row sums to 1.
- */
-const PROFILE_KEYS = ["gpt", "claude", "gemini"] as const;
-const PROFILES: readonly { key: string; name: string; priorities: Record<Value, number> }[] =
-  PROFILE_KEYS.map((key) => {
-    const p = (profilesData as Profile[]).find((q) => q.key === key);
-    if (!p) throw new Error(`missing profile ${key}`);
-    return { key: p.key, name: p.displayName, priorities: p.priorities };
-  });
-
-/** Edge-case fixture: the same value on every axis. */
-const uniform = (n: number): Record<Value, number> => ({ A: n, B: n, N: n, J: n });
-
-const pct = (n: number): string => `${(n * 100).toFixed(1)}%`;
-
+/** Dev page for the design primitives: #/dev/primitives */
 function Section({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
   return (
     <section className="border-t border-line py-8">
@@ -51,73 +30,6 @@ function Swatch({ label, sub, color }: { label: string; sub: string; color: stri
   );
 }
 
-function ProfileLegend({ priorities }: { priorities: Record<Value, number> }) {
-  return (
-    <dl className="mt-2 grid grid-cols-4 gap-1 text-center text-xs">
-      {VALUE_ORDER.map((v) => (
-        <div key={v}>
-          <dt className="font-semibold" style={{ color: VALUE_COLORS[v] }}>
-            {v}
-          </dt>
-          <dd className="font-mono tabular-nums text-slate-700">{pct(priorities[v])}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
-function AnimatedRadar() {
-  const a = useMotionValue(0);
-  const b = useMotionValue(0);
-  const n = useMotionValue(0);
-  const j = useMotionValue(0);
-  const [active, setActive] = useState<string | null>(null);
-
-  const go = (key: string | null, target: Record<Value, number>) => {
-    setActive(key);
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const options = reduce ? { duration: 0 } : { type: "spring" as const, stiffness: 90, damping: 11 };
-    animate(a, target.A, options);
-    animate(b, target.B, options);
-    animate(n, target.N, options);
-    animate(j, target.J, options);
-  };
-
-  const buttonClass = (on: boolean) =>
-    `rounded-md border px-3 py-1.5 text-sm font-medium ${
-      on ? "border-slate-700 bg-slate-700 text-white" : "border-line bg-white text-slate-700 hover:bg-slate-50"
-    }`;
-
-  return (
-    <div className="flex flex-col items-start gap-4 md:flex-row md:items-center">
-      <div className="w-full max-w-md">
-        <RadarChart
-          priorities={{ A: a, B: b, N: n, J: j }}
-          title="Animated priorities"
-          description="Each axis length is driven by its own MotionValue."
-        />
-      </div>
-      <div className="flex flex-wrap gap-2 md:flex-col">
-        {PROFILES.map((p) => (
-          <button key={p.key} type="button" className={buttonClass(active === p.key)} onClick={() => go(p.key, p.priorities)}>
-            {p.name}
-          </button>
-        ))}
-        <button type="button" className={buttonClass(active === "zero")} onClick={() => go("zero", uniform(0))}>
-          Zero
-        </button>
-        <button
-          type="button"
-          className={buttonClass(active === "over")}
-          onClick={() => go("over", uniform(1))}
-        >
-          All at 1 (outer ring)
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export default function PrimitivesPage() {
   const [gray, setGray] = useState(false);
 
@@ -126,7 +38,7 @@ export default function PrimitivesPage() {
       <main className="mx-auto max-w-5xl px-5 pb-16 pt-8">
         <h1 className="text-2xl font-semibold tracking-tight">Design primitives</h1>
         <p className="mt-1 text-sm text-slate-600">
-          <code>src/design</code>, <code>ValueBadge</code>, <code>PrinciplistFramework</code>, <code>RadarChart</code>
+          <code>src/design</code>, <code>ValueBadge</code>, <code>PrinciplistFramework</code>
         </p>
 
         <Section
@@ -192,55 +104,6 @@ export default function PrimitivesPage() {
 
         <Section title="PrinciplistFramework">
           <PrinciplistFramework description="Each principle asks a different question of a clinical decision." />
-        </Section>
-
-        <Section
-          title="RadarChart: three models"
-          note="Fixed axes A, B, N, J. Same 0 to 1 scale and plot position every time, so shapes compare directly. Priorities are the published paper profiles."
-        >
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {PROFILES.map((p) => (
-              <figure key={p.key} className="rounded-xl border border-line bg-white p-3">
-                <figcaption className="mb-1 text-sm font-semibold">{p.name}</figcaption>
-                <RadarChart
-                  priorities={p.priorities}
-                  title={`${p.name} priorities`}
-                  description={`Normalized value priorities for ${p.name}.`}
-                />
-                <ProfileLegend priorities={p.priorities} />
-              </figure>
-            ))}
-          </div>
-          <h3 className="mb-3 mt-8 text-sm font-semibold">Compact mode</h3>
-          <div className="flex flex-wrap gap-6">
-            {PROFILES.map((p) => (
-              <figure key={p.key} className="w-40">
-                <RadarChart
-                  mode="compact"
-                  priorities={p.priorities}
-                  title={`${p.name} priorities`}
-                  description={`Normalized value priorities for ${p.name}.`}
-                />
-                <figcaption className="text-center text-xs text-slate-600">{p.name}</figcaption>
-              </figure>
-            ))}
-          </div>
-          <h3 className="mb-3 mt-8 text-sm font-semibold">Invalid data (not drawn, not clamped)</h3>
-          <div className="w-40">
-            <RadarChart
-              mode="compact"
-              priorities={{ ...PROFILES[0].priorities, A: 1.4 }}
-              title="Invalid example"
-              description="Autonomy is outside the 0 to 1 scale."
-            />
-          </div>
-        </Section>
-
-        <Section
-          title="RadarChart: animatable"
-          note="Each radial length is a MotionValue. The polygon and dots update per frame without React re-renders. The spring overshoots on purpose; drawing stops at the outer ring."
-        >
-          <AnimatedRadar />
         </Section>
       </main>
     </div>

@@ -1,59 +1,26 @@
-import { FADE_MS, MOVE_MS, STAGGER_MS } from "../../design/motion";
-import { beatStart, type Beat, type Chapter } from "../../types";
-import IndividualModels, { individualModelsEndMs, modelStartMs } from "./IndividualModels";
-import ModelsAndPhysicians, { type PhysiciansTiming } from "./ModelsAndPhysicians";
-import { AUTOPLAY_MODELS, INDIVIDUAL_MODELS, SPREAD_PHYSICIANS } from "./profiles";
+import type { Chapter } from "../../types";
+import { closingBeats, individualBeats } from "./beats";
+import IndividualModels from "./IndividualModels";
+import ModelsAndPhysicians from "./ModelsAndPhysicians";
+import { AUTOPLAY_MODELS, GALLERY_PHYSICIANS, INDIVIDUAL_MODELS } from "./profiles";
 
-export { ALL_MODELS, ALL_PHYSICIANS, AUTOPLAY_MODELS, INDIVIDUAL_MODELS, SPREAD_PHYSICIANS } from "./profiles";
+export { ALL_MODELS, ALL_PHYSICIANS, AUTOPLAY_MODELS, GALLERY_PHYSICIANS, INDIVIDUAL_MODELS, SPREAD_PHYSICIANS } from "./profiles";
 export { selectSpreadPhysicians } from "./profiles";
+export { closingBeats, individualBeats, individualLabelWeight } from "./beats";
 
-/** What the ending shows: chapter 1 models, chapter 2 model row, chapter 2 physician row. */
+/** What the ending shows: the three held models, then row 1 (models) and row 2 (physicians). */
 export const endingSelection = {
   individualModelKeys: INDIVIDUAL_MODELS.map((m) => m.key),
-  autoplayModelKeys: AUTOPLAY_MODELS.map((m) => m.key),
-  /** Selection order: seed (farthest from the pooled profile) first. */
-  physicianKeys: SPREAD_PHYSICIANS.map((p) => p.key),
+  galleryModelKeys: AUTOPLAY_MODELS.map((m) => m.key),
+  /** Row 2 in display order: dominant value, then its share, descending. */
+  physicianKeys: GALLERY_PHYSICIANS.map((p) => p.key),
 } as const;
-
-if (import.meta.env.DEV) {
-  console.log("[ending] models (ch1):", endingSelection.individualModelKeys.join(", "));
-  console.log("[ending] models (ch2):", endingSelection.autoplayModelKeys.join(", "));
-  console.log("[ending] physicians:", endingSelection.physicianKeys.join(", "));
-}
-
-const models = INDIVIDUAL_MODELS;
-
-/* Chapter 1: one beat per model (start of its hold), then the end marker. */
-// TODO: tune after visual review
-export const individualBeats: readonly Beat[] = [
-  ...models.map((m, i) => ({ name: m.key, startMs: modelStartMs(i) })),
-  { name: "end", startMs: individualModelsEndMs(models.length) },
-];
-
-/* Chapter 2 */
-// TODO: tune after visual review
-export const closingBeats = [
-  { name: "models", startMs: 0 }, // radars shrink into the labeled model row
-  { name: "physicians", startMs: MOVE_MS + STAGGER_MS }, // physician radars appear one by one, just after the shrink
-  { name: "hold", startMs: 3600 }, // everything on screen, held
-  { name: "question", startMs: 7600 }, // rows dim, closing question + buttons
-  { name: "end", startMs: 12000 }, // final hold
-] as const;
-
-export const closingTiming: PhysiciansTiming = {
-  shrinkMs: MOVE_MS,
-  physiciansStartMs: beatStart(closingBeats, "physicians"),
-  physicianStaggerMs: STAGGER_MS,
-  physicianFadeMs: FADE_MS,
-  questionStartMs: beatStart(closingBeats, "question"),
-  questionFadeMs: FADE_MS,
-};
 
 export const endingChapters: Chapter[] = [
   {
     id: "individual-models",
     beats: individualBeats,
-    render: (ctx) => <IndividualModels models={models} elapsedMs={ctx.elapsedMs} />,
+    render: (ctx) => <IndividualModels models={INDIVIDUAL_MODELS} elapsedMs={ctx.elapsedMs} />,
   },
   {
     id: "models-and-physicians",
@@ -62,9 +29,8 @@ export const endingChapters: Chapter[] = [
       <ModelsAndPhysicians
         models={AUTOPLAY_MODELS}
         anchorKey={INDIVIDUAL_MODELS[INDIVIDUAL_MODELS.length - 1].key}
-        physicians={SPREAD_PHYSICIANS}
+        physicians={GALLERY_PHYSICIANS}
         elapsedMs={ctx.elapsedMs}
-        timing={closingTiming}
         onReplay={ctx.restart}
       />
     ),

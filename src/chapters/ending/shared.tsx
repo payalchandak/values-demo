@@ -1,15 +1,13 @@
 import { useLayoutEffect, useState, type RefObject } from "react";
 import { motion } from "framer-motion";
 import { openingFrame } from "../../data/demoData";
-import { VALUES, VALUE_ORDER, valueInk } from "../../design";
 import ProviderIcon from "../../components/ProviderIcon";
 import type { Profile } from "../../study/types";
 import { modelLogo } from "./icons";
 
 export const SPRING = { type: "spring", stiffness: 780, damping: 46, mass: 0.55 } as const;
 
-export const clamp01 = (n: number) => Math.min(Math.max(n, 0), 1);
-export const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+export { clamp01, easeInOut } from "./beats";
 
 /** Live content-box size of an element. */
 export function useElementSize(ref: RefObject<HTMLElement | null>) {
@@ -42,22 +40,6 @@ export function EndingHeader({ label }: { label: string }) {
   );
 }
 
-
-/** Axis key for the compact radars, whose labels are single letters. */
-export function Legend() {
-  return (
-    <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs text-gray-500">
-      {VALUE_ORDER.map((v) => (
-        <li key={v} className="flex items-center gap-1.5">
-          <span className="font-mono font-semibold" style={{ color: valueInk(v) }}>
-            {v}
-          </span>
-          {VALUES[v].name}
-        </li>
-      ))}
-    </ul>
-  );
-}
 
 /** Round provider icon + display name (never a version label). */
 export function ModelLabel({

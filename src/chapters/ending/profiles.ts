@@ -1,4 +1,5 @@
 import type { Profile, Value } from "../../study/types";
+import { VALUE_ORDER } from "../../design";
 import profilesData from "../../study/data/profiles.json";
 
 /*
@@ -22,7 +23,7 @@ const byKey = (profiles: readonly Profile[], key: string): Profile => {
 /** Chapter 1: exactly these, in this order. */
 export const INDIVIDUAL_MODEL_KEYS = ["gpt", "claude", "gemini"] as const;
 
-/** Chapter 2 autoplay row: the three above plus three more for a readable six. */
+/** Gallery row 1, in this order: the three above plus three more for a readable six. */
 export const AUTOPLAY_MODEL_KEYS = ["gpt", "claude", "gemini", "deepseek", "qwen", "mistral"] as const;
 
 /** Models whose responses were heavily affected by refusals. Never in autoplay. */
@@ -121,3 +122,32 @@ export const ALL_PHYSICIANS: readonly Profile[] = selectPhysicians(ALL_PROFILES)
 
 /** The eight shown in the autoplay row. */
 export const SPREAD_PHYSICIANS: readonly Profile[] = selectSpreadPhysicians(ALL_PROFILES, 8);
+
+/* -------------------------------------------------------------------------- */
+/*  Gallery order                                                             */
+/* -------------------------------------------------------------------------- */
+
+/** The value a profile weights most; the first in the fixed order wins a tie. */
+export function dominantOf(p: Profile): Value {
+  let best = VALUE_ORDER[0];
+  for (const v of VALUE_ORDER) if (p.priorities[v] > p.priorities[best]) best = v;
+  return best;
+}
+
+/**
+ * Physician row order: by dominant value (Autonomy, Beneficence, Nonmaleficence,
+ * Justice), then by that value's share, largest first. Individual physicians only.
+ */
+export function sortPhysiciansByDominance(profiles: readonly Profile[]): Profile[] {
+  assertIndividualPhysicians(profiles);
+  const rank = (p: Profile) => VALUE_ORDER.indexOf(dominantOf(p));
+  return [...profiles].sort(
+    (a, b) =>
+      rank(a) - rank(b) ||
+      b.priorities[dominantOf(b)] - a.priorities[dominantOf(a)] ||
+      a.key.localeCompare(b.key),
+  );
+}
+
+/** The eight physicians of the gallery's second row, in display order. */
+export const GALLERY_PHYSICIANS: readonly Profile[] = sortPhysiciansByDominance(SPREAD_PHYSICIANS);

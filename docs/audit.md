@@ -50,7 +50,6 @@ REWRITE
 DELETE
 - `components/TypewriterText.tsx`: unused; own `setInterval`, so it would not pause with playback.
 - `components/PrinciplistFramework.tsx`: unused; its value definitions are empty strings.
-- `components/RadarChart.tsx`: unused; `valueProfiles` is empty.
 - `components/ValueBadge.tsx`: unused; annotations are all pending.
 
 ## 4. Em dashes in user-facing copy

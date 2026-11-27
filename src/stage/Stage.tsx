@@ -12,13 +12,13 @@ import { RegressionScene } from "../chapters/regression/RegressionChapter";
 import { regressionBeats } from "../chapters/regression/beats";
 import IndividualModels from "../chapters/ending/IndividualModels";
 import ModelsAndPhysicians from "../chapters/ending/ModelsAndPhysicians";
-import { AUTOPLAY_MODELS, INDIVIDUAL_MODELS, SPREAD_PHYSICIANS } from "../chapters/ending/profiles";
-import { closingTiming } from "../chapters/ending";
+import { AUTOPLAY_MODELS, GALLERY_PHYSICIANS, INDIVIDUAL_MODELS } from "../chapters/ending/profiles";
+import { individualLabelWeight } from "../chapters/ending/beats";
 import { clamp01, easeInOut } from "../chapters/ending/shared";
 import { FADE_MS, MOVE_MS } from "../design/motion";
 import { foregroundCases, gptProfile, stackCases } from "./data";
 import Morph from "./Morph";
-import { morphBeats } from "./morphBeats";
+import { MORPH_TIMING, morphBeats } from "./morphBeats";
 import {
   headlineAt,
   isOpening,
@@ -70,11 +70,12 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
     case "regression":
       return { from: "dock", mix: 0, opacity: 1 };
     case "morph": {
-      const r = beatStart(morphBeats, "resolve");
-      return { from: "dock", to: "icon-label", mix: easeInOut(ramp(e, r, r + MOVE_MS)), opacity: 1, clipToScene: true };
+      const r = beatStart(morphBeats, "labels");
+      return { from: "dock", to: "icon-label", mix: easeInOut(ramp(e, r, r + MORPH_TIMING.labelsMs)), opacity: 1, clipToScene: true };
     }
     case "individual-models":
-      return { from: "icon-label", mix: 0, opacity: 1, clipToScene: true };
+      // The icon sits under the donut and cross-fades with the next model's icon.
+      return { from: "icon-label", mix: 0, opacity: individualLabelWeight(e, INDIVIDUAL_MODELS[0].key), clipToScene: true };
     default:
       return { from: null, mix: 0, opacity: 0 };
   }
@@ -278,9 +279,8 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
               <ModelsAndPhysicians
                 models={AUTOPLAY_MODELS}
                 anchorKey={INDIVIDUAL_MODELS[INDIVIDUAL_MODELS.length - 1].key}
-                physicians={SPREAD_PHYSICIANS}
+                physicians={GALLERY_PHYSICIANS}
                 elapsedMs={e}
-                timing={closingTiming}
                 onReplay={ctx.restart}
                 showHeader={false}
               />
