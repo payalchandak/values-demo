@@ -143,7 +143,7 @@ function Block({
 }
 
 function useBoxHeight() {
-  const [node, setNode] = useState<HTMLDivElement | null>(null);
+  const [node, setNode] = useState<HTMLElement | null>(null);
   const [height, setHeight] = useState(0);
   useLayoutEffect(() => {
     if (!node) return;
@@ -156,60 +156,91 @@ function useBoxHeight() {
   return [setNode, height] as const;
 }
 
+const HEADING_CLASS =
+  "mx-auto w-full max-w-[30em] text-balance text-center font-semibold leading-[1.12] tracking-tight";
+
 /**
- * Crossfade from the paper title to the question in one slot. Height follows
- * the opening clock, so a seek lands on the same frame playback would, and the
- * case card eases up instead of jumping. The gap under the heading is inside
- * the measured box so it shrinks away with the extra title lines.
+ * The paper title and the question occupy one heading. They crossfade in place,
+ * and the box eases from the title's height to the question's, so the case
+ * card moves up instead of jumping. A seek measures the same box playback uses.
  */
 function HeadlineReplace({
   mix,
   exit = 0,
-  leaveOpacity,
-  arriveOpacity,
-  leave,
-  arrive,
+  labelOpacity,
+  titleOpacity,
+  questionOpacity,
 }: {
   /** 0 = the paper title's box, 1 = the question's box. */
   mix: number;
   /** 1 collapses the question after it has replaced the title. */
   exit?: number;
-  leaveOpacity: number;
-  arriveOpacity: number;
-  leave: ReactNode;
-  arrive: ReactNode;
+  labelOpacity: number;
+  titleOpacity: number;
+  questionOpacity: number;
 }) {
-  const [leaveRef, leaveH] = useBoxHeight();
-  const [arriveRef, arriveH] = useBoxHeight();
+  const [labelRef, labelH] = useBoxHeight();
+  const [titleRef, titleH] = useBoxHeight();
+  const [questionRef, questionH] = useBoxHeight();
   const p = Math.min(1, Math.max(0, mix));
   const gone = Math.min(1, Math.max(0, exit));
-  const showingLeave = p <= 0 && gone <= 0;
-  const showingArrive = p >= 1 && gone <= 0;
-  const target = leaveH === 0 || arriveH === 0 ? undefined : (leaveH + (arriveH - leaveH) * p) * (1 - gone);
+  const settledTitle = p <= 0 && gone <= 0;
+  const settledQuestion = p >= 1 && gone <= 0;
+  const from = titleH === 0 ? questionH : titleH;
+  const to = questionH === 0 ? titleH : questionH;
+  const headingH = (from + (to - from) * p) * (1 - gone);
+  const labelSpace = labelH * (1 - p) * (1 - gone);
   return (
-    <div
-      className="relative w-full"
-      style={{
-        height: showingLeave || showingArrive || target === undefined ? "auto" : target,
-        overflow: showingLeave || showingArrive ? "visible" : "hidden",
-        marginBottom: `calc(${STACK_GAP} * -1)`,
-      }}
-    >
-      {leaveOpacity > 0 && (
-        <div ref={leaveRef} aria-hidden={leaveOpacity < 0.5}>
-          <div style={{ opacity: leaveOpacity }}>{leave}</div>
+    <div className="w-full" style={{ marginBottom: `calc(${STACK_GAP} * -1)` }}>
+      <div style={{ height: settledTitle ? "auto" : labelSpace, overflow: "hidden" }}>
+        <div ref={labelRef}>
+          <p
+            className="text-center font-mono font-medium tracking-[0.28em]"
+            style={{ fontSize: "0.8em", color: NEUTRAL.inkMuted, opacity: labelOpacity }}
+          >
+            {EYEBROW}
+          </p>
           <div aria-hidden style={{ height: STACK_GAP }} />
         </div>
-      )}
-      <div
-        ref={arriveRef}
-        className={showingArrive ? undefined : "absolute inset-x-0 top-0"}
-        style={{ opacity: arriveOpacity * (1 - gone) }}
-        aria-hidden={arriveOpacity < 0.5}
-      >
-        {arrive}
-        <div aria-hidden style={{ height: STACK_GAP }} />
       </div>
+      <div
+        className="relative grid"
+        style={{
+          alignItems: "center",
+          height: settledTitle || settledQuestion || headingH === 0 ? "auto" : headingH,
+          overflow: settledTitle || settledQuestion ? "visible" : "hidden",
+        }}
+      >
+        <h1
+          ref={titleRef}
+          className={HEADING_CLASS}
+          style={{
+            gridArea: "1 / 1",
+            fontSize: HEADLINES[0].size,
+            color: NEUTRAL.ink,
+            opacity: titleOpacity,
+            position: settledQuestion ? "absolute" : undefined,
+          }}
+          aria-hidden={titleOpacity < 0.5}
+        >
+          {HEADLINES[0].text}
+        </h1>
+        <h1
+          ref={questionRef}
+          className={HEADING_CLASS}
+          style={{
+            gridArea: "1 / 1",
+            fontSize: HEADLINES[1].size,
+            color: NEUTRAL.ink,
+            opacity: questionOpacity * (1 - gone),
+            position: settledTitle ? "absolute" : undefined,
+          }}
+          aria-hidden={questionOpacity < 0.5}
+        >
+          {HEADLINES[1].text}
+        </h1>
+      </div>
+      <div aria-hidden style={{ height: `calc(${STACK_GAP} * ${1 - gone})` }} />
     </div>
   );
 }
@@ -539,32 +570,9 @@ const SceneBody = memo(function SceneBody({
         <HeadlineReplace
           mix={h === 0 ? space : 1}
           exit={h === 0 ? 0 : questionExit}
-          leaveOpacity={h === 0 ? 1 - titleLeave : 0}
-          arriveOpacity={h === 0 ? questionIn : 1}
-          leave={
-            <div className="flex w-full flex-col items-center" style={{ gap: STACK_GAP }}>
-              <p
-                className="font-mono font-medium tracking-[0.28em]"
-                style={{ fontSize: "0.8em", color: NEUTRAL.inkMuted, opacity: labelEntrance }}
-              >
-                {EYEBROW}
-              </p>
-              <h1
-                className="mx-auto w-full max-w-[30em] text-balance text-center font-semibold leading-[1.12] tracking-tight"
-                style={{ fontSize: HEADLINES[0].size, color: NEUTRAL.ink, opacity: titleEntrance }}
-              >
-                {HEADLINES[0].text}
-              </h1>
-            </div>
-          }
-          arrive={
-            <h1
-              className="mx-auto w-full max-w-[30em] text-balance text-center font-semibold leading-[1.12] tracking-tight"
-              style={{ fontSize: HEADLINES[1].size, color: NEUTRAL.ink }}
-            >
-              {HEADLINES[1].text}
-            </h1>
-          }
+          labelOpacity={h === 0 ? labelEntrance * (1 - titleLeave) : 0}
+          titleOpacity={h === 0 ? titleEntrance * (1 - titleLeave) : 0}
+          questionOpacity={h === 0 ? questionIn : 1}
         />
       )}
 
