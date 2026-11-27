@@ -71,7 +71,7 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
       return { from: "dock", to: "icon-label", mix: easeInOut(ramp(e, r, r + MORPH_TIMING.labelsMs)), opacity: 1, clipToScene: true };
     }
     case "individual-models":
-      // The icon sits under the donut and cross-fades with the next model's icon.
+      // The icon sits in the donut hole and cross-fades with the next model's icon.
       return { from: "icon-label", mix: 0, opacity: individualLabelWeight(e, INDIVIDUAL_MODELS[0].key), clipToScene: true };
     default:
       return { from: null, mix: 0, opacity: 0 };
@@ -185,7 +185,22 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
     const root = rootRef.current;
     const icon = iconRef.current;
     if (!root || !icon) return;
-    placeIcon(root, icon, iconPlan(segment, e));
+    const plan = iconPlan(segment, e);
+    const run = () => placeIcon(root, icon, plan);
+    run();
+    // The hole slot appears after the donut measures, and moves when the frame
+    // changes. Follow it. Ignore our own writes on the icon, or this loops.
+    const ro = new ResizeObserver(run);
+    ro.observe(root);
+    const mo = new MutationObserver((records) => {
+      if (records.every((r) => r.target === icon || icon.contains(r.target))) return;
+      run();
+    });
+    mo.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ["style", "class"] });
+    return () => {
+      ro.disconnect();
+      mo.disconnect();
+    };
   });
   // Two turns while the model thinks, then one more per repeated query. Every turn ends upright.
   const spinDeg = segment === "opening-model" ? markSpinDeg(e) : 0;

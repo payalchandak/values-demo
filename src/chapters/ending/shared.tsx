@@ -41,37 +41,35 @@ export function EndingHeader({ label }: { label: string }) {
 }
 
 
-/** Round provider icon + display name (never a version label). */
-export function ModelLabel({
+/** The provider mark, or an invisible slot the stage's persistent icon lands on. */
+export function ModelMark({
   profile,
-  iconSize = 32,
-  large = false,
-  stacked = false,
-  iconSlot = false,
+  size,
+  slot = false,
 }: {
   profile: Profile;
-  iconSize?: number;
-  large?: boolean;
-  /** Icon above the name, for narrow columns. */
-  stacked?: boolean;
+  size: number;
   /** The stage draws this icon itself; leave an invisible slot for it to land on. */
-  iconSlot?: boolean;
+  slot?: boolean;
 }) {
+  if (slot) {
+    return (
+      <span
+        data-anchor="icon-label"
+        className="block shrink-0"
+        style={{ width: size, height: size, visibility: "hidden" }}
+      />
+    );
+  }
   const logo = modelLogo(profile);
+  return <ProviderIcon src={logo.src} alt={logo.alt} size={size} />;
+}
+
+/** Display name under a hero donut (never a version label). */
+export function ModelName({ profile, large = false }: { profile: Profile; large?: boolean }) {
   return (
-    <div className={`flex items-center ${stacked ? "flex-col gap-1.5" : "gap-2.5"}`}>
-      {iconSlot ? (
-        <span
-          data-anchor="icon-label"
-          className="inline-block shrink-0"
-          style={{ width: iconSize, height: iconSize, visibility: "hidden" }}
-        />
-      ) : (
-        <ProviderIcon src={logo.src} alt={logo.alt} size={iconSize} />
-      )}
-      <span className={large ? "text-xl font-semibold text-[#1B2433]" : "text-sm font-semibold text-[#1B2433]"}>
-        {profile.displayName}
-      </span>
-    </div>
+    <span className={large ? "text-xl font-semibold text-[#1B2433]" : "text-sm font-semibold text-[#1B2433]"}>
+      {profile.displayName}
+    </span>
   );
 }

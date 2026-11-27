@@ -6,8 +6,10 @@ import {
   HeroText,
   LIGHT_OPACITY,
   SegmentPaths,
+  DonutHole,
   bendStrip,
   bentSegmentPath,
+  centerMarkSize,
   clamp01,
   dominantValue,
   donutScene,
@@ -17,8 +19,8 @@ import {
   useBox,
   useFontEpoch,
 } from "../components/Donut";
-import { HERO_CHROME, HERO_ICON } from "../chapters/ending/IndividualModels";
-import { easeInOut, ModelLabel } from "../chapters/ending/shared";
+import { HERO_CHROME } from "../chapters/ending/IndividualModels";
+import { easeInOut, ModelMark, ModelName } from "../chapters/ending/shared";
 import { NEUTRAL, VALUES, VALUE_ORDER } from "../design";
 import type { Profile } from "../study/types";
 import { beatStart } from "../types";
@@ -44,8 +46,9 @@ const at = (name: string) => beatStart(morphBeats, name);
 /**
  * The regression chapter's four priority bars slide into one row and stack end
  * to end into a strip as long as the ring's circumference, the strip bends into
- * the ring, and names and percents fade in outside. The last frame is the hero
- * donut, drawn by the same functions the hero uses, in the same frame.
+ * the ring, and names and percents fade in outside while the model mark lands
+ * in the hole. The last frame is the hero donut, drawn by the same functions
+ * the hero uses, in the same frame.
  *
  * The regression chapter also draws this at MORPH_HANDOFF_MS with `barGrow` to
  * grow the bars in, so the first frame here is exactly where that chapter ends.
@@ -78,6 +81,7 @@ export default function Morph({
   const textOpacity = (1 - clamp01(xP * 2.5)) * labelMix;
 
   let svg = null;
+  let hole = null;
   if (W > 0 && H > 0) {
     const scene = donutScene({ from: p, to: p, t: 0, mode: "hero", width: W, height: H });
     const { cx, cy, R } = scene;
@@ -150,16 +154,23 @@ export default function Morph({
         <HeroText scene={scene} opacity={labelP} />
       </svg>
     );
+    // The slot stays mounted for the whole morph so the stage icon can fly into
+    // the hole as the labels arrive. Its own opacity is the stage's.
+    hole = (
+      <DonutHole cx={scene.cx} cy={scene.cy} rIn={scene.rIn}>
+        <ModelMark profile={profile} size={centerMarkSize(scene.rIn)} slot />
+      </DonutHole>
+    );
   }
 
   return (
     <div className="flex h-full w-full flex-col">
       <div ref={viewport} className="relative min-h-0 flex-1">
         {svg}
+        {hole}
       </div>
       <div className="grid shrink-0 place-items-center" style={{ height: HERO_CHROME, opacity: labelP }}>
-        {/* The stage's persistent icon lands on this slot as the labels arrive. */}
-        <ModelLabel profile={profile} iconSize={HERO_ICON} large stacked iconSlot />
+        <ModelName profile={profile} large />
       </div>
     </div>
   );

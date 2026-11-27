@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { NEUTRAL, VALUES, VALUE_ORDER } from "../design";
 import type { Value } from "../study/types";
 
@@ -376,7 +376,6 @@ export interface DonutScene {
   segments: DonutSegment[];
   /** Hero only. */
   labels: HeroLabel[];
-  center: { text: string; fontSize: number } | null;
 }
 
 export interface SceneInput {
@@ -408,7 +407,7 @@ export function donutScene({ from, to, t, mode, width, height = width, measure =
     path: sectorPath(cx, cy, rOut, rIn, s.u0, s.u1),
   }));
   if (mode === "compact") {
-    return { mode, width, height: width, cx, cy, R, rIn, segments, labels: [], center: null };
+    return { mode, width, height: width, cx, cy, R, rIn, segments, labels: [] };
   }
 
   const top = dominantValue(p);
@@ -458,8 +457,12 @@ export function donutScene({ from, to, t, mode, width, height = width, measure =
     rIn,
     segments,
     labels: boxes,
-    center: { text: percentText(p[top]), fontSize: Math.max(16, Math.min(R * 0.34, 44)) },
   };
+}
+
+/** Diameter of a mark that sits in the hole, with air between it and the ring. */
+export function centerMarkSize(rIn: number): number {
+  return Math.round(Math.min(rIn * 0.9, 96));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -477,7 +480,7 @@ export function SegmentPaths({ scene }: { scene: DonutScene }) {
   );
 }
 
-/** Outside labels and the center percent of a hero scene. */
+/** Outside labels of a hero scene. The hole is left empty for the model mark. */
 export function HeroText({ scene, opacity = 1 }: { scene: DonutScene; opacity?: number }) {
   if (scene.mode !== "hero" || opacity <= 0) return null;
   return (
@@ -492,20 +495,32 @@ export function HeroText({ scene, opacity = 1 }: { scene: DonutScene; opacity?: 
           </text>
         </g>
       ))}
-      {scene.center && (
-        <text
-          x={scene.cx}
-          y={scene.cy}
-          dy="0.36em"
-          textAnchor="middle"
-          fontSize={scene.center.fontSize}
-          fontWeight={700}
-          fill={DONUT_INK}
-        >
-          {scene.center.text}
-        </text>
-      )}
     </g>
+  );
+}
+
+/** A box exactly covering the hole, centered on the ring. Children fill it. */
+export function DonutHole({
+  cx,
+  cy,
+  rIn,
+  opacity = 1,
+  children,
+}: {
+  cx: number;
+  cy: number;
+  rIn: number;
+  opacity?: number;
+  children: ReactNode;
+}) {
+  const mark = centerMarkSize(rIn);
+  return (
+    <div
+      className="pointer-events-none absolute"
+      style={{ left: cx - mark / 2, top: cy - mark / 2, width: mark, height: mark, opacity }}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -521,12 +536,14 @@ export interface DonutProps {
   /** Hero: frame size in px. Measured from the parent when omitted. */
   width?: number;
   height?: number;
-  /** Fades the outside labels and center percent (hero), for a donut that is leaving hero size. */
+  /** Fades the outside labels (hero), for a donut that is leaving hero size. */
   labelOpacity?: number;
   title?: string;
+  /** Drawn in the hole. Receives the mark diameter in px. Hero only. */
+  center?: (mark: number) => ReactNode;
 }
 
-export default function Donut({ from, to, t, mode, size = 56, width, height, labelOpacity = 1, title }: DonutProps) {
+export default function Donut({ from, to, t, mode, size = 56, width, height, labelOpacity = 1, title, center }: DonutProps) {
   const ref = useRef<HTMLDivElement>(null);
   const box = useBox(ref);
   useFontEpoch();
@@ -539,6 +556,7 @@ export default function Donut({ from, to, t, mode, size = 56, width, height, lab
   return (
     <div
       ref={measured ? undefined : ref}
+      className="relative"
       style={measured ? { width: w, height: h } : { width: "100%", height: "100%" }}
       data-donut={mode}
     >
@@ -547,6 +565,11 @@ export default function Donut({ from, to, t, mode, size = 56, width, height, lab
           <SegmentPaths scene={scene} />
           <HeroText scene={scene} opacity={labelOpacity} />
         </svg>
+      )}
+      {scene && center && mode === "hero" && (
+        <DonutHole cx={scene.cx} cy={scene.cy} rIn={scene.rIn}>
+          {center(centerMarkSize(scene.rIn))}
+        </DonutHole>
       )}
     </div>
   );

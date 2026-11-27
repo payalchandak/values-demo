@@ -9,7 +9,7 @@ import type { Beat } from "../types";
  *   stack   the bars slide into one row and stack end to end into a strip as
  *           long as the ring's circumference (each segment keeps its length)
  *   bend    the strip bends into the ring, first segment starting at 12 o'clock
- *   labels  names and percents fade in outside; the provider icon lands beneath
+ *   labels  names and percents fade in outside; the provider icon lands in the hole
  *   end     the hero donut, held
  */
 // TODO: tune after visual review

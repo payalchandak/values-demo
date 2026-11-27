@@ -1,13 +1,13 @@
 import { useRef, useState } from "react";
-import Donut, { HeroText, SegmentPaths, dominantValue, donutScene, measureText, percentText, useBox, useFontEpoch } from "../../components/Donut";
+import Donut, { DonutHole, HeroText, SegmentPaths, centerMarkSize, dominantValue, donutScene, measureText, percentText, useBox, useFontEpoch } from "../../components/Donut";
 import ProviderIcon from "../../components/ProviderIcon";
 import { VALUES, VALUE_ORDER } from "../../design";
 import type { Profile } from "../../study/types";
 import { GALLERY_STARTS, GALLERY_TIMING, easeInOut, itemIn, ramp } from "./beats";
-import { HERO_CHROME, HERO_ICON } from "./IndividualModels";
+import { HERO_CHROME } from "./IndividualModels";
 import { modelLogo } from "./icons";
 import { assertIndividualPhysicians } from "./profiles";
-import { EndingHeader, ModelLabel } from "./shared";
+import { EndingHeader, ModelMark, ModelName } from "./shared";
 
 export const CLOSING_QUESTION = "When one model gives advice at scale, whose priorities does it repeat?";
 export const KEY_LINE = "Each ring runs clockwise from the top: Autonomy, Beneficence, Nonmaleficence, Justice.";
@@ -207,12 +207,17 @@ export default function ModelsAndPhysicians({
     const dy = lerp(0, slot.y + layout.D / 2 - scene.cy, fly);
     // One svg, so the ring is drawn at exactly the coordinates the hero uses.
     flier = (
-      <svg aria-hidden="true" className="absolute left-0 top-0 block" width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
-        <g transform={`translate(${scene.cx + dx} ${scene.cy + dy}) scale(${scale}) translate(${-scene.cx} ${-scene.cy})`}>
-          <SegmentPaths scene={scene} />
-        </g>
-        <HeroText scene={scene} opacity={labelFade} />
-      </svg>
+      <>
+        <svg aria-hidden="true" className="absolute left-0 top-0 block" width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+          <g transform={`translate(${scene.cx + dx} ${scene.cy + dy}) scale(${scale}) translate(${-scene.cx} ${-scene.cy})`}>
+            <SegmentPaths scene={scene} />
+          </g>
+          <HeroText scene={scene} opacity={labelFade} />
+        </svg>
+        <DonutHole cx={scene.cx} cy={scene.cy} rIn={scene.rIn} opacity={labelFade}>
+          <ModelMark profile={anchor} size={centerMarkSize(scene.rIn)} />
+        </DonutHole>
+      </>
     );
   }
 
@@ -305,7 +310,7 @@ export default function ModelsAndPhysicians({
           <div className="pointer-events-none absolute inset-0" style={{ opacity: rowsOpacity }}>
             {flier}
             <div className="absolute inset-x-0 bottom-0 grid place-items-center" style={{ height: HERO_CHROME, opacity: labelFade }}>
-              <ModelLabel profile={anchor} iconSize={HERO_ICON} large stacked />
+              <ModelName profile={anchor} large />
             </div>
           </div>
         )}

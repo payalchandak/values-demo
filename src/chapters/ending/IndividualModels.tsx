@@ -1,16 +1,15 @@
 import Donut from "../../components/Donut";
 import type { Profile } from "../../study/types";
 import { individualLabelWeight, individualState } from "./beats";
-import { EndingHeader, ModelLabel } from "./shared";
+import { EndingHeader, ModelMark, ModelName } from "./shared";
 
-/** Height of the icon-and-name block under the donut. The morph into this chapter lays out identically. */
-export const HERO_CHROME = 76;
-export const HERO_ICON = 36;
+/** Height of the name under the donut. The morph into this chapter lays out identically. */
+export const HERO_CHROME = 44;
 
 /**
  * One persistent hero donut at a fixed center. It holds a model, then its arcs
- * sweep to the next model's values while the icon and name cross-fade beneath.
- * The chart stays put: only its arcs, labels and numbers change.
+ * sweep to the next model's values while the mark in the hole and the name
+ * beneath cross-fade. The chart stays put: only its arcs, labels and mark change.
  */
 export default function IndividualModels({
   models,
@@ -34,13 +33,31 @@ export default function IndividualModels({
       {showHeader && <EndingHeader label="Individual models" />}
 
       <div className="relative min-h-0 flex-1">
-        <Donut from={from.priorities} to={to.priorities} t={state.t} mode="hero" />
+        <Donut
+          from={from.priorities}
+          to={to.priorities}
+          t={state.t}
+          mode="hero"
+          center={(mark) => (
+            <div className="grid h-full w-full">
+              {models.map((model) => (
+                <div
+                  key={model.key}
+                  className="col-start-1 row-start-1"
+                  style={{ opacity: individualLabelWeight(elapsedMs, model.key) }}
+                >
+                  <ModelMark profile={model} size={mark} slot={model.key === sharedIconFor} />
+                </div>
+              ))}
+            </div>
+          )}
+        />
       </div>
 
       <div className="grid shrink-0 place-items-center" style={{ height: HERO_CHROME }}>
         {models.map((model) => (
           <div key={model.key} className="col-start-1 row-start-1" style={{ opacity: individualLabelWeight(elapsedMs, model.key) }}>
-            <ModelLabel profile={model} iconSize={HERO_ICON} large stacked iconSlot={model.key === sharedIconFor} />
+            <ModelName profile={model} large />
           </div>
         ))}
       </div>
