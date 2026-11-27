@@ -120,22 +120,17 @@ function Block({
   );
 }
 
+/** The value-prism ED vignette, verbatim. Same card the stack takes over. */
 export function PatientCard({ shared = false }: { shared?: boolean }) {
-  const { heading, paragraphs } = openingCase.patient;
   return (
     <div
       data-shared={shared ? "patient" : undefined}
-      className="w-full rounded-[0.9em] border bg-white p-[1em] shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_28px_-14px_rgba(16,24,40,0.12)]"
+      className="w-full rounded-[0.9em] border bg-white p-[0.9em] shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_28px_-14px_rgba(16,24,40,0.12)]"
       style={{ borderColor: NEUTRAL.line, color: NEUTRAL.ink }}
     >
-      <p className="font-semibold leading-snug" style={{ fontSize: "1.1em" }}>
-        {heading}
+      <p className="leading-[1.5]" style={{ textWrap: "pretty" }}>
+        {openingCase.vignette}
       </p>
-      <div className="mt-[0.45em] space-y-[0.5em] leading-snug" style={{ color: NEUTRAL.inkMuted }}>
-        {paragraphs.map((p) => (
-          <p key={p}>{p}</p>
-        ))}
-      </div>
     </div>
   );
 }
@@ -351,7 +346,7 @@ const SceneBody = memo(function SceneBody({
     dilemmaStart,
   );
 
-  // The patient summary stays up through the model chapter; the response sits below it.
+  // The verbatim case stays up through the model chapter; the response sits below it.
   // With the stack handoff, it returns once the framework has cleared, in time for the last beat.
   const showSummary = (t >= at("hook", "patient") && t < statement) || (recallPatient && t >= recall + FADE_MS);
   const summaryOpacity =
@@ -367,7 +362,7 @@ const SceneBody = memo(function SceneBody({
     statement,
   );
 
-  // From chapter 4 on, the full vignette replaces the summary, until the handoff clears it.
+  // From chapter 4 on, the same vignette is shown with value marks, until the handoff clears it.
   const showVignette = t >= statement && !cleared;
   const vignetteOpacity =
     ramp(t, at("tradeoff", "vignette"), at("tradeoff", "vignette") + FADE_MS) * (1 - clearP);

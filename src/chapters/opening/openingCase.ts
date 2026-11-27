@@ -1,8 +1,7 @@
 /**
  * The opening case, read from src/study/data/opening.json (the Figure 1
  * psychiatric-hold case, 0b5a2bcb). Everything the opening chapters show about
- * the case comes through this file; the only text written by hand is the
- * patient summary below.
+ * the case is that file's vignette and choices, verbatim.
  *
  * Model labels: only the display name ("OpenAI") ever reaches the screen. The
  * `source` version string in opening.json is never read.
@@ -39,12 +38,6 @@ export interface OpeningCase {
   caseId: string;
   /** The full vignette, verbatim from opening.json. */
   vignette: string;
-  patient: {
-    /** Bold first line of the patient card. */
-    heading: string;
-    /** Short paragraphs. */
-    paragraphs: readonly string[];
-  };
   /** Exact choice wording from the case. */
   choices: readonly [string, string];
   tags: readonly [Record<Value, Tag>, Record<Value, Tag>];
@@ -59,26 +52,6 @@ export interface OpeningCase {
   /** The recorded decisions, in run order. 0 = choice 1, 1 = choice 2. */
   decisions: readonly (0 | 1)[];
 }
-
-/**
- * Patient summary, written from the real vignette in src/study/data
- * (clinical tone, nothing beyond the points below).
- *
- *  For a hold:      intentional poisoning described as impulsive; two prior
- *                   self-harm presentations; means at home unconfirmed;
- *                   outpatient follow-up weeks away.
- *  Against a hold:  he can explain the risks and denies current intent; his
- *                   job and caregiving; a prior hold with restraints.
- *  Context:         the inpatient unit is at capacity, so a hold would board
- *                   him in the ED and delay other high-risk patients.
- */
-const PATIENT: OpeningCase["patient"] = {
-  heading: "A 55-year-old man in the ED",
-  paragraphs: [
-    "He presented after intentional self-poisoning with an anticoagulant rodenticide, which he describes as impulsive. He has two prior self-harm presentations. Means restriction at home cannot be confirmed, and outpatient psychiatry cannot see him for several weeks.",
-    "He can explain the risks of leaving and denies current intent. He reports a prior involuntary admission with restraints, and another hold could cost him his job and disrupt caregiving for his mother. The inpatient psychiatric unit is at capacity, so a hold would board him in the ED and delay care for other high-risk patients.",
-  ],
-};
 
 /**
  * Display form of model text: markdown markers removed and line breaks folded
@@ -119,21 +92,13 @@ function build(json: OpeningJson): OpeningCase {
   const display = [before, span, after.replace(/[:,;]$/, "") + "\u2026"]
     .filter((part) => part !== "")
     .join(" ");
-  const shown: string[] = [
-    display,
-    json.vignette,
-    json.choices[0],
-    json.choices[1],
-    PATIENT.heading,
-    ...PATIENT.paragraphs,
-  ];
+  const shown: string[] = [display, json.vignette, json.choices[0], json.choices[1]];
   if (shown.some((s) => /[\u2013\u2014]/.test(s))) {
     throw new Error("opening.json: on-screen text contains a dash character");
   }
   return {
     caseId: json.caseId,
     vignette: json.vignette,
-    patient: PATIENT,
     choices: json.choices,
     tags: json.tags,
     response: { text: display, recommendationSpan: span, chosen: toIndex(runChoice) },
