@@ -86,7 +86,7 @@ const MIN_READABLE_PX = 12;
  * on this one clock, and the move finishes as the dilemma chapter starts.
  * Long enough that the reflow reads as a single motion.
  */
-const HEADING_SWAP_MS = 560;
+const HEADING_SWAP_MS = 640;
 
 /** Gap between stacked blocks. The heading clip folds one of these into itself. */
 const STACK_GAP = "0.9em";
@@ -461,11 +461,15 @@ const SceneBody = memo(function SceneBody({
   const thinkAt = at("model", "think");
   const ask = at("model", "ask");
   // The hook title and the in-case question trade space. Done by the dilemma chapter.
+  // Glyphs fade clear before the clip reaches them, then the open space moves into the case.
   const swap = ease(ramp(t, dilemmaStart - HEADING_SWAP_MS, dilemmaStart));
-  const titleOpacity = ramp(t, HEADLINE_STARTS[0], HEADLINE_STARTS[0] + FADE_MS) * (1 - swap);
-  const labelOpacity = ramp(t, at("hook", "label"), at("hook", "label") + FADE_MS) * (1 - swap);
+  const textLeave = Math.min(1, swap / 0.36);
+  const space = Math.min(1, Math.max(0, (swap - 0.24) / 0.76));
+  const titleOpacity = ramp(t, HEADLINE_STARTS[0], HEADLINE_STARTS[0] + FADE_MS) * (1 - textLeave);
+  const labelOpacity = ramp(t, at("hook", "label"), at("hook", "label") + FADE_MS) * (1 - textLeave);
   // The question leaves at the model chapter, before the language-model header.
-  const questionOpacity = swap * (1 - ramp(t, ask, ask + FADE_MS));
+  const questionFadeIn = Math.min(1, Math.max(0, (space - 0.78) / 0.22));
+  const questionOpacity = questionFadeIn * (1 - ramp(t, ask, ask + FADE_MS));
 
   // The verbatim case stays up through the model chapter; the response sits below it.
   // With the stack handoff, it returns once the framework has cleared, in time for the last beat.
@@ -495,7 +499,7 @@ const SceneBody = memo(function SceneBody({
   const showChips = t >= at("framework", "framework");
 
   const showStrip = t >= at("framework", "framework") && !cleared;
-  const headingSettled = swap <= 0 || swap >= 1;
+  const headingSettled = space <= 0 || space >= 1;
 
   return (
     <div
@@ -505,8 +509,8 @@ const SceneBody = memo(function SceneBody({
       style={{ gap: STACK_GAP }}
     >
       {h === 0 && (
-        <Clip progress={1 - swap} trailGap>
-          <div className="flex w-full flex-col items-center" style={{ gap: STACK_GAP }} aria-hidden={swap > 0.5}>
+        <Clip progress={1 - space} trailGap>
+          <div className="flex w-full flex-col items-center" style={{ gap: STACK_GAP }} aria-hidden={textLeave > 0.5}>
             <p
               className="font-mono font-medium tracking-[0.28em]"
               style={{ fontSize: "0.8em", color: NEUTRAL.inkMuted, opacity: labelOpacity }}
@@ -542,8 +546,8 @@ const SceneBody = memo(function SceneBody({
                 shared={!probe}
                 typedChars={caseCharsAt(t)}
                 question={
-                  questionOpacity > 0 ? (
-                    <Clip progress={swap} opacity={questionOpacity}>
+                  space > 0 && t < ask + FADE_MS ? (
+                    <Clip progress={space} opacity={questionOpacity}>
                       <h1
                         className="font-semibold leading-[1.15] tracking-tight"
                         style={{
