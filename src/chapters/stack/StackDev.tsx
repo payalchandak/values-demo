@@ -2,19 +2,25 @@ import { useMemo } from "react";
 import { LayoutGroup, motionValue } from "framer-motion";
 import { useChapterClock } from "../../useChapterClock";
 import { createStackChapter } from "./index";
-import { DEFAULT_PROFILE_KEY, profileLabelFor, realStackCases } from "./stackCases";
+import { MAX_FIT_GAP, type CaseFit } from "./predict";
+import {
+  DEFAULT_PROFILE_KEY,
+  foregroundFits,
+  profileLabelFor,
+  realStackCases,
+} from "./stackCases";
 
 /** Real foreground trio plus seeded background cards, for the dev page. */
 function useDevChapter() {
-  return useMemo(
-    () =>
-      createStackChapter({
-        cases: realStackCases(DEFAULT_PROFILE_KEY),
-        profileKey: DEFAULT_PROFILE_KEY,
-        profileLabel: profileLabelFor(DEFAULT_PROFILE_KEY),
-      }),
-    [],
-  );
+  return useMemo(() => {
+    const cases = realStackCases(DEFAULT_PROFILE_KEY);
+    const label = profileLabelFor(DEFAULT_PROFILE_KEY);
+    return {
+      label,
+      fits: foregroundFits(cases, DEFAULT_PROFILE_KEY),
+      chapter: createStackChapter({ cases, profileKey: DEFAULT_PROFILE_KEY, profileLabel: label }),
+    };
+  }, []);
 }
 
 /**
@@ -28,23 +34,58 @@ export default function StackDev() {
   return <LiveDev />;
 }
 
-function FrozenFrame({ ms }: { ms: number }) {
-  const chapter = useDevChapter();
+/** Foreground cases: id, observed k/10, predicted P(choice 1) and the gap. */
+function FitHeader({ label, fits }: { label: string; fits: readonly CaseFit[] }) {
   return (
-    <div className="h-screen w-screen overflow-hidden bg-canvas px-10 py-6">
-      {chapter.render({ elapsedMs: ms, progress: 0, isPaused: true, time: motionValue(ms) })}
+    <header className="mx-auto w-full max-w-5xl px-6 pt-3 md:px-10" data-testid="fit-header">
+      <table className="w-full font-mono text-[11px] tabular-nums text-gray-600">
+        <thead>
+          <tr className="text-left text-gray-400">
+            <th className="font-normal">case</th>
+            <th className="font-normal">{label} k/10</th>
+            <th className="font-normal">P(1)</th>
+            <th className="font-normal">gap</th>
+          </tr>
+        </thead>
+        <tbody>
+          {fits.map((f, i) => (
+            <tr key={f.id}>
+              <td className="text-gray-900">{f.id.slice(0, 8)}</td>
+              <td>{f.count}/10</td>
+              <td>{f.predicted.toFixed(3)}</td>
+              <td className={f.gap > MAX_FIT_GAP ? "text-amber-700" : undefined}>
+                {f.gap.toFixed(3)}
+                {i === 0 && f.gap > MAX_FIT_GAP ? " (opening, pinned)" : ""}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </header>
+  );
+}
+
+function FrozenFrame({ ms }: { ms: number }) {
+  const { chapter, fits, label } = useDevChapter();
+  return (
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-canvas">
+      <FitHeader label={label} fits={fits} />
+      <main className="mx-auto min-h-0 w-full max-w-5xl flex-1 px-6 py-3 md:px-10">
+        {chapter.render({ elapsedMs: ms, progress: 0, isPaused: true, time: motionValue(ms) })}
+      </main>
     </div>
   );
 }
 
 function LiveDev() {
-  const chapter = useDevChapter();
+  const { chapter, fits, label } = useDevChapter();
   const chapters = useMemo(() => [chapter], [chapter]);
   const clock = useChapterClock(chapters);
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-canvas">
-      <main className="mx-auto h-full w-full max-w-5xl px-6 pb-20 pt-6 md:px-10">
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-canvas">
+      <FitHeader label={label} fits={fits} />
+      <main className="mx-auto min-h-0 w-full max-w-5xl flex-1 px-6 pb-20 pt-3 md:px-10">
         <LayoutGroup>
           {chapter.render({
             elapsedMs: clock.elapsedMs,

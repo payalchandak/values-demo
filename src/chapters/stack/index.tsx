@@ -7,7 +7,8 @@ import StackStage from "./StackStage";
 export { stackBeats, STACK_BEAT_NAMES, type StackBeatName } from "./beats";
 export { placeholderCases, makePlaceholderCases } from "./placeholderCases";
 export { pickForegroundCases } from "./pickForeground";
-export { realStackCases, profileLabelFor, DEFAULT_PROFILE_KEY } from "./stackCases";
+export { realStackCases, foregroundFits, profileFor, profileLabelFor, DEFAULT_PROFILE_KEY } from "./stackCases";
+export { predictedChoice1, MAX_FIT_GAP } from "./predict";
 
 export interface StackChapterOptions {
   /** At least 3 cases; the first three become the foreground trio and table rows. */
