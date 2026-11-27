@@ -44,22 +44,29 @@ export const TRIGGERS: Readonly<Record<Value, ValueTrigger>> = {
   },
 };
 
-/** Choice 1's tags, as the captions assume them: A -1, B +1, N +1, J -1. */
-const EXPECTED_CHOICE_1 = { A: -1, B: 1, N: 1, J: -1 } as const satisfies Record<Value, number>;
-
 export interface VignetteSegment {
   text: string;
   /** The value this segment triggers, or null for the rest of the vignette. */
   value: Value | null;
 }
 
+/**
+ * Captions describe Choice 1, the hold. They assume that hold violates A and J
+ * and promotes B and N. The tag numbers themselves stay in opening.json.
+ */
+const HOLD_VIOLATES = new Set<Value>(["A", "J"]);
+const HOLD_PROMOTES = new Set<Value>(["B", "N"]);
+
 function build(): readonly VignetteSegment[] {
   const { vignette, tags } = openingCase;
+  const choice1 = tags[0];
 
   for (const v of VALUE_ORDER) {
-    if (tags[0][v] !== EXPECTED_CHOICE_1[v]) {
+    const tag = choice1[v];
+    const ok = HOLD_VIOLATES.has(v) ? tag < 0 : HOLD_PROMOTES.has(v) && tag > 0;
+    if (!ok) {
       throw new Error(
-        `opening.json: Choice 1 tag for ${v} is ${tags[0][v]}, captions assume ${EXPECTED_CHOICE_1[v]}`,
+        `opening.json: Choice 1 tag for ${v} is ${tag}, captions assume the hold ${HOLD_VIOLATES.has(v) ? "violates" : "promotes"} it`,
       );
     }
   }
