@@ -71,7 +71,7 @@ function FrozenFrame({ ms }: { ms: number }) {
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-canvas">
       <FitHeader label={label} fits={fits} />
       <main className="mx-auto min-h-0 w-full max-w-5xl flex-1 px-6 py-3 md:px-10">
-        {chapter.render({ elapsedMs: ms, progress: 0, isPaused: true, time: motionValue(ms) })}
+        {chapter.render({ elapsedMs: ms, progress: 0, isPaused: true, time: motionValue(ms), restart: () => {} })}
       </main>
     </div>
   );
@@ -92,6 +92,7 @@ function LiveDev() {
             progress: clock.progress,
             isPaused: clock.isPaused,
             time: clock.time,
+            restart: clock.restart,
           })}
         </LayoutGroup>
       </main>
