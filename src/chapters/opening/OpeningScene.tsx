@@ -200,10 +200,17 @@ function GrowIn({ enter, children }: { enter: number; children: ReactNode }) {
       className="w-full"
       style={{
         height: settled || measured === 0 ? (settled ? "auto" : 0) : measured * p,
-        overflow: settled ? "visible" : "hidden",
+        // The panel stays whole and fades. Clipping it would show a hard slice of the card.
+        overflow: "visible",
       }}
     >
-      <div ref={ref} style={{ opacity: p }}>
+      <div
+        ref={ref}
+        style={{
+          opacity: p,
+          transform: settled ? undefined : `translateY(${(1 - p) * 0.6}em)`,
+        }}
+      >
         {children}
       </div>
     </div>
@@ -298,7 +305,8 @@ function HeadlineReplace({
         style={{
           alignItems: "center",
           height: settledTitle || settledQuestion || headingH === 0 ? "auto" : headingH,
-          overflow: settledTitle || settledQuestion ? "visible" : "hidden",
+          // Keep the fading question visible. A shrinking box would clip it and read as a cut.
+          overflow: questionOpacity > 0.04 ? "visible" : "hidden",
         }}
       >
         <h1
