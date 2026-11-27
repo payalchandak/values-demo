@@ -1,4 +1,4 @@
-import { VALUE_ORDER } from "../../design";
+import { FADE_MS, VALUE_ORDER } from "../../design";
 import type { Value } from "../../study/types";
 import { at, ramp, UNDERLINE_STAGGER_MS, CAPTION_DELAY_MS, CHIP_DELAY_MS } from "./timeline";
 import { TEXT_ORDER } from "./valueTriggers";
@@ -26,8 +26,6 @@ export interface ValueSteps {
   highlight: Record<Value, number>;
 }
 
-const FADE_MS = 300;
-
 const record = (f: (v: Value) => number): Record<Value, number> => ({
   A: f("A"),
   B: f("B"),
@@ -45,20 +43,22 @@ export function valueSteps(t: number): ValueSteps {
 
   const underline = record((v) => {
     const s = underlineStart + TEXT_ORDER.indexOf(v) * UNDERLINE_STAGGER_MS;
-    return ramp(t, s, s + 400);
+    return ramp(t, s, s + FADE_MS);
   });
   const active = record((v) => {
     const s = at("framework", v);
     const e = nextStart(v);
-    return ramp(t, s, s + FADE_MS) * (1 - ramp(t, e - 250, e));
+    return ramp(t, s, s + FADE_MS) * (1 - ramp(t, e - FADE_MS, e));
   });
-  const all = ramp(t, allStart, allStart + FADE_MS * 2);
+  const all = ramp(t, allStart, allStart + FADE_MS);
   const dim = ramp(t, at("framework", VALUE_ORDER[0]), at("framework", VALUE_ORDER[0]) + FADE_MS) * (1 - all);
-  const chip = record((v) => ramp(t, at("framework", v) + CHIP_DELAY_MS, at("framework", v) + CHIP_DELAY_MS + 400));
+  const chip = record((v) =>
+    ramp(t, at("framework", v) + CHIP_DELAY_MS, at("framework", v) + CHIP_DELAY_MS + FADE_MS),
+  );
   const caption = record((v) => {
     const s = at("framework", v) + CAPTION_DELAY_MS;
     const e = nextStart(v);
-    return ramp(t, s, s + 350) * (1 - ramp(t, e - 250, e));
+    return ramp(t, s, s + FADE_MS) * (1 - ramp(t, e - FADE_MS, e));
   });
   const highlight = record((v) => Math.max(active[v], all));
   return { underline, active, all, dim, chip, caption, highlight };

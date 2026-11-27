@@ -28,18 +28,18 @@ const VIEWPORTS = (process.argv.slice(2).length ? process.argv.slice(2) : ["390x
 // Frozen-frame times (ms): inside or at the end of every phase in src/chapters/stack/beats.ts.
 const FRAMES = {
   card: 600,
-  shrink_mid: 1900,
-  fan_end: 4400,
-  markers_mid: 5800,
-  markers_end: 7100,
-  lift_mid: 7800,
-  flip_mid: 9300,
-  flip_end: 10700,
-  fade_mid: 11400,
-  morph_mid: 13200,
-  morph_end: 14400,
-  highlight_mid: 15100,
-  end: 15800,
+  shrink_mid: 1275,
+  fan_end: 1500,
+  markers_mid: 1630,
+  markers_end: 1760,
+  lift_mid: 1835,
+  flip_mid: 2035,
+  flip_end: 2160,
+  fade_mid: 2235,
+  morph_mid: 2410,
+  morph_end: 2510,
+  highlight_mid: 2585,
+  end: 2660,
 };
 // From here on only the table is on screen, so its text must be legible.
 const TABLE_FRAMES = new Set(["morph_end", "highlight_mid", "end"]);

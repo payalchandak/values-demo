@@ -16,7 +16,7 @@ interface AnimatedHighlightProps {
 export default function AnimatedHighlight({
   children,
   delay = 0,
-  duration = 0.7,
+  duration = 0.15,
   color = "#FDE68A",
   className = "",
 }: AnimatedHighlightProps) {

@@ -4,6 +4,8 @@ import ProviderIcon from "../../components/ProviderIcon";
 import type { ModelResponseTiming } from "../../components/ModelResponse";
 import openaiLogo from "../../assets/providers/openai.svg";
 import {
+  FADE_MS,
+  MOVE_MS,
   NEUTRAL,
   RECOMMENDATION_COLORS,
   TAGS,
@@ -42,7 +44,7 @@ const PROVIDER = { name: "OpenAI", logo: openaiLogo } as const;
 const RESPONSE = {
   panelLabel: `${PROVIDER.name} response`,
   wordsPerGroup: 4,
-  groupFadeMs: 350,
+  groupFadeMs: FADE_MS,
   identifyLabel: "Identify the recommendation",
 } as const;
 
@@ -50,16 +52,16 @@ const MODEL_BEATS = OPENING_BEATS.model;
 const beat = (name: string) => MODEL_BEATS.find((b) => b.name === name)!.startMs;
 const RESPONSE_TIMING: ModelResponseTiming = {
   revealStartMs: beat("reveal"),
-  revealEndMs: beat("revealed"),
+  revealEndMs: beat("reveal") + MOVE_MS + FADE_MS,
   groupFadeMs: RESPONSE.groupFadeMs,
   highlightStartMs: beat("highlight"),
-  highlightEndMs: beat("extract"),
+  highlightEndMs: beat("highlight") + MOVE_MS,
   outlineStartMs: beat("extract"),
-  outlineEndMs: beat("extracted"),
+  outlineEndMs: beat("extract") + MOVE_MS,
 };
 
 /** After the trade-off statement starts, the shared icon needs its option slot for this long while it leaves. */
-export const ICON_LEAVE_MS = 700;
+export const ICON_LEAVE_MS = MOVE_MS;
 
 /** How long before the opening's last beat the patient card returns, when the stage asks for the stack handoff. */
 const RECALL_LEAD_MS = 1800;
@@ -112,7 +114,7 @@ function Block({
   return probe ? (
     <div className={className}>{children}</div>
   ) : (
-    <motion.div layout="position" transition={{ duration: 0.35, ease: "easeOut" }} className={className}>
+    <motion.div layout="position" transition={{ duration: FADE_MS / 1000, ease: "easeOut" }} className={className}>
       {children}
     </motion.div>
   );
@@ -147,7 +149,7 @@ function Marks({ index, t }: { index: 0 | 1; t: number }) {
   const mine = openingCase.decisions
     .map((choice, i) => ({ choice, i }))
     .filter((d) => d.choice === index);
-  const fadeOut = ramp(t, at("tradeoff", "statement") - 300, at("tradeoff", "statement"));
+  const fadeOut = ramp(t, at("tradeoff", "statement") - FADE_MS, at("tradeoff", "statement"));
   return (
     <div
       role="img"
@@ -156,7 +158,7 @@ function Marks({ index, t }: { index: 0 | 1; t: number }) {
       style={{ height: ROW_H, opacity: 1 - fadeOut }}
     >
       {mine.map(({ i }) => {
-        const p = ramp(t, start + i * MARK_INTERVAL_MS, start + i * MARK_INTERVAL_MS + 220);
+        const p = ramp(t, start + i * MARK_INTERVAL_MS, start + i * MARK_INTERVAL_MS + FADE_MS);
         return (
           <span
             key={i}
@@ -243,14 +245,14 @@ function OptionCard({
   const badge = visibility(
     t,
     at("model", "extract"),
-    at("model", "extract") + 300,
-    at("tradeoff", "statement") - 300,
+    at("model", "extract") + FADE_MS,
+    at("tradeoff", "statement") - FADE_MS,
     at("tradeoff", "statement"),
   );
   return (
     <li
       aria-current={selected ? "true" : undefined}
-      className="rounded-[0.9em] border border-l-[0.3em] p-[0.8em] transition-colors duration-150 ease-out"
+      className="rounded-[0.9em] border border-l-[0.3em] p-[0.8em] transition-colors duration-75 ease-out"
       style={{
         borderTopColor: selected ? color : NEUTRAL.line,
         borderRightColor: selected ? color : NEUTRAL.line,
@@ -324,47 +326,54 @@ const SceneBody = memo(function SceneBody({
   const openingEnd = at("framework", "end");
   // The stack handoff brings the patient card back before the new framework beat ends.
   const recall = Math.max(at("framework", "all"), openingEnd - RECALL_LEAD_MS);
-  const clearP = recallPatient ? ramp(t, recall, recall + 450) : 0;
-  const cleared = recallPatient && t >= recall + 450;
+  const clearP = recallPatient ? ramp(t, recall, recall + FADE_MS) : 0;
+  const cleared = recallPatient && t >= recall + FADE_MS;
   const headlineOpacity =
     (h === 0
-      ? ramp(t, HEADLINE_STARTS[0], HEADLINE_STARTS[0] + 500)
-      : ramp(t, HEADLINE_STARTS[h] + 100, HEADLINE_STARTS[h] + 450)) *
+      ? ramp(t, HEADLINE_STARTS[0], HEADLINE_STARTS[0] + FADE_MS)
+      : ramp(t, HEADLINE_STARTS[h], HEADLINE_STARTS[h] + FADE_MS)) *
     (next === undefined
       ? recallPatient
-        ? 1 - ramp(t, openingEnd, openingEnd + 350)
+        ? 1 - ramp(t, openingEnd, openingEnd + FADE_MS)
         : 1
-      : 1 - ramp(t, next - 250, next));
+      : 1 - ramp(t, next - FADE_MS, next));
 
   const ask = at("model", "ask");
   const statement = at("tradeoff", "statement");
   const dilemmaStart = at("dilemma", "question");
 
   const showLabel = t < dilemmaStart;
-  const labelOpacity = visibility(t, at("hook", "label"), at("hook", "label") + 400, dilemmaStart - 300, dilemmaStart);
+  const labelOpacity = visibility(
+    t,
+    at("hook", "label"),
+    at("hook", "label") + FADE_MS,
+    dilemmaStart - FADE_MS,
+    dilemmaStart,
+  );
 
   // The patient summary stays up through the model chapter; the response sits below it.
   // With the stack handoff, it returns once the framework has cleared, in time for the last beat.
-  const showSummary = (t >= at("hook", "patient") && t < statement) || (recallPatient && t >= recall + 450);
+  const showSummary = (t >= at("hook", "patient") && t < statement) || (recallPatient && t >= recall + FADE_MS);
   const summaryOpacity =
     recallPatient && t >= recall
-      ? ramp(t, recall + 450, recall + 950)
-      : visibility(t, at("hook", "patient"), at("hook", "patient") + 600, statement - 300, statement);
+      ? ramp(t, recall + FADE_MS, recall + FADE_MS * 2)
+      : visibility(t, at("hook", "patient"), at("hook", "patient") + FADE_MS, statement - FADE_MS, statement);
   const showResponse = t >= ask && t < statement;
   const responseOpacity = visibility(
     t,
     beat("reveal") + OFFSETS.model,
-    beat("reveal") + OFFSETS.model + 300,
-    statement - 300,
+    beat("reveal") + OFFSETS.model + FADE_MS,
+    statement - FADE_MS,
     statement,
   );
 
   // From chapter 4 on, the full vignette replaces the summary, until the handoff clears it.
   const showVignette = t >= statement && !cleared;
-  const vignetteOpacity = ramp(t, at("tradeoff", "vignette") - 300, at("tradeoff", "vignette") + 300) * (1 - clearP);
+  const vignetteOpacity =
+    ramp(t, at("tradeoff", "vignette"), at("tradeoff", "vignette") + FADE_MS) * (1 - clearP);
 
   const showOptions = t >= at("dilemma", "options") && !cleared;
-  const optionsOpacity = ramp(t, at("dilemma", "options"), at("dilemma", "options") + 500) * (1 - clearP);
+  const optionsOpacity = ramp(t, at("dilemma", "options"), at("dilemma", "options") + FADE_MS) * (1 - clearP);
   const selectedIndex = t >= at("model", "extract") && t < statement ? openingCase.response.chosen : null;
   const showChips = t >= statement;
 
@@ -436,7 +445,7 @@ const SceneBody = memo(function SceneBody({
       {showStrip && (
         <Block probe={probe} className="w-full">
           <div style={{ opacity: 1 - clearP }}>
-            <ValueStrip t={t} introAt={at("framework", "framework") + 300} />
+            <ValueStrip t={t} introAt={at("framework", "framework")} />
           </div>
         </Block>
       )}

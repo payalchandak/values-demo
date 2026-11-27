@@ -79,7 +79,7 @@ export default function ClinicalCaseCard({
             // Selection only recolors the border and background and adds a 1px
             // ring (box-shadow, outside the layout box), so layout never shifts.
             aria-current={id === selectedOptionId ? "true" : undefined}
-            className={`rounded-xl border p-4 transition-colors duration-150 ease-out md:p-5 ${
+            className={`rounded-xl border p-4 transition-colors duration-75 ease-out md:p-5 ${
               id === selectedOptionId
                 ? "border-[#3B4350] bg-[#F1F1F2] ring-1 ring-[#3B4350]"
                 : "border-line bg-[#FAFAFA]"

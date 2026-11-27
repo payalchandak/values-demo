@@ -15,6 +15,7 @@ import ModelsAndPhysicians from "../chapters/ending/ModelsAndPhysicians";
 import { AUTOPLAY_MODELS, INDIVIDUAL_MODELS, SPREAD_PHYSICIANS } from "../chapters/ending/profiles";
 import { closingTiming } from "../chapters/ending";
 import { clamp01, easeInOut } from "../chapters/ending/shared";
+import { FADE_MS, MOVE_MS } from "../design/motion";
 import { foregroundCases, gptProfile, stackCases } from "./data";
 import Morph from "./Morph";
 import { morphBeats } from "./morphBeats";
@@ -30,7 +31,7 @@ import {
 
 const ICON_SIZE = 40;
 /** Hand-off cross-fade: the previous chapter's last frame fades out over the start of the next. */
-const GHOST_MS = 500;
+const GHOST_MS = FADE_MS;
 const DOCK_SIZE = 32;
 
 const ramp = (t: number, a: number, b: number) => (b <= a ? (t >= b ? 1 : 0) : clamp01((t - a) / (b - a)));
@@ -64,8 +65,8 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
       return {
         from: "icon-response",
         to: "icon-option",
-        mix: easeInOut(ramp(e, b("extract"), b("extracted"))),
-        opacity: ramp(e, b("reveal"), b("reveal") + 300),
+        mix: easeInOut(ramp(e, b("extract"), b("extract") + MOVE_MS)),
+        opacity: ramp(e, b("reveal"), b("reveal") + FADE_MS),
       };
     }
     case "opening-tradeoff":
@@ -76,7 +77,7 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
       return { from: "dock", mix: 0, opacity: 1 };
     case "morph": {
       const r = beatStart(morphBeats, "resolve");
-      return { from: "dock", to: "icon-label", mix: easeInOut(ramp(e, r, r + 1000)), opacity: 1, clipToScene: true };
+      return { from: "dock", to: "icon-label", mix: easeInOut(ramp(e, r, r + MOVE_MS)), opacity: 1, clipToScene: true };
     }
     case "individual-models":
       return { from: "icon-label", mix: 0, opacity: 1, clipToScene: true };

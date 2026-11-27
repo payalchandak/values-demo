@@ -2,6 +2,7 @@ import { OPENING_BEATS, OFFSETS as OPENING_OFFSETS, type OpeningChapterKey } fro
 import { stackBeats } from "../chapters/stack/beats";
 import { headlines as regressionHeadlines, regressionBeats } from "../chapters/regression/beats";
 import { closingBeats, individualBeats } from "../chapters/ending";
+import { FADE_MS } from "../design/motion";
 import { beatStart, chapterDuration, type Beat } from "../types";
 import { morphBeats } from "./morphBeats";
 
@@ -91,7 +92,7 @@ export const HEADLINE_ENTRIES: readonly HeadlineEntry[] = [
   { at: SEGMENT_OFFSET["models-and-physicians"] + beatStart(closingBeats, "question"), text: "" },
 ];
 
-const HEADLINE_SWAP_MS = 350;
+const HEADLINE_SWAP_MS = FADE_MS;
 
 export interface HeadlineState {
   current: string;

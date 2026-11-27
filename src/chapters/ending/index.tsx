@@ -1,3 +1,4 @@
+import { FADE_MS, MOVE_MS, STAGGER_MS } from "../../design/motion";
 import { beatStart, type Beat, type Chapter } from "../../types";
 import IndividualModels, { individualModelsEndMs, modelStartMs } from "./IndividualModels";
 import ModelsAndPhysicians, { type PhysiciansTiming } from "./ModelsAndPhysicians";
@@ -33,19 +34,19 @@ export const individualBeats: readonly Beat[] = [
 // TODO: tune after visual review
 export const closingBeats = [
   { name: "models", startMs: 0 }, // radars shrink into the labeled model row
-  { name: "physicians", startMs: 1400 }, // physician radars appear one by one
+  { name: "physicians", startMs: MOVE_MS + STAGGER_MS }, // physician radars appear one by one, just after the shrink
   { name: "hold", startMs: 3600 }, // everything on screen, held
   { name: "question", startMs: 7600 }, // rows dim, closing question + buttons
   { name: "end", startMs: 12000 }, // final hold
 ] as const;
 
 export const closingTiming: PhysiciansTiming = {
-  shrinkMs: 1200,
+  shrinkMs: MOVE_MS,
   physiciansStartMs: beatStart(closingBeats, "physicians"),
-  physicianStaggerMs: 220,
-  physicianFadeMs: 450,
+  physicianStaggerMs: STAGGER_MS,
+  physicianFadeMs: FADE_MS,
   questionStartMs: beatStart(closingBeats, "question"),
-  questionFadeMs: 700,
+  questionFadeMs: FADE_MS,
 };
 
 export const endingChapters: Chapter[] = [

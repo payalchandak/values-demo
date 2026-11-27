@@ -1,3 +1,4 @@
+import { FADE_MS, MOVE_MS } from "../design/motion";
 import type { Beat } from "../types";
 
 /**
@@ -10,14 +11,21 @@ import type { Beat } from "../types";
  *   resolve  cross-fade into GPT's radar, the first individual profile
  */
 // TODO: tune after visual review
+/** The four bars sit still before they swing onto the axes. */
+const BARS_HOLD_MS = 1800;
+const rotate = BARS_HOLD_MS;
+const polygon = rotate + MOVE_MS;
+const resolve = polygon + MOVE_MS;
+const end = resolve + FADE_MS;
+
 export const morphBeats = [
   { name: "bars", startMs: 0 },
-  { name: "rotate", startMs: 1800 },
-  { name: "polygon", startMs: 3800 },
-  { name: "resolve", startMs: 5400 },
-  { name: "end", startMs: 6800 },
+  { name: "rotate", startMs: rotate },
+  { name: "polygon", startMs: polygon },
+  { name: "resolve", startMs: resolve },
+  { name: "end", startMs: end },
 ] as const satisfies readonly Beat[];
 
-export const MORPH_RESOLVE_MS = 1000;
+export const MORPH_RESOLVE_MS = FADE_MS;
 /** The regression card cross-fades into the bars over this long at the start. */
-export const MORPH_HANDOFF_MS = 500;
+export const MORPH_HANDOFF_MS = FADE_MS;

@@ -1,11 +1,12 @@
 import { useRef } from "react";
+import { MOVE_MS } from "../../design/motion";
 import Radar, { RADAR_ASPECT } from "./Radar";
 import { clamp01, easeInOut, EndingHeader, Legend, ModelLabel, useElementSize } from "./shared";
 import type { Profile } from "../../study/types";
 
 /** Time each model sits still in the center, then the time spent scrolling to the next. */
 export const MODEL_HOLD_MS = 3500;
-export const MODEL_SCROLL_MS = 800;
+export const MODEL_SCROLL_MS = MOVE_MS;
 const PITCH_MS = MODEL_HOLD_MS + MODEL_SCROLL_MS;
 
 /** Start of model `i`'s hold. */
@@ -95,7 +96,7 @@ export default function IndividualModels({
           {models.map((model, i) => (
             <li
               key={model.key}
-              className={`h-1.5 w-1.5 rounded-full transition-colors ${i === active ? "bg-gray-800" : "bg-gray-300"}`}
+              className={`h-1.5 w-1.5 rounded-full transition-colors duration-75 ${i === active ? "bg-gray-800" : "bg-gray-300"}`}
             />
           ))}
         </ol>

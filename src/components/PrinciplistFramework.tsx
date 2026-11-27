@@ -95,7 +95,7 @@ export default function PrinciplistFramework({
                 borderLeftColor: value.color,
                 backgroundColor: on ? valueTint(id, 9) : NEUTRAL.surface,
                 opacity: active && !on ? 0.55 : 1,
-                transition: "opacity 200ms, background-color 200ms, border-color 200ms",
+                transition: "opacity 80ms, background-color 80ms, border-color 80ms",
               }}
               className="flex items-start gap-[0.8em] rounded-[0.8em] border border-l-[0.3em] p-[0.9em]"
             >

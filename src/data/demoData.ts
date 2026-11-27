@@ -216,7 +216,7 @@ export const modelResponse: ModelResponseConfig = {
   recommendationSpan: "recommend initiating enteral nutrition through a nasogastric tube",
   extractedOptionId: "option1",
   revealWordsPerGroup: 4,
-  groupFadeMs: 350,
+  groupFadeMs: 80,
   labels: {
     identify: "Identify the recommendation",
     extracted: "Extracted choice",

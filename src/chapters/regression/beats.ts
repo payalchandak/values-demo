@@ -1,3 +1,4 @@
+import { FADE_MS } from "../../design/motion";
 import type { Beat } from "../../types";
 
 /**
@@ -73,7 +74,7 @@ export const captions = (model: string): Partial<Record<RegressionBeat, string>>
 });
 
 /** How long text takes to cross-fade when a new line takes over. */
-const SWAP_MS = 350;
+const SWAP_MS = FADE_MS;
 
 export interface TextState {
   current: string;

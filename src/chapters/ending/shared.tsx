@@ -6,7 +6,7 @@ import ProviderIcon from "../../components/ProviderIcon";
 import type { Profile } from "../../study/types";
 import { modelLogo } from "./icons";
 
-export const SPRING = { type: "spring", stiffness: 420, damping: 34, mass: 0.7 } as const;
+export const SPRING = { type: "spring", stiffness: 780, damping: 46, mass: 0.55 } as const;
 
 export const clamp01 = (n: number) => Math.min(Math.max(n, 0), 1);
 export const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);

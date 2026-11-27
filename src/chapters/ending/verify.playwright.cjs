@@ -20,28 +20,35 @@ const VIEWPORTS = [
   { name: "1440x900", width: 1440, height: 900 },
 ];
 
-// Live-clock moments (ms from start of playback). Chapter 1 pitch 4300 (hold 3500 + scroll 800), 3 models:
-// ends 12100. Chapter 2 starts at 12100: shrink 0-1200, physicians 1400-, hold 3600, question 7600, end 12000.
-const CH2 = 12100;
+// Live-clock moments (ms from start of playback). Chapter 1 pitch 3650 (hold 3500 + scroll 150), 3 models:
+// ends 10800. Chapter 2 starts at 10800: shrink 0-150, physicians 205-, hold 3600, question 7600, end 12000.
+const MODEL_HOLD_MS = 3500;
+const MODEL_SCROLL_MS = 150;
+const PITCH_MS = MODEL_HOLD_MS + MODEL_SCROLL_MS;
+const CH1_END = 2 * PITCH_MS + MODEL_HOLD_MS;
+const CH2 = CH1_END;
+const SHRINK_MS = 150;
+const QUESTION_MS = 7600;
+const QUESTION_FADE_MS = 80;
 const SHOTS = [
   ["ch1-beat-gpt", 600],
   ["ch1-hold-gpt-late", 3300],
-  ["ch1-scroll-gpt-claude-early", 3500 + 200],
-  ["ch1-scroll-gpt-claude-mid", 3500 + 400],
-  ["ch1-scroll-gpt-claude-late", 3500 + 600],
-  ["ch1-beat-claude", 4300 + 600],
-  ["ch1-scroll-claude-gemini-mid", 4300 + 3500 + 400],
-  ["ch1-beat-gemini", 8600 + 600],
-  ["ch1-end", 12100 - 300],
-  ["ch2-beat-models-start", CH2 + 120],
-  ["ch2-shrink-mid", CH2 + 450],
-  ["ch2-shrink-late", CH2 + 900],
-  ["ch2-models-settled", CH2 + 1350],
-  ["ch2-beat-physicians-mid", CH2 + 2200],
+  ["ch1-scroll-gpt-claude-early", MODEL_HOLD_MS + 30],
+  ["ch1-scroll-gpt-claude-mid", MODEL_HOLD_MS + 75],
+  ["ch1-scroll-gpt-claude-late", MODEL_HOLD_MS + 120],
+  ["ch1-beat-claude", PITCH_MS + 600],
+  ["ch1-scroll-claude-gemini-mid", PITCH_MS + MODEL_HOLD_MS + 75],
+  ["ch1-beat-gemini", 2 * PITCH_MS + 600],
+  ["ch1-end", CH1_END - 300],
+  ["ch2-beat-models-start", CH2 + 40],
+  ["ch2-shrink-mid", CH2 + 75],
+  ["ch2-shrink-late", CH2 + 130],
+  ["ch2-models-settled", CH2 + 200],
+  ["ch2-beat-physicians-mid", CH2 + 205 + 4 * 55],
   ["ch2-beat-hold", CH2 + 3700],
   ["ch2-hold-late", CH2 + 7400],
-  ["ch2-question-mid", CH2 + 7600 + 350],
-  ["ch2-beat-question", CH2 + 7600 + 900],
+  ["ch2-question-mid", CH2 + QUESTION_MS + 40],
+  ["ch2-beat-question", CH2 + QUESTION_MS + QUESTION_FADE_MS + 40],
   ["ch2-end", CH2 + 12000 - 200],
 ];
 
@@ -138,8 +145,8 @@ function analyze(vp, frames) {
     const t = Math.round(f.t - t0);
     const settled =
       f.ch === 1
-        ? !(((f.tc % 4300) > 3500 - 50) && f.tc < 8600 + 3500) // not during a scroll window
-        : (f.tc > 1500 && f.tc < 7600) || f.tc > 8700; // not mid-shrink, not mid question cross-fade
+        ? !(f.tc < 2 * PITCH_MS && f.tc % PITCH_MS > MODEL_HOLD_MS - 40) // not during a scroll window
+        : (f.tc > SHRINK_MS + 40 && f.tc < QUESTION_MS) || f.tc > QUESTION_MS + QUESTION_FADE_MS + 40;
     const visible = f.atoms.filter((a) => a.o > 0.4);
     // Clipping against the viewport (HUD excluded) when settled.
     if (f.docScroll[0] > W || f.docScroll[1] > H) add("page scrolls (document larger than viewport)", { t, v: f.docScroll });
@@ -197,7 +204,7 @@ function analyze(vp, frames) {
         add(`jump in "${id}" (ch${c.ch})`, { t: Math.round(c.t - t0), ax: +ax.toFixed(1), ay: +ay.toFixed(1), aw: +aw.toFixed(1) });
       // Held radar must not drift during a hold.
       if (c.ch === 1) {
-        const nearHold = (c.tc % 4300) < 3400 && Math.abs(c.cy - p.cy) > 0.6 && Math.abs(c.cy - n.cy) > 0.6 && Math.abs(p.cy - n.cy) < 0.2;
+        const nearHold = (c.tc % PITCH_MS) < MODEL_HOLD_MS - 100 && Math.abs(c.cy - p.cy) > 0.6 && Math.abs(c.cy - n.cy) > 0.6 && Math.abs(p.cy - n.cy) < 0.2;
         if (nearHold) add(`held radar wobbles "${id}"`, { t: Math.round(c.t - t0) });
       }
     }
@@ -221,8 +228,8 @@ function analyze(vp, frames) {
   const holdPos = [];
   for (const f of phased) {
     if (f.ch !== 1) continue;
-    const m = f.tc % 4300;
-    if (m < 3300 && m > 400) {
+    const m = f.tc % PITCH_MS;
+    if (m < MODEL_HOLD_MS - 200 && m > 400) {
       const best = f.atoms.filter((a) => a.kind === "radar" && a.o > 0.4).sort((a, b) => Math.abs((a.rect[1] + a.rect[3]) / 2 - H / 2) - Math.abs((b.rect[1] + b.rect[3]) / 2 - H / 2))[0];
       if (best) holdPos.push([(best.rect[0] + best.rect[2]) / 2, (best.rect[1] + best.rect[3]) / 2, best.rect[2] - best.rect[0]]);
     }

@@ -10,3 +10,4 @@ export { VALUES, VALUE_ORDER } from "./values";
 export type { ValueMeta } from "./values";
 export { TAGS, TAG_ORDER, TagGlyph } from "./tags";
 export type { TagMeta } from "./tags";
+export { FADE_MS, MOVE_MS, STAGGER_MS } from "./motion";

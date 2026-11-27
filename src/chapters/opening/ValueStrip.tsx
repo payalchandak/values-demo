@@ -1,4 +1,4 @@
-import { NEUTRAL, VALUES, VALUE_ORDER, valueInk } from "../../design";
+import { FADE_MS, NEUTRAL, VALUES, VALUE_ORDER, valueInk } from "../../design";
 import type { Value } from "../../study/types";
 import { ramp } from "./timeline";
 import { valueSteps } from "./valueSteps";
@@ -28,7 +28,7 @@ export default function ValueStrip({ t, introAt }: { t: number; introAt: number 
   const s = valueSteps(t);
   const cell = "col-start-1 row-start-1 flex flex-col items-center gap-[0.3em] text-center";
   return (
-    <div className="grid w-full" style={{ opacity: ramp(t, introAt, introAt + 400) }}>
+    <div className="grid w-full" style={{ opacity: ramp(t, introAt, introAt + FADE_MS) }}>
       {VALUE_ORDER.map((v) => (
         <div key={v} className={cell} style={{ opacity: s.active[v] }} aria-hidden={s.active[v] === 0}>
           <div className="flex flex-wrap items-center justify-center gap-x-[0.6em] gap-y-[0.2em]">

@@ -1,4 +1,5 @@
 import { memo, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { MOVE_MS } from "../../design/motion";
 import type { StudyCase, Tag, Value } from "../../study/types";
 import type { Beat } from "../../types";
 import { PatientCard } from "../opening/OpeningScene";
@@ -121,7 +122,8 @@ export default function StackStage({ cases, beats, elapsedMs, profileKey, profil
   }, []);
 
   // Bridge: card 0 starts as the opening's patient card and settles into the stack card.
-  const bridgeP = bridge && times.shrink > 0 ? 1 - easeInOut(clamp01(elapsedMs / times.shrink)) : 0;
+  const bridgeMs = Math.min(times.shrink, MOVE_MS);
+  const bridgeP = bridge && bridgeMs > 0 ? 1 - easeInOut(clamp01(elapsedMs / bridgeMs)) : 0;
   const patient =
     bridge && bridgeP > 0
       ? {

@@ -1,7 +1,7 @@
 import { useMemo, type CSSProperties } from "react";
 import ProviderIcon from "../../components/ProviderIcon";
 import { getResponseProgress, type ModelResponseTiming } from "../../components/ModelResponse";
-import { NEUTRAL } from "../../design";
+import { FADE_MS, NEUTRAL } from "../../design";
 
 const clamp01 = (n: number): number => Math.min(Math.max(n, 0), 1);
 const ramp = (t: number, start: number, end: number): number =>
@@ -129,7 +129,7 @@ export default function OpeningResponse({
       {/* Icon straddles the panel's top-left edge. The outer box only positions; zoom lives inside. */}
       <span
         className="absolute left-[0.9em] top-[1.15em] z-10 inline-flex -translate-y-1/2"
-        style={{ opacity: ramp(progress.elapsedMs, timing.revealStartMs, timing.revealStartMs + 300) }}
+        style={{ opacity: ramp(progress.elapsedMs, timing.revealStartMs, timing.revealStartMs + FADE_MS) }}
       >
         <span
           data-anchor={hideIcon ? "icon-response" : undefined}

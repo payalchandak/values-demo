@@ -1,5 +1,5 @@
 import { Fragment, type CSSProperties, type ReactNode } from "react";
-import { VALUES, VALUE_COLORS, valueInk, valueTint } from "../../design";
+import { FADE_MS, MOVE_MS, VALUES, VALUE_COLORS, valueInk, valueTint } from "../../design";
 import type { Chapter } from "../../types";
 import type { Profile, StudyCase, Value } from "../../study/types";
 import {
@@ -759,20 +759,20 @@ export function RegressionScene({
     throw new Error(`expandedIndex ${expandedIndex} is not a row index (0..${rows.length - 1})`);
   }
   const table: TableProgress = {
-    rows: segment(t, "rows", 1800),
-    weights: motionAt(t, "weights", 1400),
-    links: motionAt(t, "links", 1600),
-    open: motionAt(t, "expand", 900),
-    tradeoffs: motionAt(t, "tradeoffs", 600),
-    weighted: motionAt(t, "weighted", 700),
-    predicted: motionAt(t, "predicted", 900),
-    observed: motionAt(t, "observed", 900),
+    rows: segment(t, "rows", MOVE_MS),
+    weights: motionAt(t, "weights", MOVE_MS),
+    links: motionAt(t, "links", MOVE_MS),
+    open: motionAt(t, "expand", MOVE_MS),
+    tradeoffs: motionAt(t, "tradeoffs", FADE_MS),
+    weighted: motionAt(t, "weighted", FADE_MS),
+    predicted: motionAt(t, "predicted", FADE_MS),
+    observed: motionAt(t, "observed", FADE_MS),
   };
-  const equation = motionAt(t, "equation", 800);
-  const fit = motionAt(t, "fit", 1200);
-  const expo = motionAt(t, "exponentiate", 1600);
-  const norm = motionAt(t, "normalize", 1600);
-  const final = motionAt(t, "priorities", 900);
+  const equation = motionAt(t, "equation", FADE_MS);
+  const fit = motionAt(t, "fit", MOVE_MS);
+  const expo = motionAt(t, "exponentiate", MOVE_MS);
+  const norm = motionAt(t, "normalize", MOVE_MS);
+  const final = motionAt(t, "priorities", MOVE_MS);
 
   const tableOpacity = 1 - clamp01(fit * 1.8);
 

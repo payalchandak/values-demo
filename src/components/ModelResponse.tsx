@@ -1,5 +1,6 @@
 import { useMemo, type CSSProperties } from "react";
 import type { ModelResponseConfig } from "../data/demoData";
+import { FADE_MS } from "../design/motion";
 import ProviderIcon from "./ProviderIcon";
 
 /** Clamp to 0..1. */
@@ -10,7 +11,7 @@ const ramp = (t: number, start: number, end: number): number =>
   end <= start ? (t >= end ? 1 : 0) : clamp01((t - start) / (end - start));
 
 /** Short fade used for the small labels, in ms. */
-const LABEL_FADE_MS = 250;
+const LABEL_FADE_MS = FADE_MS;
 
 /**
  * Window boundaries of the response chapter, in ms from the chapter's start.
@@ -188,7 +189,7 @@ export default function ModelResponse({ config, iconSrc, elapsedMs, timing, hide
         data-anchor={hideIcon ? "icon-response" : undefined}
         className="mt-1 inline-flex shrink-0"
         style={{
-          opacity: ramp(progress.elapsedMs, timing.revealStartMs, timing.revealStartMs + 300),
+          opacity: ramp(progress.elapsedMs, timing.revealStartMs, timing.revealStartMs + FADE_MS),
           visibility: hideIcon ? "hidden" : undefined,
         }}
       >

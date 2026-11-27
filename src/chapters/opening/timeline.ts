@@ -1,5 +1,5 @@
 import { beatStart, type Beat } from "../../types";
-import { VALUE_ORDER } from "../../design";
+import { STAGGER_MS, VALUE_ORDER } from "../../design";
 import { openingCase } from "./openingCase";
 import { triggerWords } from "./valueTriggers";
 
@@ -14,7 +14,7 @@ import { triggerWords } from "./valueTriggers";
  */
 
 /** Gap between repeat-query marks appearing. */
-export const MARK_INTERVAL_MS = 450;
+export const MARK_INTERVAL_MS = STAGGER_MS;
 
 const hook = [
   { name: "label", startMs: 0 }, // small "NeurIPS 2026" label
@@ -50,11 +50,11 @@ const tradeoff = [
 ] as const satisfies readonly Beat[];
 
 /** Gap between one trigger sentence being underlined and the next, in chapter 4. */
-export const UNDERLINE_STAGGER_MS = 450;
+export const UNDERLINE_STAGGER_MS = STAGGER_MS;
 
 /** Inside each value's window: its tag chips land on the choices, then its caption. */
-export const CHIP_DELAY_MS = 800;
-export const CAPTION_DELAY_MS = 1400;
+export const CHIP_DELAY_MS = STAGGER_MS;
+export const CAPTION_DELAY_MS = STAGGER_MS * 2;
 /** A value is held for this long plus a reading allowance per word of its trigger sentence. */
 const HOLD_BASE_MS = 1600;
 const HOLD_PER_WORD_MS = 180;
