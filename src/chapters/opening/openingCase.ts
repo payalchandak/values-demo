@@ -107,6 +107,3 @@ function build(json: OpeningJson): OpeningCase {
 }
 
 export const openingCase: OpeningCase = build(raw);
-
-/** Labels on the option cards; they match the "Choice 1" wording in the response. */
-export const CHOICE_LABELS = ["Choice 1", "Choice 2"] as const;

@@ -16,7 +16,7 @@ import {
   valueTint,
 } from "../../design";
 import type { Tag, Value } from "../../study/types";
-import { CHOICE_LABELS, openingCase } from "./openingCase";
+import { openingCase } from "./openingCase";
 import OpeningResponse from "./OpeningResponse";
 import ValueStrip from "./ValueStrip";
 import Vignette from "./Vignette";
@@ -120,17 +120,64 @@ function Block({
   );
 }
 
-/** The value-prism ED vignette, verbatim. Same card the stack takes over. */
-export function PatientCard({ shared = false }: { shared?: boolean }) {
+const CARD_CLASS =
+  "w-full rounded-[0.9em] border bg-white p-[0.9em] shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_28px_-14px_rgba(16,24,40,0.12)]";
+
+function CaseBody({ text, caret, question }: { text: string; caret?: boolean; question?: ReactNode }) {
   return (
+    <>
+      <p className="leading-[1.5]" style={{ textWrap: caret ? "wrap" : "pretty" }}>
+        {caret ? <span aria-hidden>{text}</span> : text}
+        {caret && (
+          <span
+            aria-hidden
+            className="ml-[0.05em] inline-block w-[0.07em] translate-y-[0.12em] bg-current"
+            style={{ height: "1.05em" }}
+          />
+        )}
+      </p>
+      {question}
+    </>
+  );
+}
+
+/**
+ * The value-prism ED vignette, verbatim. Same card the stack takes over.
+ * `typedChars` reveals a prefix while the opening types the case in. Omit it,
+ * or pass the full length, for the settled card.
+ */
+export function PatientCard({
+  shared = false,
+  question,
+  typedChars,
+}: {
+  shared?: boolean;
+  question?: ReactNode;
+  typedChars?: number;
+}) {
+  const text = openingCase.vignette;
+  const count = typedChars === undefined ? text.length : Math.max(0, Math.min(typedChars, text.length));
+  const shell = (body: ReactNode, mark: boolean) => (
     <div
-      data-shared={shared ? "patient" : undefined}
-      className="w-full rounded-[0.9em] border bg-white p-[0.9em] shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_28px_-14px_rgba(16,24,40,0.12)]"
+      data-shared={mark ? "patient" : undefined}
+      className={CARD_CLASS}
       style={{ borderColor: NEUTRAL.line, color: NEUTRAL.ink }}
     >
-      <p className="leading-[1.5]" style={{ textWrap: "pretty" }}>
-        {openingCase.vignette}
-      </p>
+      {body}
+    </div>
+  );
+  if (count >= text.length) return shell(<CaseBody text={text} question={question} />, shared);
+  // Ghost holds the finished vignette's height so the title stays put while lines appear.
+  return (
+    <div className="relative w-full" aria-label={text}>
+      <div aria-hidden className="invisible">
+        {shell(<CaseBody text={text} />, false)}
+      </div>
+      {count > 0 && (
+        <div className="absolute inset-x-0 top-0">
+          {shell(<CaseBody text={text.slice(0, count)} caret />, shared)}
+        </div>
+      )}
     </div>
   );
 }
@@ -148,7 +195,7 @@ function Marks({ index, t }: { index: 0 | 1; t: number }) {
   return (
     <div
       role="img"
-      aria-label={`${mine.length} of ${total} repeated queries chose ${CHOICE_LABELS[index]}`}
+      aria-label={`${mine.length} of ${total} repeated queries chose: ${openingCase.choices[index]}`}
       className="mt-[0.5em] flex items-center gap-[0.3em]"
       style={{ height: ROW_H, opacity: 1 - fadeOut }}
     >
@@ -244,6 +291,7 @@ function OptionCard({
     at("tradeoff", "statement") - FADE_MS,
     at("tradeoff", "statement"),
   );
+  const showIcon = sharedIcon ? iconHere : selected;
   return (
     <li
       aria-current={selected ? "true" : undefined}
@@ -258,28 +306,23 @@ function OptionCard({
         color: NEUTRAL.ink,
       }}
     >
-      {/* Fixed-height label row: the icon arriving never resizes the card. */}
-      <div className="flex items-center justify-between gap-[0.5em]" style={{ minHeight: "2em" }}>
-        <p className="font-mono uppercase tracking-widest" style={{ fontSize: "0.7em", color: NEUTRAL.inkMuted }}>
-          {CHOICE_LABELS[index]}
+      <div className="flex items-start justify-between gap-[0.6em]">
+        <p className="font-semibold leading-snug" style={{ fontSize: "1.05em" }}>
+          {openingCase.choices[index]}
         </p>
-        {sharedIcon
-          ? iconHere && (
-              <span
-                data-anchor="icon-option"
-                className="inline-flex"
-                style={{ width: 32, height: 32, zoom: "var(--z)", visibility: "hidden" }}
-              />
-            )
-          : selected && (
-              <span className="inline-flex" style={{ opacity: badge, zoom: "var(--z)" }}>
-                <ProviderIcon src={PROVIDER.logo} alt={PROVIDER.name} size={32} />
-              </span>
-            )}
+        {showIcon &&
+          (sharedIcon ? (
+            <span
+              data-anchor="icon-option"
+              className="inline-flex shrink-0"
+              style={{ width: 32, height: 32, zoom: "var(--z)", visibility: "hidden" }}
+            />
+          ) : (
+            <span className="inline-flex shrink-0" style={{ opacity: badge, zoom: "var(--z)" }}>
+              <ProviderIcon src={PROVIDER.logo} alt={PROVIDER.name} size={32} />
+            </span>
+          ))}
       </div>
-      <p className="font-semibold leading-snug" style={{ fontSize: "1.05em" }}>
-        {openingCase.choices[index]}
-      </p>
       {showChips ? <Chips index={index} t={t} /> : <Marks index={index} t={t} />}
     </li>
   );
@@ -373,6 +416,8 @@ const SceneBody = memo(function SceneBody({
   const showChips = t >= statement;
 
   const showStrip = t >= at("framework", "framework") && !cleared;
+  // Chapter 2's question sits at the bottom of the case, not as a title above it.
+  const questionInCase = h === 1;
 
   return (
     <div
@@ -391,20 +436,41 @@ const SceneBody = memo(function SceneBody({
         </Block>
       )}
 
-      <Block probe={probe} className="w-full">
-        <h1
-          className="mx-auto max-w-[30em] text-balance text-center font-semibold leading-[1.12] tracking-tight"
-          style={{ fontSize: HEADLINES[h].size, color: NEUTRAL.ink, opacity: headlineOpacity }}
-        >
-          {HEADLINES[h].text}
-        </h1>
-      </Block>
+      {!questionInCase && (
+        <Block probe={probe} className="w-full">
+          <h1
+            className="mx-auto max-w-[30em] text-balance text-center font-semibold leading-[1.12] tracking-tight"
+            style={{ fontSize: HEADLINES[h].size, color: NEUTRAL.ink, opacity: headlineOpacity }}
+          >
+            {HEADLINES[h].text}
+          </h1>
+        </Block>
+      )}
 
       {showSummary && (
         <Block probe={probe} className="w-full">
           <div style={{ opacity: summaryOpacity }} aria-hidden={summaryOpacity === 0 || hidePatient}>
             <div style={{ visibility: hidePatient ? "hidden" : undefined }}>
-              <PatientCard shared={!probe} />
+              <PatientCard
+                shared={!probe}
+                typedChars={caseCharsAt(t)}
+                question={
+                  questionInCase ? (
+                    <h1
+                      className="font-semibold leading-[1.15] tracking-tight"
+                      style={{
+                        fontSize: HEADLINES[1].size,
+                        marginTop: "0.75em",
+                        paddingTop: "0.65em",
+                        borderTop: `1px solid ${NEUTRAL.line}`,
+                        opacity: headlineOpacity,
+                      }}
+                    >
+                      {HEADLINES[1].text}
+                    </h1>
+                  ) : undefined
+                }
+              />
             </div>
           </div>
         </Block>
