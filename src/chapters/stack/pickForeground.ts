@@ -18,7 +18,8 @@ const deltaKey = (c: StudyCase) => Object.values(deltaOf(c)).join(",");
  * If no pair satisfies the fit rule, falls back to the smallest gaps among
  * cases that satisfy the other rules, and warns in dev.
  *
- * Deterministic: ties go to the case that comes first in `cases`. The result is
+ * Deterministic: ties on count go to the smallest |predicted - observed|, then to
+ * the case that comes first in `cases`. The result is
  * ordered by count, highest first, so the table reads top-down 10, mid, low.
  */
 export function pickForegroundCases(
@@ -43,11 +44,14 @@ export function pickForegroundCases(
 
   /** Lowest-count case, then the distinct mid case nearest an even split. */
   const choose = (pool: StudyCase[]): [StudyCase, StudyCase] | undefined => {
-    const low = [...pool].sort((a, b) => count(a) - count(b) || byOrder(a, b))[0];
+    const low = [...pool].sort((a, b) => count(a) - count(b) || gap(a) - gap(b) || byOrder(a, b))[0];
     if (!low) return undefined;
     const mid = pool
       .filter((c) => deltaKey(c) !== deltaKey(low) && count(c) !== count(low))
-      .sort((a, b) => Math.abs(count(a) - 5) - Math.abs(count(b) - 5) || byOrder(a, b))[0];
+      .sort(
+        (a, b) =>
+          Math.abs(count(a) - 5) - Math.abs(count(b) - 5) || gap(a) - gap(b) || byOrder(a, b),
+      )[0];
     if (!mid) return undefined;
     return count(mid) >= count(low) ? [mid, low] : [low, mid];
   };
