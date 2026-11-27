@@ -51,8 +51,9 @@ const RESPONSE = {
 const MODEL_BEATS = OPENING_BEATS.model;
 const beat = (name: string) => MODEL_BEATS.find((b) => b.name === name)!.startMs;
 const RESPONSE_TIMING: ModelResponseTiming = {
+  thinkStartMs: beat("think"),
   revealStartMs: beat("reveal"),
-  revealEndMs: beat("reveal") + MOVE_MS + FADE_MS,
+  revealEndMs: beat("revealed"),
   groupFadeMs: RESPONSE.groupFadeMs,
   highlightStartMs: beat("highlight"),
   highlightEndMs: beat("highlight") + MOVE_MS,
@@ -399,8 +400,8 @@ const SceneBody = memo(function SceneBody({
   const showResponse = t >= ask && t < statement;
   const responseOpacity = visibility(
     t,
-    beat("reveal") + OFFSETS.model,
-    beat("reveal") + OFFSETS.model + FADE_MS,
+    beat("think") + OFFSETS.model,
+    beat("think") + OFFSETS.model + FADE_MS,
     statement - FADE_MS,
     statement,
   );

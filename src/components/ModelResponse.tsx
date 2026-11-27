@@ -18,8 +18,11 @@ const LABEL_FADE_MS = FADE_MS;
  * Built from the chapter's beats (see `demoChapters.tsx`), not stored in data.
  */
 export interface ModelResponseTiming {
-  /** Response phrase groups fade in across [revealStartMs, revealEndMs]. */
+  /** Icon appears and spins, with "thinking…", until the answer starts. */
+  thinkStartMs: number;
+  /** First character of the answer. Phrase-group fades also start here. */
   revealStartMs: number;
+  /** Answer is fully on screen. */
   revealEndMs: number;
   /** Fade-in length of a single phrase group. */
   groupFadeMs: number;

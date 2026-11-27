@@ -42,16 +42,29 @@ const dilemma = [
   { name: "end", startMs: 11000 },
 ] as const satisfies readonly Beat[];
 
+/** Two full turns of the provider mark, with "thinking…" in the panel. */
+const SPIN_MS = 1600;
+/** How fast the answer types, once the icon has stopped. */
+const TYPE_MS_PER_CHAR = 16;
+const THINK_AT = 500;
+const REVEAL_AT = THINK_AT + SPIN_MS;
+const REVEALED_AT = REVEAL_AT + openingCase.response.text.length * TYPE_MS_PER_CHAR;
+const HIGHLIGHT_AT = REVEALED_AT + 1000;
+const EXTRACT_AT = HIGHLIGHT_AT + 1000;
+const EXTRACTED_AT = EXTRACT_AT + 1000;
+const MARKS_AT = EXTRACTED_AT + 1200;
+
 const model = [
   { name: "ask", startMs: 0 }, // headline: "Ask again."
-  { name: "reveal", startMs: 1200 }, // response excerpt fades in by phrase group
-  { name: "revealed", startMs: 3200 },
-  { name: "highlight", startMs: 4200 }, // recommendation sentence sweeps
-  { name: "extract", startMs: 5200 }, // its choice is outlined, OpenAI icon lands on it
-  { name: "extracted", startMs: 6200 },
-  { name: "marks", startMs: 7400 }, // repeat-query marks accumulate
-  { name: "marksDone", startMs: 7400 + openingCase.decisions.length * MARK_INTERVAL_MS },
-  { name: "end", startMs: 7400 + openingCase.decisions.length * MARK_INTERVAL_MS + 2600 },
+  { name: "think", startMs: THINK_AT }, // icon spins, panel reads "thinking…"
+  { name: "reveal", startMs: REVEAL_AT }, // answer starts typing
+  { name: "revealed", startMs: REVEALED_AT }, // last character is on screen
+  { name: "highlight", startMs: HIGHLIGHT_AT }, // recommendation sentence sweeps
+  { name: "extract", startMs: EXTRACT_AT }, // its choice is outlined, OpenAI icon lands on it
+  { name: "extracted", startMs: EXTRACTED_AT },
+  { name: "marks", startMs: MARKS_AT }, // repeat-query marks accumulate
+  { name: "marksDone", startMs: MARKS_AT + openingCase.decisions.length * MARK_INTERVAL_MS },
+  { name: "end", startMs: MARKS_AT + openingCase.decisions.length * MARK_INTERVAL_MS + 2600 },
 ] as const satisfies readonly Beat[];
 
 const tradeoff = [

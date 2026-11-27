@@ -66,7 +66,7 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
         from: "icon-response",
         to: "icon-option",
         mix: easeInOut(ramp(e, b("extract"), b("extract") + MOVE_MS)),
-        opacity: ramp(e, b("reveal"), b("reveal") + FADE_MS),
+        opacity: ramp(e, b("think"), b("think") + FADE_MS),
       };
     }
     case "opening-tradeoff":
@@ -224,6 +224,11 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
   });
 
   const openingT = inOpening ? openingTime(segment, e) : OPENING_END_MS + e;
+  // Two turns across the opening's think beat, then the mark sits still. 720° lands on the same pose as 0°.
+  const spinDeg =
+    segment === "opening-model"
+      ? ramp(e, beatStart(OPENING_BEATS.model, "think"), beatStart(OPENING_BEATS.model, "reveal")) * 720
+      : 0;
 
   return (
     <div ref={rootRef} data-stage className="relative h-full w-full">
@@ -294,7 +299,9 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
       )}
 
       <div ref={iconRef} aria-hidden className="pointer-events-none absolute left-0 top-0 z-30 origin-top-left" style={{ opacity: 0 }}>
-        <ProviderIcon src={openaiLogo} alt="OpenAI" size={ICON_SIZE} />
+        <div style={{ transform: `rotate(${spinDeg}deg)` }}>
+          <ProviderIcon src={openaiLogo} alt="OpenAI" size={ICON_SIZE} />
+        </div>
       </div>
     </div>
   );

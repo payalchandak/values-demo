@@ -1,7 +1,7 @@
 import { useMemo, type CSSProperties } from "react";
 import ProviderIcon from "../../components/ProviderIcon";
 import { getResponseProgress, type ModelResponseTiming } from "../../components/ModelResponse";
-import { FADE_MS, NEUTRAL } from "../../design";
+import { NEUTRAL } from "../../design";
 
 const clamp01 = (n: number): number => Math.min(Math.max(n, 0), 1);
 const ramp = (t: number, start: number, end: number): number =>
@@ -15,6 +15,8 @@ interface Piece {
   group: number;
   /** Offset within the recommendation span, or null outside it. */
   spanOffset: number | null;
+  /** Index of this piece in the full response text. */
+  start: number;
 }
 
 interface Layout {
@@ -47,13 +49,27 @@ function layoutResponse(text: string, span: string, wordsPerGroup: number): Layo
       const a = cuts[i];
       const b = cuts[i + 1];
       const inside = a >= spanStart && b <= spanEnd;
-      const piece: Piece = { text: text.slice(a, b), group: g, spanOffset: inside ? a - spanStart : null };
+      const piece: Piece = {
+        text: text.slice(a, b),
+        group: g,
+        spanOffset: inside ? a - spanStart : null,
+        start: a,
+      };
       if (inside) layout.inSpan.push(piece);
       else if (a >= spanEnd) layout.after.push(piece);
       else layout.before.push(piece);
     }
   }
+  const covered = layout.before.concat(layout.inSpan, layout.after).map((p) => p.text).join("");
+  if (covered !== text) throw new Error("OpeningResponse: layout does not cover the response text");
   return layout;
+}
+
+/** How many characters are on screen. 0 before typing starts; the first character appears as typing begins. */
+function typedCount(elapsed: number, start: number, end: number, length: number): number {
+  if (length === 0 || elapsed < start) return 0;
+  if (elapsed >= end) return length;
+  return Math.min(length, Math.floor(((elapsed - start) / (end - start)) * length) + 1);
 }
 
 interface OpeningResponseProps {
@@ -73,9 +89,9 @@ interface OpeningResponseProps {
 
 /**
  * The model's response panel for the opening: full width of the case column,
- * with the round provider icon attached to the panel's top-left edge. Reveal
- * and highlight timing is the same as `ModelResponse` (same progress helper);
- * only the layout differs. Everything is in `em`, so it scales with the scene.
+ * with the round provider icon attached to the panel's top-left edge. The icon
+ * spins while the panel reads "thinking…", then the answer types out. Highlight
+ * timing matches `ModelResponse`. Everything is in `em`, so it scales with the scene.
  */
 export default function OpeningResponse({
   text,
@@ -94,24 +110,32 @@ export default function OpeningResponse({
     [text, recommendationSpan, wordsPerGroup],
   );
   const progress = getResponseProgress(elapsedMs, timing);
+  const typed = typedCount(progress.elapsedMs, timing.revealStartMs, timing.revealEndMs, text.length);
+  const thinking = typed === 0;
+  const dots = ".".repeat((Math.floor(Math.max(0, progress.elapsedMs - timing.thinkStartMs) / 400) % 3) + 1);
+  // Two full turns, then the mark is back where it started as the answer types.
+  const spin = ramp(progress.elapsedMs, timing.thinkStartMs, timing.revealStartMs) * 720;
 
-  const groupOpacity = (group: number): number => {
-    const span = Math.max(0, timing.revealEndMs - timing.revealStartMs - timing.groupFadeMs);
-    const start = timing.revealStartMs + (layout.groupCount > 1 ? (group / (layout.groupCount - 1)) * span : 0);
-    return ramp(progress.elapsedMs, start, start + timing.groupFadeMs);
-  };
-
-  const plain = (piece: Piece, key: number) => (
-    <span key={key} style={{ opacity: groupOpacity(piece.group) }}>
-      {piece.text}
-    </span>
-  );
-
-  const highlighted = (piece: Piece, key: number) => {
+  const renderPiece = (piece: Piece, key: number, highlight: boolean) => {
+    const shownN = Math.max(0, Math.min(piece.text.length, typed - piece.start));
+    const shown = piece.text.slice(0, shownN);
+    const hidden = piece.text.slice(shownN);
+    // `display: contents` keeps the untyped tail in the same line boxes as the typed text,
+    // so a cursor in the middle of a word cannot push the rest onto the next line.
+    const body = (
+      <>
+        {shown}
+        {hidden ? (
+          <span aria-hidden style={{ display: "contents", color: "transparent" }}>
+            {hidden}
+          </span>
+        ) : null}
+      </>
+    );
+    if (!highlight) return <span key={key}>{body}</span>;
     const from = piece.spanOffset ?? 0;
     const fill = clamp01((progress.highlight * layout.spanLength - from) / piece.text.length);
     const style: CSSProperties = {
-      opacity: groupOpacity(piece.group),
       backgroundImage: `linear-gradient(${HIGHLIGHT}, ${HIGHLIGHT})`,
       backgroundRepeat: "no-repeat",
       backgroundPosition: "0 90%",
@@ -119,7 +143,7 @@ export default function OpeningResponse({
     };
     return (
       <span key={key} className="rounded-sm [box-decoration-break:clone]" style={style}>
-        {piece.text}
+        {body}
       </span>
     );
   };
@@ -127,16 +151,15 @@ export default function OpeningResponse({
   return (
     <div className="relative w-full pt-[1.15em]" data-response-panel>
       {/* Icon straddles the panel's top-left edge. The outer box only positions; zoom lives inside. */}
-      <span
-        className="absolute left-[0.9em] top-[1.15em] z-10 inline-flex -translate-y-1/2"
-        style={{ opacity: ramp(progress.elapsedMs, timing.revealStartMs, timing.revealStartMs + FADE_MS) }}
-      >
+      <span className="absolute left-[0.9em] top-[1.15em] z-10 inline-flex -translate-y-1/2">
         <span
           data-anchor={hideIcon ? "icon-response" : undefined}
           className="inline-flex"
           style={{ zoom: "var(--z)", visibility: hideIcon ? "hidden" : undefined }}
         >
-          <ProviderIcon src={iconSrc} alt={iconLabel} size={36} />
+          <span className="inline-flex" style={{ transform: `rotate(${spin}deg)` }}>
+            <ProviderIcon src={iconSrc} alt={iconLabel} size={36} />
+          </span>
         </span>
       </span>
 
@@ -160,10 +183,19 @@ export default function OpeningResponse({
         >
           {identifyLabel}
         </p>
-        <p className="mt-[0.2em] leading-snug">
-          {layout.before.map(plain)}
-          <mark className="bg-transparent text-inherit">{layout.inSpan.map(highlighted)}</mark>
-          {layout.after.map(plain)}
+        <p className="relative mt-[0.2em] leading-snug">
+          {thinking && (
+            <span className="absolute left-0 top-0" style={{ color: NEUTRAL.inkMuted }}>
+              thinking{dots}
+            </span>
+          )}
+          <span aria-hidden={thinking} style={{ opacity: thinking ? 0 : 1 }}>
+            {layout.before.map((piece, i) => renderPiece(piece, i, false))}
+            <mark className="bg-transparent text-inherit">
+              {layout.inSpan.map((piece, i) => renderPiece(piece, i, true))}
+            </mark>
+            {layout.after.map((piece, i) => renderPiece(piece, i, false))}
+          </span>
         </p>
       </div>
     </div>
