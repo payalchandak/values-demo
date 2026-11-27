@@ -12,14 +12,13 @@ import {
   TagGlyph,
   VALUES,
   VALUE_ORDER,
-  valueInk,
-  valueTint,
 } from "../../design";
 import type { Tag, Value } from "../../study/types";
 import { openingCase } from "./openingCase";
 import OpeningResponse from "./OpeningResponse";
 import ValueStrip from "./ValueStrip";
 import Vignette from "./Vignette";
+import { CHARCOAL, CHARCOAL_FAINT } from "./charcoal";
 import { valueSteps } from "./valueSteps";
 import { MARK_INTERVAL_MS, OPENING_BEATS, OFFSETS, at, caseCharsAt, ramp, visibility } from "./timeline";
 
@@ -86,7 +85,7 @@ const MIN_READABLE_PX = 12;
  * Times inside each chapter at which that chapter's layout is at its fullest.
  * Hidden copies of the scene at these times are measured, so the font size is
  * chosen once per viewport and never changes during playback. Chapter 5 is
- * probed once per value because the focused layout enlarges a different
+ * probed once per value (at its highlight and at its caption) because the focused layout enlarges a different
  * sentence for each.
  */
 const PROBE_TIMES: readonly number[] = [
@@ -94,6 +93,7 @@ const PROBE_TIMES: readonly number[] = [
   at("dilemma", "end") - 1,
   at("model", "extracted"),
   at("tradeoff", "end") - 1,
+  ...VALUE_ORDER.map((v) => at("framework", `${v}Highlight`) + 400),
   ...VALUE_ORDER.map((v) => at("framework", `${v}Caption`) + 400),
   at("framework", "all") + 800,
 ];
@@ -220,44 +220,50 @@ function Marks({ index, t }: { index: 0 | 1; t: number }) {
 }
 
 /**
- * One value's tag on one choice. Three redundant cues:
+ * One value's tag on one choice: the full value name, then the tag. Three
+ * redundant cues carry the tag, in charcoal only:
  *   promotes: solid chip + up arrow + "+1"
  *   violates: outlined chip + down arrow + "-1"
  *   neutral:  faint chip + dash + "0"
  */
 function TagChip({ v, tag }: { v: Value; tag: Tag }) {
   const meta = TAGS[tag];
-  const color = VALUES[v].color;
   const style =
     meta.chip === "solid"
-      ? { borderColor: color, backgroundColor: color, color: "#fff" }
+      ? { borderColor: CHARCOAL, backgroundColor: CHARCOAL, color: "#fff" }
       : meta.chip === "outlined"
-        ? { borderColor: color, backgroundColor: NEUTRAL.surface, color: valueInk(v) }
-        : { borderColor: valueTint(v, 40), backgroundColor: NEUTRAL.surface, color: NEUTRAL.inkFaint };
+        ? { borderColor: CHARCOAL, backgroundColor: NEUTRAL.surface, color: CHARCOAL }
+        : { borderColor: CHARCOAL_FAINT, backgroundColor: NEUTRAL.surface, color: NEUTRAL.inkFaint };
   return (
     <span
       aria-label={`${VALUES[v].name}: ${meta.word} (${meta.code})`}
-      className="inline-flex items-center gap-[0.25em] rounded-full border px-[0.55em] py-[0.12em] font-semibold"
+      className="inline-flex max-w-full flex-wrap items-center gap-x-[0.35em] rounded-[1em] border px-[0.65em] py-[0.12em] font-semibold"
       style={{ ...style, fontSize: "0.9em", borderWidth: meta.chip === "outlined" ? 1.5 : 1 }}
     >
-      <span aria-hidden="true">{v}</span>
-      <TagGlyph glyph={meta.glyph} size={11} />
-      <span>{meta.code}</span>
+      <span aria-hidden="true">{VALUES[v].name}</span>
+      <span aria-hidden="true" className="inline-flex items-center gap-[0.25em]">
+        <TagGlyph glyph={meta.glyph} size={11} />
+        <span>{meta.code}</span>
+      </span>
     </span>
   );
 }
 
-/** The four chips of a choice, in A B N J order, each in its own slot so nothing shifts as they land. */
+/**
+ * The four labels of a choice in a column, A B N J order, each in its own
+ * slot so nothing shifts as they land. Choice 1's label lands first, then Choice 2's.
+ */
 function Chips({ index, t }: { index: 0 | 1; t: number }) {
   const steps = valueSteps(t);
   const tags = openingCase.tags[index];
+  const weight = index === 0 ? steps.chip1 : steps.chip2;
   return (
-    <div className="mt-[0.5em] grid grid-cols-4 items-center gap-[0.3em]" style={{ height: ROW_H }}>
+    <div className="mt-[0.5em] flex flex-col items-start gap-[0.2em]">
       {VALUE_ORDER.map((v) => (
         <div
           key={v}
-          className="flex min-w-0 justify-start"
-          style={{ opacity: steps.chip[v], transform: `scale(${0.85 + 0.15 * steps.chip[v]})`, transformOrigin: "left center" }}
+          className="flex min-h-[1.6em] max-w-full items-center"
+          style={{ opacity: weight[v], transform: `scale(${0.85 + 0.15 * weight[v]})`, transformOrigin: "left center" }}
         >
           <TagChip v={v} tag={tags[v]} />
         </div>
@@ -270,16 +276,20 @@ function OptionCard({
   index,
   t,
   selected,
+  showMarks,
   showChips,
   sharedIcon,
 }: {
   index: 0 | 1;
   t: number;
   selected: boolean;
+  showMarks: boolean;
   showChips: boolean;
   sharedIcon: boolean;
 }) {
-  const color = OPTION_COLORS[index];
+  // Chapters 4 and 5: neutral cards, no accent bar.
+  const neutral = t >= at("tradeoff", "statement");
+  const color = neutral ? NEUTRAL.line : OPTION_COLORS[index];
   const iconHere =
     sharedIcon &&
     index === openingCase.response.chosen &&
@@ -296,8 +306,10 @@ function OptionCard({
   return (
     <li
       aria-current={selected ? "true" : undefined}
-      className="rounded-[0.9em] border border-l-[0.3em] p-[0.8em] transition-colors duration-75 ease-out"
+      className="rounded-[0.9em] border p-[0.8em] transition-colors duration-75 ease-out"
       style={{
+        borderLeftWidth: neutral ? 1 : "0.3em",
+        paddingLeft: neutral ? "calc(0.8em + 0.3em - 1px)" : undefined,
         borderTopColor: selected ? color : NEUTRAL.line,
         borderRightColor: selected ? color : NEUTRAL.line,
         borderBottomColor: selected ? color : NEUTRAL.line,
@@ -324,7 +336,7 @@ function OptionCard({
             </span>
           ))}
       </div>
-      {showChips ? <Chips index={index} t={t} /> : <Marks index={index} t={t} />}
+      {showChips ? <Chips index={index} t={t} /> : showMarks ? <Marks index={index} t={t} /> : null}
     </li>
   );
 }
@@ -414,7 +426,8 @@ const SceneBody = memo(function SceneBody({
   const showOptions = t >= at("dilemma", "options") && !cleared;
   const optionsOpacity = ramp(t, at("dilemma", "options"), at("dilemma", "options") + FADE_MS) * (1 - clearP);
   const selectedIndex = t >= at("model", "extract") && t < statement ? openingCase.response.chosen : null;
-  const showChips = t >= statement;
+  const showMarks = t < statement; // chapter 4 shows the choices plain; chapter 5 adds the labels
+  const showChips = t >= at("framework", "framework");
 
   const showStrip = t >= at("framework", "framework") && !cleared;
   // Chapter 2's question sits at the bottom of the case, not as a title above it.
@@ -518,8 +531,8 @@ const SceneBody = memo(function SceneBody({
             className="grid w-full grid-cols-1 items-stretch gap-[0.6em] @md:grid-cols-2"
             style={{ opacity: optionsOpacity }}
           >
-            <OptionCard index={0} t={t} selected={selectedIndex === 0} showChips={showChips} sharedIcon={sharedIcon} />
-            <OptionCard index={1} t={t} selected={selectedIndex === 1} showChips={showChips} sharedIcon={sharedIcon} />
+            <OptionCard index={0} t={t} selected={selectedIndex === 0} showMarks={showMarks} showChips={showChips} sharedIcon={sharedIcon} />
+            <OptionCard index={1} t={t} selected={selectedIndex === 1} showMarks={showMarks} showChips={showChips} sharedIcon={sharedIcon} />
           </ul>
         </Block>
       )}

@@ -1,29 +1,29 @@
 import { FADE_MS, VALUE_ORDER } from "../../design";
 import type { Value } from "../../study/types";
-import { at, ramp, UNDERLINE_STAGGER_MS, CAPTION_DELAY_MS, CHIP_DELAY_MS } from "./timeline";
-import { TEXT_ORDER } from "./valueTriggers";
+import { at, ramp } from "./timeline";
 
 /**
- * What chapters 4 and 5 show about the values, as 0..1 weights that are a pure
- * function of the opening clock `t`.
+ * What chapter 5 shows about the values, as 0..1 weights that are a pure
+ * function of the opening clock `t`. Chapter 4 shows none of it: it is a
+ * plain reading hold.
  *
- *  - underline[v]  chapter 4: the trigger sentence is underlined (neutral);
- *                  stays on afterwards.
- *  - active[v]     chapter 5: this value is the one being introduced.
- *  - all           chapter 5 end state: all four highlights, nothing dimmed.
+ *  - name[v]       the value's full name and definition (vignette still plain).
+ *  - highlight[v]  its trigger sentence is highlighted; the rest dims.
  *  - dim           how far the rest of the vignette has receded.
- *  - chip[v]       the value's tag chips on the two choices.
+ *  - chip1[v]      the value's label on Choice 1.
+ *  - chip2[v]      the value's label on Choice 2.
  *  - caption[v]    the value's one-line caption.
+ *
+ * A value's name, highlight and caption end where the next value begins (the
+ * last one, at the "all" beat). The labels stay.
  */
 export interface ValueSteps {
-  underline: Record<Value, number>;
-  active: Record<Value, number>;
-  all: number;
-  dim: number;
-  chip: Record<Value, number>;
-  caption: Record<Value, number>;
-  /** Highlight strength per value: its own turn, or the all-together end state. */
+  name: Record<Value, number>;
   highlight: Record<Value, number>;
+  dim: number;
+  chip1: Record<Value, number>;
+  chip2: Record<Value, number>;
+  caption: Record<Value, number>;
 }
 
 const record = (f: (v: Value) => number): Record<Value, number> => ({
@@ -34,39 +34,19 @@ const record = (f: (v: Value) => number): Record<Value, number> => ({
 });
 
 export function valueSteps(t: number): ValueSteps {
-  const underlineStart = at("tradeoff", "underline");
   const allStart = at("framework", "all");
   const nextStart = (v: Value): number => {
     const i = VALUE_ORDER.indexOf(v);
     return i === VALUE_ORDER.length - 1 ? allStart : at("framework", VALUE_ORDER[i + 1]);
   };
+  const clear = (v: Value): number => 1 - ramp(t, nextStart(v), nextStart(v) + FADE_MS);
+  const rampAt = (beat: string): number => ramp(t, at("framework", beat), at("framework", beat) + FADE_MS);
 
-  const underline = record((v) => {
-    const s = underlineStart + TEXT_ORDER.indexOf(v) * UNDERLINE_STAGGER_MS;
-    return ramp(t, s, s + FADE_MS);
-  });
-  const active = record((v) => {
-    const s = at("framework", v);
-    const e = nextStart(v);
-    return ramp(t, s, s + FADE_MS) * (1 - ramp(t, e - FADE_MS, e));
-  });
-  const all = ramp(t, allStart, allStart + FADE_MS);
-  const dim = ramp(t, at("framework", VALUE_ORDER[0]), at("framework", VALUE_ORDER[0]) + FADE_MS) * (1 - all);
-  const chip = record((v) =>
-    ramp(t, at("framework", v) + CHIP_DELAY_MS, at("framework", v) + CHIP_DELAY_MS + FADE_MS),
-  );
-  const caption = record((v) => {
-    const s = at("framework", v) + CAPTION_DELAY_MS;
-    const e = nextStart(v);
-    return ramp(t, s, s + FADE_MS) * (1 - ramp(t, e - FADE_MS, e));
-  });
-  const highlight = record((v) => Math.max(active[v], all));
-  return { underline, active, all, dim, chip, caption, highlight };
-}
-
-/** The value being introduced at `t` (the strongest active weight), if any. */
-export function activeValue(t: number): Value | null {
-  const s = valueSteps(t);
-  const best = VALUE_ORDER.reduce((a, b) => (s.active[b] > s.active[a] ? b : a));
-  return s.active[best] > 0 ? best : null;
+  const name = record((v) => rampAt(v) * clear(v));
+  const highlight = record((v) => rampAt(`${v}Highlight`) * clear(v));
+  const caption = record((v) => rampAt(`${v}Caption`) * clear(v));
+  const chip1 = record((v) => rampAt(`${v}Chip1`));
+  const chip2 = record((v) => rampAt(`${v}Chip2`));
+  const dim = Math.max(...VALUE_ORDER.map((v) => highlight[v]));
+  return { name, highlight, dim, chip1, chip2, caption };
 }

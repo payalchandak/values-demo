@@ -67,35 +67,54 @@ const model = [
   { name: "end", startMs: MARKS_AT + openingCase.decisions.length * MARK_INTERVAL_MS + 2600 },
 ] as const satisfies readonly Beat[];
 
+/** Reading allowance, ms per word. Chapter 4 holds the full vignette for its word count at this rate. */
+const READ_MS_PER_WORD = 200;
+const words = (text: string): number => text.trim().split(/\s+/).length;
+const round100 = (ms: number): number => Math.round(ms / 100) * 100;
+
+const VIGNETTE_IN_MS = 400;
 const tradeoff = [
   { name: "statement", startMs: 0 }, // "Each choice prioritizes some values over others."
-  { name: "vignette", startMs: 400 }, // the full vignette, plain
-  { name: "underline", startMs: 3200 }, // the four trigger sentences are underlined, neutral
-  { name: "end", startMs: 9000 },
+  { name: "vignette", startMs: VIGNETTE_IN_MS }, // the full vignette, plain, with both choices below it
+  // A reading hold: nothing is underlined, highlighted or labeled.
+  { name: "end", startMs: VIGNETTE_IN_MS + round100(READ_MS_PER_WORD * words(openingCase.vignette)) },
 ] as const satisfies readonly Beat[];
 
-/** Gap between one trigger sentence being underlined and the next, in chapter 4. */
-export const UNDERLINE_STAGGER_MS = STAGGER_MS;
-
-/** Inside each value's window: its tag chips land on the choices, then its caption. */
-export const CHIP_DELAY_MS = STAGGER_MS;
-export const CAPTION_DELAY_MS = STAGGER_MS * 2;
-/** A value is held for this long plus a reading allowance per word of its trigger sentence. */
-const HOLD_BASE_MS = 1600;
-const HOLD_PER_WORD_MS = 180;
+/*
+ * Chapter 5 walks the four values one at a time. Inside each value's window:
+ *   <v>           its full name and definition appear; the vignette is plain
+ *   <v>Highlight  its trigger sentence is highlighted, the rest dims
+ *   <v>Chip1      its label lands on Choice 1
+ *   <v>Chip2      its label lands on Choice 2
+ *   <v>Caption    the one-line caption
+ * The next value's beat clears the highlight and starts over. The labels
+ * already added stay on the choices.
+ */
+const NAME_MS = 1500; // name and definition on a plain vignette
+const HIGHLIGHT_BASE_MS = 900; // plus a reading allowance per word of the trigger sentence
+const HIGHLIGHT_PER_WORD_MS = 180;
+const CHIP_GAP_MS = 700; // Choice 1 label, then Choice 2 label
+const CAPTION_AFTER_MS = 400; // caption after the second label
+const CAPTION_READ_MS = 1900;
 
 const framework = (() => {
   const beats: Beat[] = [{ name: "framework", startMs: 0 }]; // "Clinical decisions require ..."
   let cursor = 1200;
   for (const v of VALUE_ORDER) {
+    const highlight = cursor + NAME_MS;
+    const chip1 = highlight + round100(HIGHLIGHT_BASE_MS + HIGHLIGHT_PER_WORD_MS * triggerWords(v));
+    const chip2 = chip1 + CHIP_GAP_MS;
+    const caption = chip2 + CAPTION_AFTER_MS;
     beats.push(
-      { name: v, startMs: cursor }, // name chip + definition; sentence highlighted, rest dims
-      { name: `${v}Chips`, startMs: cursor + CHIP_DELAY_MS },
-      { name: `${v}Caption`, startMs: cursor + CAPTION_DELAY_MS },
+      { name: v, startMs: cursor },
+      { name: `${v}Highlight`, startMs: highlight },
+      { name: `${v}Chip1`, startMs: chip1 },
+      { name: `${v}Chip2`, startMs: chip2 },
+      { name: `${v}Caption`, startMs: caption },
     );
-    cursor += Math.round((HOLD_BASE_MS + HOLD_PER_WORD_MS * triggerWords(v)) / 100) * 100;
+    cursor = caption + CAPTION_READ_MS;
   }
-  beats.push({ name: "all", startMs: cursor }); // all four highlights, all chips, nothing dimmed
+  beats.push({ name: "all", startMs: cursor }); // highlight cleared, plain vignette, four labels on each choice
   beats.push({ name: "end", startMs: cursor + 5000 });
   return beats as readonly Beat[];
 })();

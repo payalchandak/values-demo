@@ -101,9 +101,6 @@ function build(): readonly VignetteSegment[] {
 /** The vignette cut at the trigger sentences, in reading order. Joins back to the vignette exactly. */
 export const VIGNETTE_SEGMENTS: readonly VignetteSegment[] = build();
 
-/** Values in the order their trigger sentences appear in the vignette. */
-export const TEXT_ORDER: readonly Value[] = VIGNETTE_SEGMENTS.flatMap((s) => (s.value ? [s.value] : []));
-
 const words = (s: string): number => s.trim().split(/\s+/).length;
 
 /** Words in a value's trigger sentence (drives how long its beat is held). */

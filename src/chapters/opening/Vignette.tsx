@@ -1,34 +1,22 @@
 import type { CSSProperties, ReactNode } from "react";
-import { NEUTRAL, VALUES, valueTint } from "../../design";
-import type { Value } from "../../study/types";
+import { NEUTRAL } from "../../design";
+import { CHARCOAL_TINT } from "./charcoal";
 import { valueSteps, type ValueSteps } from "./valueSteps";
 import { VIGNETTE_SEGMENTS, type VignetteSegment } from "./valueTriggers";
 
-/** Strength of the fade when the rest of the vignette recedes (0 = none). */
+/** Strength of the fade when everything but the active sentence recedes (0 = none). */
 const DIM_OF_REST = 0.72;
-const DIM_OF_OTHER_TRIGGERS = 0.6;
 /** Focused layout: how much larger the active sentence is than a resting one. */
 const FOCUS_GROW = 0.25;
-const FOCUS_SHRINK = 0;
 
-/** Underline color: neutral when drawn in chapter 4, the value's color while highlighted. */
-function underlineColor(v: Value, s: ValueSteps): string {
-  const h = s.highlight[v];
-  const base = h > 0 ? `color-mix(in srgb, ${VALUES[v].color} ${h * 100}%, ${NEUTRAL.inkMuted})` : NEUTRAL.inkMuted;
-  const drawn = Math.max(s.underline[v], h);
-  return `color-mix(in srgb, ${base} ${drawn * 100}%, transparent)`;
-}
-
-function triggerStyle(v: Value, s: ValueSteps): CSSProperties {
-  const h = s.highlight[v];
+/**
+ * A trigger sentence. It is plain text until its value's turn; then it gets a
+ * charcoal tint (never an underline) and the rest of the vignette dims.
+ */
+function triggerStyle(h: number, dim: number): CSSProperties {
   return {
-    opacity: 1 - DIM_OF_OTHER_TRIGGERS * s.dim * (1 - h),
-    backgroundColor: valueTint(v, 17 * h),
-    textDecorationLine: "underline",
-    textDecorationColor: underlineColor(v, s),
-    textDecorationThickness: "0.13em",
-    textUnderlineOffset: "0.2em",
-    textDecorationSkipInk: "none",
+    opacity: 1 - DIM_OF_REST * dim * (1 - h),
+    backgroundColor: `color-mix(in srgb, ${CHARCOAL_TINT} ${h * 100}%, transparent)`,
     boxDecorationBreak: "clone",
     WebkitBoxDecorationBreak: "clone",
     borderRadius: "0.2em",
@@ -39,17 +27,17 @@ function triggerStyle(v: Value, s: ValueSteps): CSSProperties {
 
 function Segment({ seg, s }: { seg: VignetteSegment; s: ValueSteps }) {
   if (seg.value === null) return <span style={{ opacity: 1 - DIM_OF_REST * s.dim }}>{seg.text}</span>;
-  return <span style={triggerStyle(seg.value, s)}>{seg.text}</span>;
+  return <span style={triggerStyle(s.highlight[seg.value], s.dim)}>{seg.text}</span>;
 }
 
 /**
- * The full case vignette, verbatim. Chapter 4 underlines the four trigger
- * sentences in a neutral tone; chapter 5 highlights them in their value
- * colors one at a time while the rest recedes.
+ * The full case vignette, verbatim and plain. Chapter 4 shows it as is.
+ * Chapter 5 highlights one trigger sentence at a time (a charcoal tint, no
+ * underline) while the rest recedes, and brings it back to plain between values.
  *
  * `focused` is the narrow-screen layout: only the trigger sentences are shown
  * (the rest of the vignette collapses to an ellipsis), and the sentence being
- * introduced is enlarged while the others shrink back.
+ * highlighted is enlarged.
  */
 export default function Vignette({ t, focused }: { t: number; focused: boolean }) {
   const s = valueSteps(t);
@@ -80,7 +68,7 @@ function FocusedText({ s }: { s: ValueSteps }) {
   // Collapsed runs of the vignette are marked with an inline ellipsis, so they cost no extra lines.
   const mark = (
     <span aria-hidden="true" style={{ color: NEUTRAL.inkFaint, opacity: 1 - DIM_OF_REST * s.dim }}>
-      {"\u2026 "}
+      {"... "}
     </span>
   );
   const parts: ReactNode[] = [];
@@ -88,14 +76,24 @@ function FocusedText({ s }: { s: ValueSteps }) {
   VIGNETTE_SEGMENTS.forEach((seg, i) => {
     if (seg.value === null) return;
     const v = seg.value;
-    const size = 1 + FOCUS_GROW * s.active[v] - FOCUS_SHRINK * s.dim * (1 - s.highlight[v]);
+    const h = s.highlight[v];
     const gapBefore = i > 0;
     const gapAfter = i === lastTrigger && i < VIGNETTE_SEGMENTS.length - 1;
     parts.push(
-      <p key={v} data-vignette-text data-value={v} className="leading-[1.45]" style={{ fontSize: `${size}em` }}>
+      <p
+        key={v}
+        data-vignette-text
+        data-value={v}
+        className="leading-[1.45]"
+        style={{ fontSize: `${1 + FOCUS_GROW * h}em` }}
+      >
         {gapBefore && mark}
-        <span style={triggerStyle(v, s)}>{seg.text}</span>
-        {gapAfter && <span aria-hidden="true" style={{ color: NEUTRAL.inkFaint, opacity: 1 - DIM_OF_REST * s.dim }}>{" \u2026"}</span>}
+        <span style={triggerStyle(h, s.dim)}>{seg.text}</span>
+        {gapAfter && (
+          <span aria-hidden="true" style={{ color: NEUTRAL.inkFaint, opacity: 1 - DIM_OF_REST * s.dim }}>
+            {" ..."}
+          </span>
+        )}
       </p>,
     );
   });
