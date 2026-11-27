@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { verify } from '../src/study/verify.ts';
-import type { DecisionCounts } from '../src/study/verify.ts';
+import type { DecisionCounts, Table8Targets } from '../src/study/verify.ts';
 import type { Profile, StudyCase } from '../src/study/types.ts';
 
 const dataDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'study', 'data');
@@ -15,8 +15,9 @@ const load = <T>(name: string): T => JSON.parse(readFileSync(join(dataDir, name)
 const cases = load<StudyCase[]>('cases.json');
 const profiles = load<Profile[]>('profiles.json');
 const decisions = load<DecisionCounts>('decisions.json');
+const table8 = load<Table8Targets>('table8.json');
 
-const { checks, integrity } = verify(cases, decisions, profiles);
+const { checks, integrity } = verify(cases, decisions, profiles, table8);
 const f = (x: number) => x.toFixed(3);
 
 console.log(`cases=${cases.length} profiles=${profiles.length} (models=${profiles.filter((p) => p.kind === 'model').length}, physicians=${profiles.filter((p) => p.kind === 'physician').length}, pooled=${profiles.filter((p) => p.kind === 'pooled-physician').length})`);
