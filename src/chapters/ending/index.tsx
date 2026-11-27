@@ -1,12 +1,26 @@
 import { beatStart, type Beat, type Chapter } from "../../types";
 import IndividualModels, { individualModelsEndMs, modelStartMs } from "./IndividualModels";
 import ModelsAndPhysicians, { type PhysiciansTiming } from "./ModelsAndPhysicians";
-import { PLACEHOLDER_PROFILES, selectModels, selectPhysicians } from "./profiles";
+import { AUTOPLAY_MODELS, INDIVIDUAL_MODELS, SPREAD_PHYSICIANS } from "./profiles";
 
-// Swap `PLACEHOLDER_PROFILES` for the real profiles when wiring up.
-const models = selectModels(PLACEHOLDER_PROFILES);
-// Individual physicians only; the pooled profile is filtered out.
-const physicians = selectPhysicians(PLACEHOLDER_PROFILES);
+export { ALL_MODELS, ALL_PHYSICIANS, AUTOPLAY_MODELS, INDIVIDUAL_MODELS, SPREAD_PHYSICIANS } from "./profiles";
+export { selectSpreadPhysicians } from "./profiles";
+
+/** What the ending shows: chapter 1 models, chapter 2 model row, chapter 2 physician row. */
+export const endingSelection = {
+  individualModelKeys: INDIVIDUAL_MODELS.map((m) => m.key),
+  autoplayModelKeys: AUTOPLAY_MODELS.map((m) => m.key),
+  /** Selection order: seed (farthest from the pooled profile) first. */
+  physicianKeys: SPREAD_PHYSICIANS.map((p) => p.key),
+} as const;
+
+if (import.meta.env.DEV) {
+  console.log("[ending] models (ch1):", endingSelection.individualModelKeys.join(", "));
+  console.log("[ending] models (ch2):", endingSelection.autoplayModelKeys.join(", "));
+  console.log("[ending] physicians:", endingSelection.physicianKeys.join(", "));
+}
+
+const models = INDIVIDUAL_MODELS;
 
 /* Chapter 1: one beat per model (start of its hold), then the end marker. */
 // TODO: tune after visual review
@@ -45,8 +59,9 @@ export const endingChapters: Chapter[] = [
     beats: closingBeats,
     render: (ctx) => (
       <ModelsAndPhysicians
-        models={models}
-        physicians={physicians}
+        models={AUTOPLAY_MODELS}
+        anchorKey={INDIVIDUAL_MODELS[INDIVIDUAL_MODELS.length - 1].key}
+        physicians={SPREAD_PHYSICIANS}
         elapsedMs={ctx.elapsedMs}
         timing={closingTiming}
       />

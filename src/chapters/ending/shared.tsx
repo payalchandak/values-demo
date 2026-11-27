@@ -1,9 +1,10 @@
 import { useLayoutEffect, useState, type RefObject } from "react";
 import { motion } from "framer-motion";
 import { openingFrame } from "../../data/demoData";
+import { VALUES, VALUE_ORDER, valueInk } from "../../design";
 import ProviderIcon from "../../components/ProviderIcon";
 import type { Profile } from "../../study/types";
-import { PROVIDER_LOGOS } from "./profiles";
+import { modelLogo } from "./icons";
 
 export const SPRING = { type: "spring", stiffness: 420, damping: 34, mass: 0.7 } as const;
 
@@ -41,23 +42,17 @@ export function EndingHeader({ label }: { label: string }) {
   );
 }
 
-const LEGEND: readonly { letter: string; name: string; color: string }[] = [
-  { letter: "A", name: "Autonomy", color: "#2F6DB5" },
-  { letter: "B", name: "Beneficence", color: "#A26710" },
-  { letter: "N", name: "Nonmaleficence", color: "#187C76" },
-  { letter: "J", name: "Justice", color: "#7B4FA8" },
-];
 
-/** Axis key: the radar labels are single letters at every size. */
+/** Axis key for the compact radars, whose labels are single letters. */
 export function Legend() {
   return (
     <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs text-gray-500">
-      {LEGEND.map(({ letter, name, color }) => (
-        <li key={letter} className="flex items-center gap-1.5">
-          <span className="font-mono font-semibold" style={{ color }}>
-            {letter}
+      {VALUE_ORDER.map((v) => (
+        <li key={v} className="flex items-center gap-1.5">
+          <span className="font-mono font-semibold" style={{ color: valueInk(v) }}>
+            {v}
           </span>
-          {name}
+          {VALUES[v].name}
         </li>
       ))}
     </ul>
@@ -77,10 +72,10 @@ export function ModelLabel({
   /** Icon above the name, for narrow columns. */
   stacked?: boolean;
 }) {
-  const logo = profile.family ? PROVIDER_LOGOS[profile.family] : undefined;
+  const logo = modelLogo(profile);
   return (
     <div className={`flex items-center ${stacked ? "flex-col gap-1.5" : "gap-2.5"}`}>
-      {logo && <ProviderIcon src={logo.src} alt={logo.alt} size={iconSize} />}
+      <ProviderIcon src={logo.src} alt={logo.alt} size={iconSize} />
       <span className={large ? "text-xl font-semibold text-[#1B2433]" : "text-sm font-semibold text-[#1B2433]"}>
         {profile.displayName}
       </span>
@@ -92,6 +87,10 @@ export function ModelLabel({
  * Restart the demo from the top. Chapters get no restart callback, so this
  * presses the player's own HUD Restart button, which works in every playback
  * state (running, paused, or finished).
+ *
+ * NOTE: exposing `restart` on `ChapterContext` would be cleaner and would
+ * remove this dependency on the HUD's `aria-label="Restart"`. Left as is
+ * because the player is outside the ending chapters' ownership.
  */
 export function requestReplay() {
   document.querySelector<HTMLButtonElement>('[data-playback-ui] button[aria-label="Restart"]')?.click();

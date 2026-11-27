@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import RadarChart from "./RadarChart";
+import Radar, { RADAR_ASPECT } from "./Radar";
 import { clamp01, easeInOut, EndingHeader, Legend, ModelLabel, useElementSize } from "./shared";
 import type { Profile } from "../../study/types";
 
@@ -25,13 +25,27 @@ export function scrollPosition(elapsedMs: number, count: number): number {
   return i + easeInOut(clamp01((phase - MODEL_HOLD_MS) / MODEL_SCROLL_MS));
 }
 
-/** Gap reserved below the radar for the provider label. */
+/** Provider icon height and its gap below the radar (`gap-3`); the next chapter uses these to find the radar's center. */
+const LABEL_ICON = 40;
+const LABEL_GAP = 12;
 const LABEL_BLOCK = 72;
-const MAX_RADAR = 400;
 
-/** Radar size for a given stage size. Exported so the next chapter can shrink from exactly this. */
-export const individualRadarSize = (width: number, height: number) =>
-  Math.max(Math.min(MAX_RADAR, height - LABEL_BLOCK - 24, width * 0.9), 120);
+/**
+ * The held radar's center sits this far above the center of the stage body,
+ * because the radar and its label are centered together.
+ */
+export const HELD_RADAR_OFFSET_Y = -(LABEL_GAP + LABEL_ICON) / 2;
+const MAX_RADAR_WIDTH = 560;
+
+/**
+ * Rendered width of the held radar (full mode) for a given stage size.
+ * Exported so the next chapter can shrink from exactly this.
+ */
+export const individualRadarWidth = (width: number, height: number) =>
+  Math.max(
+    Math.min(MAX_RADAR_WIDTH, width * 0.92, (height - LABEL_BLOCK - 24) / RADAR_ASPECT.full),
+    120,
+  );
 
 export default function IndividualModels({
   models,
@@ -42,7 +56,7 @@ export default function IndividualModels({
 }) {
   const viewport = useRef<HTMLDivElement>(null);
   const { width, height } = useElementSize(viewport);
-  const radarSize = individualRadarSize(width, height);
+  const radarWidth = individualRadarWidth(width, height);
 
   const pos = scrollPosition(elapsedMs, models.length);
   const active = Math.round(pos);
@@ -64,8 +78,8 @@ export default function IndividualModels({
               style={{ top: i * height, height }}
               aria-hidden={i !== active}
             >
-              <RadarChart priorities={model.priorities} size={radarSize} />
-              <ModelLabel profile={model} iconSize={40} large />
+              <Radar profile={model} width={radarWidth} mode="full" />
+              <ModelLabel profile={model} iconSize={LABEL_ICON} large />
             </div>
           ))}
         </div>
@@ -81,7 +95,8 @@ export default function IndividualModels({
         </ol>
       </div>
 
-      <div className="pb-1 pt-3">
+      {/* Invisible spacer with the next chapter's legend, so both chapters' stage bodies match exactly. */}
+      <div className="pb-1 pt-3 opacity-0" aria-hidden="true">
         <Legend />
       </div>
     </div>

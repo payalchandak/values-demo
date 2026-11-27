@@ -1,66 +1,60 @@
-import type { Profile } from "../../study/types";
-import openaiLogo from "../../assets/providers/openai.svg";
+import type { Profile, Value } from "../../study/types";
+import profilesData from "../../study/data/profiles.json";
 
 /*
- * PLACEHOLDER profiles for the ending chapters. These are invented numbers
- * (each sums to 1) chosen only to give distinct shapes; swap in the real
- * profiles from `src/study/data/profiles.json` when wiring up.
+ * All numbers come from `src/study/data/profiles.json`. Nothing is retyped
+ * here (see `npm run check:profiles`).
  */
+export const ALL_PROFILES: readonly Profile[] = profilesData as Profile[];
 
-const profile = (
-  key: string,
-  kind: Profile["kind"],
-  displayName: string,
-  family: Profile["family"],
-  priorities: Profile["priorities"],
-): Profile => ({
-  key,
-  kind,
-  family,
-  displayName,
-  // Placeholder only: the real raw coefficients arrive with the real data.
-  weights: { A: 0, B: 0, N: 0, J: 0 },
-  priorities,
-});
+const VALUE_KEYS: readonly Value[] = ["A", "B", "N", "J"];
 
-export const PLACEHOLDER_PROFILES: readonly Profile[] = [
-  // Models. Display names carry no version numbers.
-  profile("gpt", "model", "GPT", "openai", { A: 0.08, B: 0.62, N: 0.18, J: 0.12 }),
-  profile("claude", "model", "Claude", "anthropic", { A: 0.2, B: 0.22, N: 0.52, J: 0.06 }),
-  profile("gemini", "model", "Gemini", "google", { A: 0.31, B: 0.35, N: 0.22, J: 0.12 }),
-  profile("qwen", "model", "Qwen", "other", { A: 0.15, B: 0.3, N: 0.2, J: 0.35 }),
+const byKey = (profiles: readonly Profile[], key: string): Profile => {
+  const found = profiles.find((p) => p.key === key);
+  if (!found) throw new Error(`Missing profile "${key}"`);
+  return found;
+};
 
-  // Individual physicians.
-  profile("physician-1", "physician", "Physician 1", undefined, { A: 0.3, B: 0.3, N: 0.25, J: 0.15 }),
-  profile("physician-2", "physician", "Physician 2", undefined, { A: 0.22, B: 0.38, N: 0.28, J: 0.12 }),
-  profile("physician-3", "physician", "Physician 3", undefined, { A: 0.36, B: 0.24, N: 0.22, J: 0.18 }),
-  profile("physician-4", "physician", "Physician 4", undefined, { A: 0.18, B: 0.3, N: 0.38, J: 0.14 }),
-  profile("physician-5", "physician", "Physician 5", undefined, { A: 0.28, B: 0.26, N: 0.2, J: 0.26 }),
-  profile("physician-6", "physician", "Physician 6", undefined, { A: 0.25, B: 0.35, N: 0.25, J: 0.15 }),
+/* -------------------------------------------------------------------------- */
+/*  Models                                                                    */
+/* -------------------------------------------------------------------------- */
 
-  // The pooled physician profile exists in the data but must never be drawn
-  // in the ending: the physician row is individuals only.
-  profile("physicians-pooled", "pooled-physician", "All physicians", undefined, {
-    A: 0.27,
-    B: 0.31,
-    N: 0.26,
-    J: 0.16,
-  }),
-];
+/** Chapter 1: exactly these, in this order. */
+export const INDIVIDUAL_MODEL_KEYS = ["gpt", "claude", "gemini"] as const;
+
+/** Chapter 2 autoplay row: the three above plus three more for a readable six. */
+export const AUTOPLAY_MODEL_KEYS = ["gpt", "claude", "gemini", "deepseek", "qwen", "mistral"] as const;
+
+/** Models whose responses were heavily affected by refusals. Never in autoplay. */
+export const REFUSAL_AFFECTED_MODEL_KEYS = ["glm", "llama", "kimi"] as const;
 
 export function selectModels(profiles: readonly Profile[]): Profile[] {
   return profiles.filter((p) => p.kind === "model");
 }
 
-/**
- * Individual physicians only. The pooled profile is dropped here, and
- * `assertIndividualPhysicians` guards the render path as a second line of
- * defense, so a pooled profile can never reach the physician row.
- */
+/** All 12 models, in data order. For the integration pass to offer after autoplay. */
+export const ALL_MODELS: readonly Profile[] = selectModels(ALL_PROFILES);
+
+export const INDIVIDUAL_MODELS: readonly Profile[] = INDIVIDUAL_MODEL_KEYS.map((k) => byKey(ALL_MODELS, k));
+
+export const AUTOPLAY_MODELS: readonly Profile[] = AUTOPLAY_MODEL_KEYS.map((k) => byKey(ALL_MODELS, k));
+
+{
+  const refused = AUTOPLAY_MODELS.find((m) =>
+    (REFUSAL_AFFECTED_MODEL_KEYS as readonly string[]).includes(m.key),
+  );
+  if (refused) throw new Error(`Refusal-affected model "${refused.key}" is in the autoplay set.`);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Physicians                                                                */
+/* -------------------------------------------------------------------------- */
+
 export function selectPhysicians(profiles: readonly Profile[]): Profile[] {
   return profiles.filter((p) => p.kind === "physician");
 }
 
+/** The physician row must hold individual physicians only, never the pooled profile. */
 export function assertIndividualPhysicians(profiles: readonly Profile[]): void {
   const bad = profiles.find((p) => p.kind !== "physician");
   if (bad) {
@@ -70,22 +64,60 @@ export function assertIndividualPhysicians(profiles: readonly Profile[]): void {
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Provider icons                                                            */
-/* -------------------------------------------------------------------------- */
-
-const monogram = (letter: string, bg: string): string =>
-  `data:image/svg+xml;utf8,${encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="${bg}"/><text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-family="ui-sans-serif,system-ui,sans-serif" font-size="46" font-weight="600" fill="#fff">${letter}</text></svg>`,
-  )}`;
+/** Jensen-Shannon divergence (natural log) between two priority vectors. */
+export function jensenShannon(p: Record<Value, number>, q: Record<Value, number>): number {
+  let sum = 0;
+  for (const v of VALUE_KEYS) {
+    const m = (p[v] + q[v]) / 2;
+    if (p[v] > 0) sum += 0.5 * p[v] * Math.log(p[v] / m);
+    if (q[v] > 0) sum += 0.5 * q[v] * Math.log(q[v] / m);
+  }
+  return sum;
+}
 
 /**
- * Only OpenAI has a real asset in the repo. The rest are neutral monogram
- * PLACEHOLDERS: swap in the official marks from `src/assets/providers/`.
+ * Deterministic farthest-point selection of `n` individual physicians.
+ *
+ * Seed: the physician farthest (Jensen-Shannon) from the pooled profile. Then
+ * repeatedly add the physician whose nearest already-chosen physician is
+ * farthest away. Ties go to the lowest key. The pooled profile is used only
+ * to pick the seed and is never returned. Result is in selection order.
  */
-export const PROVIDER_LOGOS: Record<NonNullable<Profile["family"]>, { src: string; alt: string }> = {
-  openai: { src: openaiLogo, alt: "OpenAI" },
-  anthropic: { src: monogram("A", "#8C6A55"), alt: "Anthropic" },
-  google: { src: monogram("G", "#5B7BC0"), alt: "Google" },
-  other: { src: monogram("Q", "#6B7280"), alt: "Qwen" },
-};
+export function selectSpreadPhysicians(profiles: readonly Profile[], n = 8): Profile[] {
+  const pool = selectPhysicians(profiles).sort((a, b) => a.key.localeCompare(b.key));
+  const pooled = profiles.find((p) => p.kind === "pooled-physician");
+  if (!pooled) throw new Error("selectSpreadPhysicians needs the pooled-physician profile to seed the selection.");
+  if (!Number.isInteger(n) || n < 1 || n > pool.length) {
+    throw new RangeError(`n must be an integer from 1 to ${pool.length}; got ${n}.`);
+  }
+
+  // `>` keeps the first (lowest-key) candidate on ties because `pool` is key-sorted.
+  const farthest = (score: (p: Profile) => number, candidates: readonly Profile[]): Profile => {
+    let best = candidates[0];
+    let bestScore = score(best);
+    for (const c of candidates.slice(1)) {
+      const s = score(c);
+      if (s > bestScore) {
+        best = c;
+        bestScore = s;
+      }
+    }
+    return best;
+  };
+
+  const chosen = [farthest((p) => jensenShannon(p.priorities, pooled.priorities), pool)];
+  while (chosen.length < n) {
+    const rest = pool.filter((p) => !chosen.includes(p));
+    chosen.push(
+      farthest((p) => Math.min(...chosen.map((c) => jensenShannon(p.priorities, c.priorities))), rest),
+    );
+  }
+  assertIndividualPhysicians(chosen);
+  return chosen;
+}
+
+/** All 25 individual physicians, for later. */
+export const ALL_PHYSICIANS: readonly Profile[] = selectPhysicians(ALL_PROFILES);
+
+/** The eight shown in the autoplay row. */
+export const SPREAD_PHYSICIANS: readonly Profile[] = selectSpreadPhysicians(ALL_PROFILES, 8);
