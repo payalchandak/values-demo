@@ -16,11 +16,23 @@ import { triggerWords } from "./valueTriggers";
 /** Gap between repeat-query marks appearing. */
 export const MARK_INTERVAL_MS = STAGGER_MS;
 
+/**
+ * How fast the opening case types, in characters per second.
+ * Fast enough to read as typing, slow enough that phrases form as they land.
+ */
+const CASE_TYPE_CPS = 68;
+/** Settled case on screen after the last character, before the chapter ends. */
+const CASE_HOLD_MS = 3200;
+
+const patientAt = 3200;
+const typedAt = patientAt + Math.ceil((openingCase.vignette.length / CASE_TYPE_CPS) * 1000);
+
 const hook = [
   { name: "label", startMs: 0 }, // small "NeurIPS 2026" label
   { name: "headline", startMs: 500 },
-  { name: "patient", startMs: 3200 }, // patient card appears beneath
-  { name: "end", startMs: 11000 },
+  { name: "patient", startMs: patientAt }, // case begins typing beneath the title
+  { name: "typed", startMs: typedAt }, // last character has landed
+  { name: "end", startMs: typedAt + CASE_HOLD_MS },
 ] as const satisfies readonly Beat[];
 
 const dilemma = [
@@ -94,6 +106,16 @@ export const OFFSETS: Readonly<Record<OpeningChapterKey, number>> = (() => {
 /** Absolute opening time of a named beat. Throws on unknown names. */
 export const at = (chapter: OpeningChapterKey, beat: string): number =>
   OFFSETS[chapter] + beatStart(OPENING_BEATS[chapter], beat);
+
+/** How many characters of the case are visible at opening time `t`. */
+export function caseCharsAt(t: number): number {
+  const start = at("hook", "patient");
+  const end = at("hook", "typed");
+  const n = openingCase.vignette.length;
+  if (t >= end) return n;
+  if (t <= start || end <= start) return 0;
+  return Math.min(n, Math.ceil(((t - start) / (end - start)) * n));
+}
 
 /** 0 before `start`, 1 after `end`, linear between. */
 export const ramp = (t: number, start: number, end: number): number =>

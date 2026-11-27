@@ -21,7 +21,7 @@ import OpeningResponse from "./OpeningResponse";
 import ValueStrip from "./ValueStrip";
 import Vignette from "./Vignette";
 import { valueSteps } from "./valueSteps";
-import { MARK_INTERVAL_MS, OPENING_BEATS, OFFSETS, at, ramp, visibility } from "./timeline";
+import { MARK_INTERVAL_MS, OPENING_BEATS, OFFSETS, at, caseCharsAt, ramp, visibility } from "./timeline";
 
 /* -------------------------------------------------------------------------- */
 /*  Copy                                                                       */
