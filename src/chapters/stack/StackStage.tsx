@@ -496,8 +496,19 @@ const CardBack = memo(function CardBack({ study }: { study: StudyCase }) {
   const card = caseCardFor(study);
   return (
     <div style={{ ...caseFaceStyle, display: "flex", flexDirection: "column" }}>
-      <div className="font-mono" style={{ fontSize: 11, letterSpacing: "0.08em", color: "#6b7280" }}>
-        {card.specialty || displayId(study.id)} <span style={{ opacity: 0.6 }}>tags</span>
+      <div
+        style={{
+          fontSize: 18,
+          fontWeight: 700,
+          lineHeight: 1.1,
+          letterSpacing: "-0.01em",
+          color: INK,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {card.title}
       </div>
       <div style={{ marginTop: 8, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {study.tags.map((tags, i) => (
@@ -536,7 +547,6 @@ function Chip({ value, tag }: { value: Value; tag: Tag }) {
         whiteSpace: "nowrap",
       }}
     >
-      <span style={{ width: 6, height: 6, borderRadius: 3, background: VALUE_COLORS[value], flex: "none" }} />
       <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis" }}>{VALUE_NAMES[value]}</span>
       <span className="font-mono" style={{ color: s.fg, fontWeight: 700 }}>
         {SIGN[tag]}
