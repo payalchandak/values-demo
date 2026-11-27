@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "check:profiles": "node scripts/check-no-hardcoded-profiles.ts",
-    "check:stack": "node scripts/check-stack.mjs"
+    "check:stack": "node scripts/check-stack.mjs",
+    "check:fit": "node scripts/check-fit.ts",
+    "capture": "node scripts/capture-autoplay.ts"
   },
   "dependencies": {
     "framer-motion": "^14.14.0",
@@ -21,6 +23,7 @@
     "@types/react": "^19.3.3",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
+    "playwright": "^1.65.1",
     "tailwindcss": "^4.3.5",
     "typescript": "^7.0.2",
     "vite": "^8.4.0"

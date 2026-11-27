@@ -24,14 +24,14 @@ const models = INDIVIDUAL_MODELS;
 
 /* Chapter 1: one beat per model (start of its hold), then the end marker. */
 // TODO: tune after visual review
-const individualBeats: readonly Beat[] = [
+export const individualBeats: readonly Beat[] = [
   ...models.map((m, i) => ({ name: m.key, startMs: modelStartMs(i) })),
   { name: "end", startMs: individualModelsEndMs(models.length) },
 ];
 
 /* Chapter 2 */
 // TODO: tune after visual review
-const closingBeats = [
+export const closingBeats = [
   { name: "models", startMs: 0 }, // radars shrink into the labeled model row
   { name: "physicians", startMs: 1400 }, // physician radars appear one by one
   { name: "hold", startMs: 3600 }, // everything on screen, held
@@ -39,7 +39,7 @@ const closingBeats = [
   { name: "end", startMs: 12000 }, // final hold
 ] as const;
 
-const closingTiming: PhysiciansTiming = {
+export const closingTiming: PhysiciansTiming = {
   shrinkMs: 1200,
   physiciansStartMs: beatStart(closingBeats, "physicians"),
   physicianStaggerMs: 220,
@@ -64,6 +64,7 @@ export const endingChapters: Chapter[] = [
         physicians={SPREAD_PHYSICIANS}
         elapsedMs={ctx.elapsedMs}
         timing={closingTiming}
+        onReplay={ctx.restart}
       />
     ),
   },

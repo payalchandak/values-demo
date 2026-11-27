@@ -65,33 +65,31 @@ export function ModelLabel({
   iconSize = 32,
   large = false,
   stacked = false,
+  iconSlot = false,
 }: {
   profile: Profile;
   iconSize?: number;
   large?: boolean;
   /** Icon above the name, for narrow columns. */
   stacked?: boolean;
+  /** The stage draws this icon itself; leave an invisible slot for it to land on. */
+  iconSlot?: boolean;
 }) {
   const logo = modelLogo(profile);
   return (
     <div className={`flex items-center ${stacked ? "flex-col gap-1.5" : "gap-2.5"}`}>
-      <ProviderIcon src={logo.src} alt={logo.alt} size={iconSize} />
+      {iconSlot ? (
+        <span
+          data-anchor="icon-label"
+          className="inline-block shrink-0"
+          style={{ width: iconSize, height: iconSize, visibility: "hidden" }}
+        />
+      ) : (
+        <ProviderIcon src={logo.src} alt={logo.alt} size={iconSize} />
+      )}
       <span className={large ? "text-xl font-semibold text-[#1B2433]" : "text-sm font-semibold text-[#1B2433]"}>
         {profile.displayName}
       </span>
     </div>
   );
-}
-
-/**
- * Restart the demo from the top. Chapters get no restart callback, so this
- * presses the player's own HUD Restart button, which works in every playback
- * state (running, paused, or finished).
- *
- * NOTE: exposing `restart` on `ChapterContext` would be cleaner and would
- * remove this dependency on the HUD's `aria-label="Restart"`. Left as is
- * because the player is outside the ending chapters' ownership.
- */
-export function requestReplay() {
-  document.querySelector<HTMLButtonElement>('[data-playback-ui] button[aria-label="Restart"]')?.click();
 }

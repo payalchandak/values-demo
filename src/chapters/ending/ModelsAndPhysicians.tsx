@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import Radar, { PLOT_RADIUS_PER_WIDTH, RADAR_ASPECT } from "./Radar";
-import { clamp01, easeInOut, EndingHeader, Legend, ModelLabel, requestReplay, useElementSize } from "./shared";
+import { clamp01, easeInOut, EndingHeader, Legend, ModelLabel, useElementSize } from "./shared";
 import { assertIndividualPhysicians } from "./profiles";
 import { HELD_RADAR_OFFSET_Y, individualRadarWidth } from "./IndividualModels";
 import type { Profile } from "../../study/types";
@@ -99,7 +99,16 @@ export default function ModelsAndPhysicians({
   physicians,
   elapsedMs,
   timing,
+  onReplay,
+  showHeader = true,
+  sharedIconFor,
 }: {
+  /** Restart the whole demo (the player's `ctx.restart`). */
+  onReplay: () => void;
+  /** False when the stage supplies the headline. */
+  showHeader?: boolean;
+  /** Key of the model whose icon the stage draws (leaves a slot instead). */
+  sharedIconFor?: string;
   models: readonly Profile[];
   /** The model held at the end of the previous chapter; the row shrinks out from its radar. */
   anchorKey: string;
@@ -146,7 +155,8 @@ export default function ModelsAndPhysicians({
   const rowPlotRadius = PLOT_RADIUS_PER_WIDTH.compact * radar;
   const shrink = easeInOut(clamp01(elapsedMs / timing.shrinkMs));
   const scale = 1 + (Math.max(heldPlotRadius / rowPlotRadius, 1) - 1) * (1 - shrink);
-  const othersOpacity = clamp01(elapsedMs / 250); // everything but the anchor fades in
+  // Everything but the anchor fades in once the row has shrunk enough to be on screen.
+  const othersOpacity = clamp01((shrink - 0.8) / 0.2);
   // Caption and names wait until the radars are nearly in place.
   const namesIn = clamp01((shrink - 0.6) / 0.4);
 
@@ -159,7 +169,7 @@ export default function ModelsAndPhysicians({
 
   return (
     <div className="flex h-full w-full flex-col">
-      <EndingHeader label="Models and physicians" />
+      {showHeader && <EndingHeader label="Models and physicians" />}
 
       <div ref={body} className="relative min-h-0 flex-1">
         <div
@@ -196,7 +206,7 @@ export default function ModelsAndPhysicians({
                       <Radar profile={model} width={radar} mode="compact" />
                     </div>
                     <div style={{ opacity: namesIn }}>
-                      <ModelLabel profile={model} iconSize={radar < 70 ? 24 : 30} stacked />
+                      <ModelLabel profile={model} iconSize={radar < 70 ? 24 : 30} stacked iconSlot={model.key === sharedIconFor} />
                     </div>
                   </div>
                 ))}
@@ -263,7 +273,7 @@ export default function ModelsAndPhysicians({
               type="button"
               tabIndex={q > 0.9 ? 0 : -1}
               onMouseDown={(e) => e.preventDefault()} // keep focus off the button so Space stays global
-              onClick={requestReplay}
+              onClick={onReplay}
               className={`${buttonBase} border border-line bg-white text-[#1B2433] hover:bg-gray-50`}
             >
               <span aria-hidden="true">↺</span>

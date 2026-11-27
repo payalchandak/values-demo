@@ -16,7 +16,7 @@ import {
 } from "../../design";
 import type { Value } from "../../study/types";
 import { CHOICE_LABELS, openingCase } from "./openingCase";
-import { MARK_INTERVAL_MS, OPENING_BEATS, OFFSETS, at, ramp, visibility } from "./timeline";
+import { MARK_INTERVAL_MS, OPENING_BEATS, OPENING_END_MS, OFFSETS, at, ramp, visibility } from "./timeline";
 
 /* -------------------------------------------------------------------------- */
 /*  Copy                                                                       */
@@ -60,6 +60,9 @@ const RESPONSE_TIMING: ModelResponseTiming = {
   outlineEndMs: beat("extracted"),
 };
 
+/** After the trade-off statement starts, the shared icon needs its option slot for this long while it leaves. */
+export const ICON_LEAVE_MS = 700;
+
 /** Option accent colors come from the recommendation palette, never the value colors. */
 const OPTION_COLORS = [RECOMMENDATION_COLORS.option1, RECOMMENDATION_COLORS.option2] as const;
 
@@ -81,6 +84,7 @@ const PROBE_TIMES: readonly number[] = [
   at("model", "extracted"),
   at("tradeoff", "end") - 1,
   at("framework", "all"),
+  at("framework", "recall") + 800,
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -106,10 +110,11 @@ function Block({
   );
 }
 
-function PatientCard() {
+export function PatientCard({ shared = false }: { shared?: boolean }) {
   const { heading, paragraphs } = openingCase.patient;
   return (
     <div
+      data-shared={shared ? "patient" : undefined}
       className="w-full rounded-[0.9em] border bg-white p-[1em] shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_28px_-14px_rgba(16,24,40,0.12)]"
       style={{ borderColor: NEUTRAL.line, color: NEUTRAL.ink }}
     >
@@ -215,13 +220,19 @@ function OptionCard({
   t,
   selected,
   showChips,
+  sharedIcon,
 }: {
   index: 0 | 1;
   t: number;
   selected: boolean;
   showChips: boolean;
+  sharedIcon: boolean;
 }) {
   const color = OPTION_COLORS[index];
+  const iconHere =
+    index === openingCase.response.chosen &&
+    t >= at("model", "extract") &&
+    t < at("tradeoff", "statement") + ICON_LEAVE_MS;
   const badge = visibility(
     t,
     at("model", "extract"),
@@ -251,11 +262,20 @@ function OptionCard({
         >
           {CHOICE_LABELS[index]}
         </p>
-        {selected && (
-          <span className="inline-flex" style={{ opacity: badge, zoom: "var(--z)" }}>
-            <ProviderIcon src={PROVIDER.logo} alt={PROVIDER.name} size={32} />
-          </span>
-        )}
+        {sharedIcon
+          ? iconHere && (
+              // The stage's persistent icon lands here; this is only its slot.
+              <span
+                data-anchor="icon-option"
+                className="inline-flex"
+                style={{ width: 32, height: 32, zoom: "var(--z)", visibility: "hidden" }}
+              />
+            )
+          : selected && (
+              <span className="inline-flex" style={{ opacity: badge, zoom: "var(--z)" }}>
+                <ProviderIcon src={PROVIDER.logo} alt={PROVIDER.name} size={32} />
+              </span>
+            )}
       </div>
       <p className="font-semibold leading-snug" style={{ fontSize: "1.05em" }}>
         {openingCase.choices[index]}
@@ -284,7 +304,17 @@ function frameworkHighlight(t: number): Value[] | undefined {
   return hit ? [hit] : undefined;
 }
 
-function SceneBody({ t, probe }: { t: number; probe: boolean }) {
+function SceneBody({
+  t,
+  probe,
+  sharedIcon,
+  hidePatient,
+}: {
+  t: number;
+  probe: boolean;
+  sharedIcon: boolean;
+  hidePatient: boolean;
+}) {
   /* Headline: the old one fades out as its chapter ends, the new one fades in just after. */
   let h = 0;
   HEADLINE_STARTS.forEach((s, i) => {
@@ -295,7 +325,7 @@ function SceneBody({ t, probe }: { t: number; probe: boolean }) {
     (h === 0
       ? ramp(t, HEADLINE_STARTS[0], HEADLINE_STARTS[0] + 500)
       : ramp(t, HEADLINE_STARTS[h] + 100, HEADLINE_STARTS[h] + 450)) *
-    (next === undefined ? 1 : 1 - ramp(t, next - 250, next));
+    (next === undefined ? 1 - ramp(t, OPENING_END_MS, OPENING_END_MS + 350) : 1 - ramp(t, next - 250, next));
 
   const ask = at("model", "ask");
   const statement = at("tradeoff", "statement");
@@ -304,8 +334,13 @@ function SceneBody({ t, probe }: { t: number; probe: boolean }) {
   const showLabel = t < dilemmaStart;
   const labelOpacity = visibility(t, at("hook", "label"), at("hook", "label") + 400, dilemmaStart - 300, dilemmaStart);
 
-  const showPatientRegion = t >= at("hook", "patient") && t < statement;
-  const patientOpacity = visibility(t, at("hook", "patient"), at("hook", "patient") + 600, ask + 300, ask + 800);
+  const recall = at("framework", "recall");
+  // The returning patient card waits for the principles to clear, so the two never stack.
+  const showPatientRegion = (t >= at("hook", "patient") && t < statement) || t >= recall + 450;
+  const patientOpacity =
+    t >= recall
+      ? ramp(t, recall + 450, recall + 950)
+      : visibility(t, at("hook", "patient"), at("hook", "patient") + 600, ask + 300, ask + 800);
   const showExcerpt = t >= ask && t < statement;
   const excerptOpacity = visibility(
     t,
@@ -326,7 +361,7 @@ function SceneBody({ t, probe }: { t: number; probe: boolean }) {
   const selectedIndex = t >= at("model", "extract") && t < statement ? openingCase.response.chosen : null;
   const showChips = t >= statement;
 
-  const showFramework = t >= at("framework", "framework");
+  const showFramework = t >= at("framework", "framework") && t < recall + 450;
 
   return (
     <div
@@ -361,7 +396,9 @@ function SceneBody({ t, probe }: { t: number; probe: boolean }) {
             style={{ opacity: patientOpacity }}
             aria-hidden={patientOpacity === 0}
           >
-            <PatientCard />
+            <div style={{ visibility: hidePatient ? "hidden" : undefined }}>
+              <PatientCard shared={!probe} />
+            </div>
           </div>
           {showExcerpt && (
             <div
@@ -371,6 +408,7 @@ function SceneBody({ t, probe }: { t: number; probe: boolean }) {
               <ModelResponse
                 config={RESPONSE_CONFIG}
                 iconSrc={PROVIDER.logo}
+                hideIcon={sharedIcon}
                 elapsedMs={Math.max(0, t - OFFSETS.model)}
                 timing={RESPONSE_TIMING}
               />
@@ -385,15 +423,21 @@ function SceneBody({ t, probe }: { t: number; probe: boolean }) {
             className="grid w-full grid-cols-1 items-stretch gap-[0.7em] @md:grid-cols-2"
             style={{ opacity: optionsOpacity }}
           >
-            <OptionCard index={0} t={t} selected={selectedIndex === 0} showChips={showChips} />
-            <OptionCard index={1} t={t} selected={selectedIndex === 1} showChips={showChips} />
+            <OptionCard index={0} t={t} selected={selectedIndex === 0} showChips={showChips} sharedIcon={sharedIcon} />
+            <OptionCard index={1} t={t} selected={selectedIndex === 1} showChips={showChips} sharedIcon={sharedIcon} />
           </ul>
         </Block>
       )}
 
       {showFramework && (
         <Block probe={probe} className="w-full">
-          <div style={{ opacity: ramp(t, at("framework", "framework"), at("framework", "framework") + 500) }}>
+          <div
+            style={{
+              opacity:
+                ramp(t, at("framework", "framework"), at("framework", "framework") + 500) *
+                (1 - ramp(t, recall, recall + 450)),
+            }}
+          >
             <PrinciplistFramework heading={null} highlight={frameworkHighlight(t)} />
           </div>
         </Block>
@@ -406,7 +450,17 @@ function SceneBody({ t, probe }: { t: number; probe: boolean }) {
 /*  Root                                                                       */
 /* -------------------------------------------------------------------------- */
 
-export default function OpeningScene({ t }: { t: number }) {
+export default function OpeningScene({
+  t,
+  sharedIcon = false,
+  hidePatient = false,
+}: {
+  t: number;
+  /** The stage owns the OpenAI icon: leave anchor slots instead of drawing it. */
+  sharedIcon?: boolean;
+  /** The stage draws the patient card (as the stack's first card). */
+  hidePatient?: boolean;
+}) {
   const rootRef = useRef<HTMLDivElement>(null);
   const probesRef = useRef<HTMLDivElement>(null);
 
@@ -452,11 +506,11 @@ export default function OpeningScene({ t }: { t: number }) {
       className="@container relative h-full w-full"
       style={{ fontSize: "var(--fs)" }}
     >
-      <SceneBody t={t} probe={false} />
-      <div ref={probesRef} aria-hidden="true" className="pointer-events-none invisible absolute left-0 top-0 w-full">
+      <SceneBody t={t} probe={false} sharedIcon={sharedIcon} hidePatient={hidePatient} />
+      <div ref={probesRef} data-probe aria-hidden="true" className="pointer-events-none invisible absolute left-0 top-0 w-full">
         {PROBE_TIMES.map((pt) => (
           <div key={pt} className="absolute left-0 top-0 w-full">
-            <SceneBody t={pt} probe />
+            <SceneBody t={pt} probe sharedIcon={false} hidePatient={false} />
           </div>
         ))}
       </div>

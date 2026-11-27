@@ -54,7 +54,8 @@ const framework = [
   { name: "N", startMs: 4800 },
   { name: "J", startMs: 6200 },
   { name: "all", startMs: 7600 }, // no emphasis: all four together
-  { name: "end", startMs: 10000 },
+  { name: "recall", startMs: 9000 }, // principles fade; the patient card returns, ready to become the stack's first card
+  { name: "end", startMs: 10800 },
 ] as const satisfies readonly Beat[];
 
 export const OPENING_BEATS = { hook, dilemma, model, tradeoff, framework } as const;
@@ -72,6 +73,12 @@ export const OFFSETS: Readonly<Record<OpeningChapterKey, number>> = (() => {
   }
   return out;
 })();
+
+/** Total length of the five opening chapters on the shared opening clock. */
+export const OPENING_END_MS: number = ORDER.reduce(
+  (sum, key) => sum + OPENING_BEATS[key][OPENING_BEATS[key].length - 1].startMs,
+  0,
+);
 
 /** Absolute opening time of a named beat. Throws on unknown names. */
 export const at = (chapter: OpeningChapterKey, beat: string): number =>

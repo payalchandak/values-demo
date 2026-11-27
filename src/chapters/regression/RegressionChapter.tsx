@@ -43,6 +43,11 @@ export interface RegressionProps {
    * walkthrough lands on a case where the model visibly fits.
    */
   expandedIndex?: number;
+  /**
+   * Draw the eyebrow and headline. Turn off when a host (the demo stage) shows
+   * the headlines itself, from the exported `headlines` table.
+   */
+  showHeadline?: boolean;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -746,6 +751,7 @@ export function RegressionScene({
   rows,
   profile = profileByKey(DEFAULT_PROFILE_KEY),
   expandedIndex = bestFitIndex(rows, profile),
+  showHeadline = true,
 }: RegressionProps & { elapsedMs: number }) {
   // The engine's first tick can land a few ms below zero; nothing here is defined before 0.
   const t = Math.max(0, elapsedMs);
@@ -773,13 +779,17 @@ export function RegressionScene({
   return (
     <div className="flex h-full w-full flex-col">
       <header className="shrink-0">
-        <div className="font-mono text-[10px] uppercase tracking-widest text-gray-400 sm:text-xs">
-          Regression
-        </div>
-        <TextSwap
-          state={textAt(headlines, t)}
-          className="mt-1 min-h-[3.25rem] text-xl font-semibold leading-snug tracking-tight text-gray-900 sm:min-h-8 sm:text-2xl"
-        />
+        {showHeadline && (
+          <>
+            <div className="font-mono text-[10px] uppercase tracking-widest text-gray-400 sm:text-xs">
+              Regression
+            </div>
+            <TextSwap
+              state={textAt(headlines, t)}
+              className="mt-1 min-h-[3.25rem] text-xl font-semibold leading-snug tracking-tight text-gray-900 sm:min-h-8 sm:text-2xl"
+            />
+          </>
+        )}
         <TextSwap
           state={textAt(captions(profile.displayName), t)}
           className="mt-1 min-h-[2.5rem] text-sm leading-snug text-gray-600 sm:min-h-6 sm:text-base"

@@ -134,6 +134,8 @@ interface ModelResponseProps {
   /** Chapter-local playback time in ms. */
   elapsedMs: number;
   timing: ModelResponseTiming;
+  /** The caller draws the icon itself (e.g. a persistent stage icon); leave only its slot. */
+  hideIcon?: boolean;
 }
 
 /**
@@ -141,7 +143,7 @@ interface ModelResponseProps {
  * phrase group, then the recommendation span is highlighted. Purely
  * presentational: all motion is derived from `elapsedMs`.
  */
-export default function ModelResponse({ config, iconSrc, elapsedMs, timing }: ModelResponseProps) {
+export default function ModelResponse({ config, iconSrc, elapsedMs, timing, hideIcon = false }: ModelResponseProps) {
   const layout = useMemo(
     () => layoutResponse(config.text, config.recommendationSpan, config.revealWordsPerGroup),
     [config.text, config.recommendationSpan, config.revealWordsPerGroup],
@@ -183,8 +185,12 @@ export default function ModelResponse({ config, iconSrc, elapsedMs, timing }: Mo
   return (
     <div className="flex items-start gap-3 md:gap-4">
       <span
+        data-anchor={hideIcon ? "icon-response" : undefined}
         className="mt-1 inline-flex shrink-0"
-        style={{ opacity: ramp(progress.elapsedMs, timing.revealStartMs, timing.revealStartMs + 300) }}
+        style={{
+          opacity: ramp(progress.elapsedMs, timing.revealStartMs, timing.revealStartMs + 300),
+          visibility: hideIcon ? "hidden" : undefined,
+        }}
       >
         <ProviderIcon src={iconSrc} alt={config.iconLabel} size={40} />
       </span>

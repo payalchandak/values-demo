@@ -50,9 +50,15 @@ export const individualRadarWidth = (width: number, height: number) =>
 export default function IndividualModels({
   models,
   elapsedMs,
+  showHeader = true,
+  sharedIconFor,
 }: {
   models: readonly Profile[];
   elapsedMs: number;
+  /** False when the stage supplies the headline. */
+  showHeader?: boolean;
+  /** Key of the model whose icon the stage draws (leaves a slot instead). */
+  sharedIconFor?: string;
 }) {
   const viewport = useRef<HTMLDivElement>(null);
   const { width, height } = useElementSize(viewport);
@@ -63,9 +69,9 @@ export default function IndividualModels({
 
   return (
     <div className="flex h-full w-full flex-col">
-      <EndingHeader label="Individual models" />
+      {showHeader && <EndingHeader label="Individual models" />}
 
-      <div ref={viewport} className="relative min-h-0 flex-1 overflow-hidden">
+      <div ref={viewport} data-scroll-track className="relative min-h-0 flex-1 overflow-hidden">
         {/* The track scrolls; every slot is exactly one viewport tall, so the held profile is always dead center. */}
         <div
           className="absolute inset-x-0 top-0 will-change-transform"
@@ -79,7 +85,7 @@ export default function IndividualModels({
               aria-hidden={i !== active}
             >
               <Radar profile={model} width={radarWidth} mode="full" />
-              <ModelLabel profile={model} iconSize={LABEL_ICON} large />
+              <ModelLabel profile={model} iconSize={LABEL_ICON} large iconSlot={model.key === sharedIconFor} />
             </div>
           ))}
         </div>
