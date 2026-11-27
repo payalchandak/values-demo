@@ -25,7 +25,7 @@ import { chromium } from "playwright";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = process.env.OUT_DIR ?? join(tmpdir(), "check-fit");
 const SAMPLE_MS = 400;
-const MAIN_MS = 172_000; // all ten chapters (about 168s), plus margin
+const MAIN_MS = 172_000; // all nine chapters (about 113s), plus margin
 const DEV_MS = 40_000;
 
 const VIEWPORTS = (process.argv.slice(2).length ? process.argv.slice(2) : ["1440x900", "390x844"]).map((v) => {

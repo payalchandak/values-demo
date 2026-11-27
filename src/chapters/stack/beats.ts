@@ -13,8 +13,9 @@ import type { Beat } from "../../types";
  *   fan        the other cases fan out behind it, "N dilemmas" label arrives
  *   markers    choice markers accumulate along card edges
  *   lift       two more cards slide out of the fan beside the first
- *   flip       the three foreground cards flip to their tag-chip backs
- *   fade       the background stack fades away
+ *   flip       the three foreground cards flip to their tag-chip backs; the background fan fades out
+ *   settle     the three tag cards sit so the trade-offs can be read
+ *   fade       the "N dilemmas" label fades ahead of the table
  *   morph      the three cards morph into table rows, ellipsis + count label
  *   highlight  the first row takes its highlight
  *   end        chapter end marker
@@ -26,6 +27,7 @@ export const STACK_BEAT_NAMES = [
   "markers",
   "lift",
   "flip",
+  "settle",
   "fade",
   "morph",
   "highlight",
@@ -40,6 +42,8 @@ const CARD_HOLD_MS = 1200;
 const MARKERS_MS = 260;
 /** Three staggered flips. Each flip lasts MOVE_MS (see the 0.6 divisor in the timeline). */
 const FLIP_MS = 250;
+/** The tag cards stay up after the flip, long enough to read the trade-offs. */
+const TRADEOFF_HOLD_MS = 2400;
 /** Three staggered morphs into rows. Each morph lasts MOVE_MS (see the 0.76 divisor). */
 const MORPH_MS = 200;
 
@@ -48,7 +52,8 @@ const fan = shrink + MOVE_MS;
 const markers = fan + MOVE_MS;
 const lift = markers + MARKERS_MS;
 const flip = lift + MOVE_MS;
-const fade = flip + FLIP_MS;
+const settle = flip + FLIP_MS;
+const fade = settle + TRADEOFF_HOLD_MS;
 const morph = fade + MOVE_MS;
 const highlight = morph + MORPH_MS;
 const end = highlight + MOVE_MS;
@@ -60,6 +65,7 @@ export const stackBeats: readonly Beat[] = [
   { name: "markers", startMs: markers },
   { name: "lift", startMs: lift },
   { name: "flip", startMs: flip },
+  { name: "settle", startMs: settle },
   { name: "fade", startMs: fade },
   { name: "morph", startMs: morph },
   { name: "highlight", startMs: highlight },

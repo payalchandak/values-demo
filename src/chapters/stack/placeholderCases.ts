@@ -35,48 +35,61 @@ function mulberry32(seed: number) {
   };
 }
 
-const SCENARIOS: { vignette: string; choices: [string, string] }[] = [
+const SCENARIOS: { specialty: string; vignette: string; choices: [string, string] }[] = [
   {
+    specialty: "Nephrology",
     vignette:
       "A 74-year-old with advanced heart failure asks to stop dialysis. Her daughter wants every option tried.",
     choices: ["Honor the request and arrange comfort care", "Continue dialysis while the family agrees"],
   },
   {
+    specialty: "Critical care",
     vignette:
       "One ICU bed is left. A 38-year-old trauma patient and a 71-year-old post-operative patient both need it.",
     choices: ["Admit the trauma patient", "Admit the post-operative patient"],
   },
   {
+    specialty: "Pediatrics",
     vignette:
       "A teenager refuses a blood transfusion for religious reasons. Her parents consent on her behalf.",
     choices: ["Respect the teenager's refusal", "Transfuse with parental consent"],
   },
   {
+    specialty: "Oncology",
     vignette:
       "A scarce oncology drug could extend one patient's life by months or give two others several weeks.",
     choices: ["Treat the single patient", "Split the supply between two patients"],
   },
   {
+    specialty: "Geriatrics",
     vignette:
       "A patient with early dementia wants to go home alone. The care team doubts he can manage safely.",
     choices: ["Discharge home with check-ins", "Recommend a supervised facility"],
   },
   {
+    specialty: "Surgery",
     vignette:
       "A clinic has one surgical slot. A long-waiting patient has a mild case, a newer one is deteriorating.",
     choices: ["Operate on the waiting patient", "Operate on the deteriorating patient"],
   },
   {
+    specialty: "Palliative care",
     vignette:
       "A parent asks the team not to tell their child about a terminal diagnosis. The child keeps asking.",
     choices: ["Disclose honestly to the child", "Defer to the parent's wishes"],
   },
   {
+    specialty: "Oncology",
     vignette:
       "A trial participant shows early benefit. Stopping the placebo arm would end the study's validity.",
     choices: ["Unblind and offer treatment", "Continue the trial as planned"],
   },
 ];
+
+/** Specialty for a placeholder vignette, if this text is one of the seeded scenarios. */
+export function placeholderSpecialty(vignette: string): string | undefined {
+  return SCENARIOS.find((scenario) => scenario.vignette === vignette)?.specialty;
+}
 
 const TAG_VALUES: Tag[] = [-1, 0, 1];
 

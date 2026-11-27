@@ -202,13 +202,15 @@ export function computeFrame(
   const fanP = easeInOut(fanLinear);
   const markersP = span(t, times, "markers", "lift");
   const liftP = easeInOut(span(t, times, "lift", "flip"));
-  const flipP = span(t, times, "flip", "fade");
+  const flipP = span(t, times, "flip", "settle");
   const fadeP = easeInOut(span(t, times, "fade", "morph"));
   const morphP = span(t, times, "morph", "highlight");
   const highlightP = easeInOut(span(t, times, "highlight", "end"));
 
   const heroScale = lerp(L.heroScale, L.fanScale, shrinkP);
-  const backgroundOpacity = t < times.fan ? 0 : 1 - fadeP;
+  // The pile leaves as the three cards flip, so the trade-off section is just those cards.
+  const fanLeave = easeInOut(flipP);
+  const backgroundOpacity = t < times.fan ? 0 : (1 - fanLeave) * (1 - fadeP);
 
   const cards: CardFrame[] = [];
   for (let i = 0; i < n; i++) {

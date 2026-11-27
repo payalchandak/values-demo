@@ -3,6 +3,7 @@ import { MOVE_MS } from "../../design/motion";
 import type { StudyCase, Tag, Value } from "../../study/types";
 import type { Beat } from "../../types";
 import { PatientCard } from "../opening/OpeningScene";
+import CaseCardFace, { caseCardFor, caseFaceStyle } from "./CaseCard";
 import { resolveBeats } from "./beats";
 import {
   deltaOf,
@@ -462,58 +463,8 @@ function DotStrip({ side, frame }: { side: "left" | "right"; frame: CardFrame })
 /*  Faces (natural size CARD_W x CARD_H; the wrapper scales them)             */
 /* -------------------------------------------------------------------------- */
 
-const faceBase = {
-  width: "100%",
-  height: "100%",
-  boxSizing: "border-box",
-  padding: 14,
-  borderRadius: 12,
-  background: "#fff",
-  border: "1px solid #e5e7eb",
-  boxShadow: "0 2px 6px rgba(17,24,39,0.10)",
-  overflow: "hidden",
-} as const;
-
-const clamp = (lines: number) =>
-  ({
-    display: "-webkit-box",
-    WebkitLineClamp: lines,
-    WebkitBoxOrient: "vertical",
-    overflow: "hidden",
-  }) as const;
-
 const CardFront = memo(function CardFront({ study }: { study: StudyCase }) {
-  return (
-    <div style={{ ...faceBase, display: "flex", flexDirection: "column" }}>
-      <div className="font-mono" style={{ fontSize: 11, letterSpacing: "0.08em", color: "#6b7280" }}>
-        {displayId(study.id)}
-      </div>
-      <p style={{ ...clamp(3), margin: "6px 0 0", fontSize: 12, lineHeight: 1.4 }}>{study.vignette}</p>
-      <div style={{ marginTop: "auto", display: "grid", gap: 4 }}>
-        {study.choices.map((choice, i) => (
-          <div
-            key={i}
-            style={{
-              display: "flex",
-              gap: 6,
-              alignItems: "center",
-              padding: "4px 7px",
-              borderRadius: 6,
-              background: "#FAFAFA",
-              borderLeft: `3px solid ${OPTION_INK}`,
-              fontSize: 10.5,
-              lineHeight: 1.25,
-            }}
-          >
-            <span className="font-mono" style={{ color: OPTION_INK, fontWeight: 600 }}>
-              {i + 1}
-            </span>
-            <span style={{ ...clamp(1), minWidth: 0 }}>{choice}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  return <CaseCardFace item={caseCardFor(study)} />;
 });
 
 const SIGN: Record<Tag, string> = { [-1]: "\u2212", 0: "0", 1: "+" };
@@ -524,10 +475,11 @@ const TAG_STYLE: Record<Tag, { bg: string; fg: string }> = {
 };
 
 const CardBack = memo(function CardBack({ study }: { study: StudyCase }) {
+  const card = caseCardFor(study);
   return (
-    <div style={{ ...faceBase, display: "flex", flexDirection: "column" }}>
+    <div style={{ ...caseFaceStyle, display: "flex", flexDirection: "column" }}>
       <div className="font-mono" style={{ fontSize: 11, letterSpacing: "0.08em", color: "#6b7280" }}>
-        {displayId(study.id)} <span style={{ opacity: 0.6 }}>tags</span>
+        {card.specialty || displayId(study.id)} <span style={{ opacity: 0.6 }}>tags</span>
       </div>
       <div style={{ marginTop: 8, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {study.tags.map((tags, i) => (

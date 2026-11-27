@@ -35,11 +35,12 @@ const FRAMES = {
   lift_mid: 1835,
   flip_mid: 2035,
   flip_end: 2160,
-  fade_mid: 2235,
-  morph_mid: 2410,
-  morph_end: 2510,
-  highlight_mid: 2585,
-  end: 2660,
+  settle_mid: 3360,
+  fade_mid: 4635,
+  morph_mid: 4810,
+  morph_end: 4910,
+  highlight_mid: 4985,
+  end: 5060,
 };
 // From here on only the table is on screen, so its text must be legible.
 const TABLE_FRAMES = new Set(["morph_end", "highlight_mid", "end"]);
