@@ -9,27 +9,31 @@ import type { Beat } from "../../types";
  * animation code knows a duration.
  *
  *   card       one full-size case card, holding
- *   shrink     the card shrinks into the middle of the grid; "N dilemmas" label arrives
+ *   turn       the card flips to its tag-chip back (its values)
+ *   values     the tag back holds so the values can be read
+ *   shrink     the card flips back and shrinks into the middle of the grid, becoming a
+ *              title card; "N dilemmas" label arrives
  *   reveal     the other cards appear one by one, spreading out from the first
- *   grid       every card is on screen and holds
+ *   grid       every card is on screen and holds, so the titles can be read
  *   flip       every card flips to its tag-chip back, one after another (the structure)
  *   settle     all the tag backs sit so the trade-offs can be read
- *   unflip     every card flips back to the decision side, all together
- *   markers    the red and dark decision dots come in along the card edges
+ *   markers    the red and dark decision dots come in along the card edges, beside the tags
  *   observed   the dots are all in and hold
- *   gather     the first three cards move out of the grid, the rest fade away
+ *   gather     the first three cards flip back to full cards, grow and move out of the grid,
+ *              the rest fade away
  *   morph      the three cards morph into table rows, ellipsis + count label
  *   highlight  the first row takes its highlight
  *   end        chapter end marker
  */
 export const STACK_BEAT_NAMES = [
   "card",
+  "turn",
+  "values",
   "shrink",
   "reveal",
   "grid",
   "flip",
   "settle",
-  "unflip",
   "markers",
   "observed",
   "gather",
@@ -42,18 +46,20 @@ export type StackBeatName = (typeof STACK_BEAT_NAMES)[number];
 
 /** The hero card sits still before it shrinks. */
 const CARD_HOLD_MS = 1200;
-/** The hero card shrinks into the grid. */
-const SHRINK_MS = 500;
+/** The hero card flips to its tag back. */
+const TURN_MS = 700;
+/** The hero's tag back holds so the values can be read. */
+const VALUES_HOLD_MS = 2000;
+/** The hero card flips back and shrinks into the grid. */
+const SHRINK_MS = 700;
 /** The other cards appear one by one. Each card fades in over 30% of this (see the timeline). */
-const REVEAL_MS = 2200;
-/** The full grid holds before the flip. */
-const GRID_HOLD_MS = 800;
+const REVEAL_MS = 3000;
+/** The full grid holds so the titles can be read. */
+const GRID_HOLD_MS = 1500;
 /** Every card flips, staggered from the middle out. Each flip takes 45% of this. */
 const FLIP_MS = 3000;
-/** The tag backs stay up long enough to read the trade-offs. */
-const TRADEOFF_HOLD_MS = 2400;
-/** Every card flips back at the same time. */
-const UNFLIP_MS = 700;
+/** The tag backs stay up long enough to read the trade-offs before the decisions arrive. */
+const TRADEOFF_HOLD_MS = 1600;
 /** Dots cascade across the cards. */
 const MARKERS_MS = 1600;
 /** The finished dots hold before the table takes over. */
@@ -63,13 +69,14 @@ const GATHER_MS = 450;
 /** Three staggered morphs into rows. Each morph lasts MOVE_MS (see the 0.76 divisor). */
 const MORPH_MS = 200;
 
-const shrink = CARD_HOLD_MS;
+const turn = CARD_HOLD_MS;
+const values = turn + TURN_MS;
+const shrink = values + VALUES_HOLD_MS;
 const reveal = shrink + SHRINK_MS;
 const grid = reveal + REVEAL_MS;
 const flip = grid + GRID_HOLD_MS;
 const settle = flip + FLIP_MS;
-const unflip = settle + TRADEOFF_HOLD_MS;
-const markers = unflip + UNFLIP_MS;
+const markers = settle + TRADEOFF_HOLD_MS;
 const observed = markers + MARKERS_MS;
 const gather = observed + DOTS_HOLD_MS;
 const morph = gather + GATHER_MS;
@@ -78,12 +85,13 @@ const end = highlight + MOVE_MS;
 
 export const stackBeats: readonly Beat[] = [
   { name: "card", startMs: 0 },
+  { name: "turn", startMs: turn },
+  { name: "values", startMs: values },
   { name: "shrink", startMs: shrink },
   { name: "reveal", startMs: reveal },
   { name: "grid", startMs: grid },
   { name: "flip", startMs: flip },
   { name: "settle", startMs: settle },
-  { name: "unflip", startMs: unflip },
   { name: "markers", startMs: markers },
   { name: "observed", startMs: observed },
   { name: "gather", startMs: gather },

@@ -3,7 +3,7 @@ import { MOVE_MS } from "../../design/motion";
 import type { StudyCase, Tag, Value } from "../../study/types";
 import type { Beat } from "../../types";
 import { PatientCard } from "../opening/OpeningScene";
-import CaseCardFace, { caseCardFor, caseFaceStyle } from "./CaseCard";
+import CaseCardFace, { CaseCardMini, caseCardFor, caseFaceStyle } from "./CaseCard";
 import { resolveBeats } from "./beats";
 import {
   deltaOf,
@@ -44,6 +44,9 @@ const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 const CHOICE_COLORS = ["#D1495B", "#475569"] as const;
+/** A card at or below this face scale shows only its title; it blends to the full card over MINI_FADE above it. */
+const MINI_BELOW = 0.4;
+const MINI_FADE = 0.12;
 /** Option text stays in one ink. Red would read as a judgment on one choice. */
 const OPTION_INK = "#475569";
 const INK = "#1B2433";
@@ -398,17 +401,14 @@ function StackCard({
                 <CardBack study={study} />
               </div>
             ) : (
-              <CardFront study={study} />
+              <CardFront study={study} mini={clamp01((MINI_BELOW + MINI_FADE - card.faceScale) / MINI_FADE)} />
             )}
           </div>
         </div>
       )}
 
       {card.markerOpacity > 0 && card.dots > 0 && (
-        <>
-          <DotStrip side="left" frame={card} />
-          <DotStrip side="right" frame={card} />
-        </>
+        <DotStrip side="left" frame={card} />
       )}
     </div>
   );
@@ -463,8 +463,26 @@ function DotStrip({ side, frame }: { side: "left" | "right"; frame: CardFrame })
 /*  Faces (natural size CARD_W x CARD_H; the wrapper scales them)             */
 /* -------------------------------------------------------------------------- */
 
-const CardFront = memo(function CardFront({ study }: { study: StudyCase }) {
-  return <CaseCardFace item={caseCardFor(study)} />;
+/**
+ * The decision side. Small cards show just the big title; larger ones show the
+ * full card. `mini` (0..1) cross-fades between them as a card changes size.
+ */
+const CardFront = memo(function CardFront({ study, mini }: { study: StudyCase; mini: number }) {
+  const item = caseCardFor(study);
+  return (
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      {mini < 1 && (
+        <div style={{ position: "absolute", inset: 0, opacity: 1 - mini }}>
+          <CaseCardFace item={item} />
+        </div>
+      )}
+      {mini > 0 && (
+        <div style={{ position: "absolute", inset: 0, opacity: mini }}>
+          <CaseCardMini item={item} />
+        </div>
+      )}
+    </div>
+  );
 });
 
 const SIGN: Record<Tag, string> = { [-1]: "\u2212", 0: "0", 1: "+" };

@@ -5,7 +5,7 @@ import ProviderIcon from "../components/ProviderIcon";
 import openaiLogo from "../assets/providers/openai.svg";
 import OpeningScene from "../chapters/opening/OpeningScene";
 import { ICON_LEAVE_MS } from "../chapters/opening/OpeningScene";
-import { OPENING_BEATS } from "../chapters/opening/timeline";
+import { OPENING_BEATS, markSpinDeg } from "../chapters/opening/timeline";
 import StackStage, { type PatientBridge } from "../chapters/stack/StackStage";
 import { stackBeats } from "../chapters/stack/beats";
 import { RegressionScene } from "../chapters/regression/RegressionChapter";
@@ -62,15 +62,10 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
       return { from: null, mix: 0, opacity: 0 };
     case "opening-model": {
       const b = (n: string) => beatStart(OPENING_BEATS.model, n);
-      return {
-        from: "icon-response",
-        to: "icon-option",
-        mix: easeInOut(ramp(e, b("extract"), b("extract") + MOVE_MS)),
-        opacity: ramp(e, b("think"), b("think") + FADE_MS),
-      };
+      return { from: "icon-response", mix: 0, opacity: ramp(e, b("think"), b("think") + FADE_MS) };
     }
     case "opening-framework":
-      return { from: "icon-option", to: "dock", mix: easeInOut(ramp(e, 0, ICON_LEAVE_MS)), opacity: 1 };
+      return { from: "icon-response", to: "dock", mix: easeInOut(ramp(e, 0, ICON_LEAVE_MS)), opacity: 1 };
     case "stack":
     case "regression":
       return { from: "dock", mix: 0, opacity: 1 };
@@ -156,7 +151,7 @@ function Headline({ state }: { state: HeadlineState }) {
 
 const STACK_END = chapterDuration({ beats: stackBeats });
 const REGRESSION_END = chapterDuration({ beats: regressionBeats });
-const SHRINK_MS = beatStart(stackBeats, "shrink");
+const BRIDGE_MS = beatStart(stackBeats, "turn");
 
 function StackScene({ elapsedMs, bridge }: { elapsedMs: number; bridge?: PatientBridge | null }) {
   return (
@@ -188,7 +183,7 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
   const iconRef = useRef<HTMLDivElement>(null);
 
   const inOpening = isOpening(segment);
-  const bridging = segment === "stack" && e < SHRINK_MS;
+  const bridging = segment === "stack" && e < BRIDGE_MS;
   const showOpening = inOpening || bridging;
   const showScenes = !inOpening;
 
@@ -223,11 +218,8 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
   });
 
   const openingT = inOpening ? openingTime(segment, e) : OPENING_END_MS + e;
-  // Two turns across the opening's think beat, then the mark sits still. 720° lands on the same pose as 0°.
-  const spinDeg =
-    segment === "opening-model"
-      ? ramp(e, beatStart(OPENING_BEATS.model, "think"), beatStart(OPENING_BEATS.model, "reveal")) * 720
-      : 0;
+  // Two turns while the model thinks, then one more per repeated query. Every turn ends upright.
+  const spinDeg = segment === "opening-model" ? markSpinDeg(e) : 0;
 
   return (
     <div ref={rootRef} data-stage className="relative h-full w-full">

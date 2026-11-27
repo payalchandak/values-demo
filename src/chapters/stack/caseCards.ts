@@ -4,6 +4,8 @@ import cards from "../../study/data/caseCards.json";
 export interface CaseCardCopy {
   id: string;
   specialty: string;
+  /** Two or three short words, shown very large on the small grid cards. */
+  title: string;
   /** One sentence, written to fit the card. */
   summary: string;
 }

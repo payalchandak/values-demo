@@ -6,6 +6,8 @@ import { placeholderSpecialty } from "./placeholderCases";
 /** One case, as the stack card shows it. The same shape for every case. */
 export interface CaseCardItem {
   specialty: string;
+  /** Two or three words, for the small card. */
+  title: string;
   /** One complete sentence. */
   summary: string;
   choices: readonly [string, string];
@@ -30,16 +32,51 @@ export const caseFaceStyle = {
 const firstSentence = (vignette: string): string =>
   vignette.match(/^[^.!?]+[.!?]/)?.[0] ?? vignette;
 
+/** Placeholder cases have no written title: use the specialty, or the first three words. */
+const fallbackTitle = (specialty: string, summary: string): string =>
+  specialty !== "" ? specialty : summary.split(/\s+/).slice(0, 3).join(" ");
+
 /**
  * The card for a study case. Saved cards come from study/data/caseCards.json.
  * Placeholder cards use their scenario specialty and their one-sentence vignette.
  */
 export function caseCardFor(study: StudyCase): CaseCardItem {
   const authored = caseCardCopy(study.id);
-  if (authored) return { specialty: authored.specialty, summary: authored.summary, choices: study.choices };
+  if (authored) {
+    return { specialty: authored.specialty, title: authored.title, summary: authored.summary, choices: study.choices };
+  }
   const specialty = placeholderSpecialty(study.vignette);
-  if (specialty) return { specialty, summary: study.vignette, choices: study.choices };
-  return { specialty: "", summary: firstSentence(study.vignette), choices: study.choices };
+  if (specialty) {
+    return { specialty, title: fallbackTitle(specialty, study.vignette), summary: study.vignette, choices: study.choices };
+  }
+  const summary = firstSentence(study.vignette);
+  return { specialty: "", title: fallbackTitle("", summary), summary, choices: study.choices };
+}
+
+/**
+ * The small-card face: just the title, very large, so it still reads when the
+ * card is one of fifty. Same box as the full face, so a flip does not change it.
+ */
+export function CaseCardMini({ item }: { item: CaseCardItem }) {
+  return (
+    <div
+      data-case-card-mini
+      style={{ ...caseFaceStyle, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center" }}
+    >
+      <span
+        style={{
+          fontSize: 40,
+          fontWeight: 700,
+          lineHeight: 1.1,
+          letterSpacing: "-0.01em",
+          color: INK,
+          textWrap: "balance",
+        }}
+      >
+        {item.title}
+      </span>
+    </div>
+  );
 }
 
 /**

@@ -27,10 +27,14 @@ export interface Layout {
   stageW: number;
   stageH: number;
   center: { x: number; y: number };
-  /** Face scale of the hero card, of the shrunk card, and of the foreground trio. */
+  /** Face scale of the hero card, of every card in the grid, and of the foreground trio. */
   heroScale: number;
-  fanScale: number;
+  gridScale: number;
   trioScale: number;
+  /** The grid of all cards: columns, and the gaps between cards (wide enough for the edge dots). */
+  gridCols: number;
+  gridGapX: number;
+  gridGapY: number;
   /** Foreground trio centres. Card 0 is the first row of the table. */
   trio: readonly { x: number; y: number }[];
   rowW: number;
@@ -51,8 +55,11 @@ export const WIDE: Layout = {
   stageH: 600,
   center: { x: 500, y: 300 },
   heroScale: 2.2,
-  fanScale: 1,
+  gridScale: 0.32,
   trioScale: 1,
+  gridCols: 9,
+  gridGapX: 16,
+  gridGapY: 12,
   trio: [
     { x: 180, y: 300 },
     { x: 500, y: 300 },
@@ -75,8 +82,11 @@ export const TALL: Layout = {
   stageH: 680,
   center: { x: 200, y: 310 },
   heroScale: 1.35,
-  fanScale: 0.62,
+  gridScale: 0.24,
   trioScale: 0.9,
+  gridCols: 5,
+  gridGapX: 12,
+  gridGapY: 12,
   trio: [
     { x: 200, y: 100 },
     { x: 200, y: 296 },
@@ -152,6 +162,28 @@ function span(t: number, times: StackBeatTimes, from: keyof StackBeatTimes, to: 
   return clamp01((t - a) / (b - a));
 }
 
+/**
+ * Grid slots for all n cards. Card i takes the i-th slot out from the centre,
+ * so card 0 (the hero) lands in the middle, the next two sit beside it, and
+ * the rest spread outward. Flip and dot order follow the card index, so
+ * both radiate from the middle.
+ */
+function gridSlots(n: number, layout: Layout) {
+  const cols = Math.min(layout.gridCols, n);
+  const rows = Math.ceil(n / cols);
+  const pitchX = CARD_W * layout.gridScale + layout.gridGapX;
+  const pitchY = CARD_H * layout.gridScale + layout.gridGapY;
+  const slots: { x: number; y: number; d: number }[] = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x = layout.center.x + (c - (cols - 1) / 2) * pitchX;
+      const y = layout.center.y + (r - (rows - 1) / 2) * pitchY;
+      slots.push({ x, y, d: Math.hypot(x - layout.center.x, y - layout.center.y) });
+    }
+  }
+  return slots.sort((a, b) => a.d - b.d).slice(0, n);
+}
+
 export function computeFrame(
   t: number,
   times: StackBeatTimes,
@@ -161,39 +193,46 @@ export function computeFrame(
 ): StackFrame {
   const L = layout;
   const n = choice1Counts.length;
+  const slots = gridSlots(n, L);
 
-  const shrinkP = easeInOut(span(t, times, "shrink", "label"));
-  const labelLinear = span(t, times, "label", "lift");
-  const liftP = easeInOut(span(t, times, "lift", "flip"));
+  const turnP = easeInOut(span(t, times, "turn", "values"));
+  const shrinkP = easeInOut(span(t, times, "shrink", "reveal"));
+  const revealP = span(t, times, "reveal", "grid");
   const flipP = span(t, times, "flip", "settle");
-  const unflipP = span(t, times, "unflip", "markers");
   const markersP = span(t, times, "markers", "observed");
-  const fadeP = easeInOut(span(t, times, "fade", "morph"));
+  const gatherP = easeInOut(span(t, times, "gather", "morph"));
   const morphP = span(t, times, "morph", "highlight");
   const highlightP = easeInOut(span(t, times, "highlight", "end"));
-
-  const heroScale = lerp(L.heroScale, L.fanScale, shrinkP);
+  const labelP = span(t, times, "shrink", "reveal");
 
   const cards: CardFrame[] = [];
   for (let i = 0; i < n; i++) {
     const foreground = i < FOREGROUND;
+    // 0 for the first card, 1 for the last: how far out from the middle this card sits.
+    const rank = n > 1 ? i / (n - 1) : 0;
+    const slot = slots[i];
 
-    // Only the foreground trio is drawn. The other cases never fan out.
-    // The two side cards wait stacked on the hero, then slide out to the trio.
-    let cx = L.center.x;
-    let cy = L.center.y;
-    let rot = 0;
-    let scale = foreground ? heroScale : L.fanScale;
+    // 1. Placement. The hero starts big in the middle and shrinks into its slot.
+    //    Every other card sits in its slot and fades in during the reveal, from the middle out.
+    let cx = i === 0 ? lerp(L.center.x, slot.x, shrinkP) : slot.x;
+    let cy = i === 0 ? lerp(L.center.y, slot.y, shrinkP) : slot.y;
+    let scale = i === 0 ? lerp(L.heroScale, L.gridScale, shrinkP) : L.gridScale;
+    const base = i === 0 ? 1 : easeOut(clamp01((revealP - rank * 0.7) / 0.3));
+    // The first three leave the grid for the trio; the rest fade away as they go.
     if (foreground) {
-      cx = lerp(cx, L.trio[i].x, liftP);
-      cy = lerp(cy, L.trio[i].y, liftP);
-      scale = lerp(scale, L.trioScale, liftP);
+      cx = lerp(cx, L.trio[i].x, gatherP);
+      cy = lerp(cy, L.trio[i].y, gatherP);
+      scale = lerp(scale, L.trioScale, gatherP);
     }
+    const opacity = foreground ? base : base * (1 - clamp01(gatherP * 1.5));
+    const rot = 0;
 
-    // 2. Flip to the tag side, then back to the decision side (foreground only), staggered by card.
-    const flipOut = foreground ? easeInOut(clamp01((flipP - i * 0.2) / 0.6)) : 0;
-    const flipBack = foreground ? easeInOut(clamp01((unflipP - i * 0.2) / 0.6)) : 0;
-    const flipLocal = flipOut - flipBack;
+    // 2. Flip every card to the tag side one after another. They stay there while the
+    //    decisions arrive; only the trio flips back, as it leaves the grid.
+    const flipOut = easeInOut(clamp01((flipP - rank * 0.55) / 0.45));
+    //    The hero also turns over once at the start (turnP), and back as it shrinks (shrinkP).
+    const heroTurn = i === 0 ? turnP - shrinkP : 0;
+    const flipLocal = flipOut + heroTurn - (foreground ? gatherP : 0);
 
     // 3. Morph into a table row (foreground only), staggered by row.
     const morphLocal = foreground ? easeInOut(clamp01((morphP - i * 0.12) / 0.76)) : 0;
@@ -207,9 +246,8 @@ export function computeFrame(
     const swap = clamp01(morphLocal / 0.25);
     const rowOpacity = clamp01((morphLocal - 0.6) / 0.35);
 
-    // 4. Edge markers accumulate across the foreground trio.
-    const delay = foreground ? (i / (FOREGROUND + 2)) * 0.55 : 1;
-    const local = !foreground || t < times.markers ? 0 : clamp01((markersP - delay) / 0.45);
+    // 4. Edge markers accumulate across every card, spreading out from the middle.
+    const local = t < times.markers ? 0 : clamp01((markersP - rank * 0.55) / 0.45);
     const dots = Math.round(TRIALS * local);
     const markerOpacity = 1 - clamp01(morphLocal / 0.3);
 
@@ -220,10 +258,10 @@ export function computeFrame(
       w,
       h,
       rot,
-      zIndex: foreground ? 1000 - i : 0,
+      zIndex: foreground ? 1000 - i : 500 - i,
       faceScale: scale,
       flipDeg: flipLocal * 180,
-      opacity: foreground ? 1 : 0,
+      opacity,
       faceOpacity: 1 - swap,
       shellOpacity: swap,
       rowOpacity,
@@ -237,7 +275,7 @@ export function computeFrame(
 
   return {
     cards,
-    stackLabel: easeOut(clamp01((labelLinear - 0.4) / 0.6)) * (1 - fadeP),
+    stackLabel: easeOut(clamp01((labelP - 0.4) / 0.6)) * (1 - clamp01(gatherP * 1.5)),
     headerOpacity: clamp01((morphP - 0.5) / 0.4),
     ellipsisOpacity: clamp01((morphP - 0.6) / 0.3),
     countLabelOpacity: clamp01((morphP - 0.75) / 0.25),
