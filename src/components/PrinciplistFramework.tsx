@@ -1,13 +1,24 @@
 import { useId } from "react";
-import { NEUTRAL, VALUES, VALUE_ORDER, valueInk } from "../design";
+import { NEUTRAL, VALUES, VALUE_ORDER, valueInk, valueTint } from "../design";
+import type { Value } from "../study/types";
 
 interface PrinciplistFrameworkProps {
-  /** Scene heading. */
-  heading?: string;
+  /**
+   * Scene heading. Omit for the default; pass `null` when the parent already
+   * shows a heading (the section is then labelled by the default text).
+   */
+  heading?: string | null;
   /** Optional one-sentence explanation shown under the heading. */
   description?: string;
+  /**
+   * Values to emphasize. The highlighted cards get a full-color border and a
+   * tint, and the rest recede. Empty or omitted: all four read equally.
+   */
+  highlight?: Value[];
   className?: string;
 }
+
+const DEFAULT_HEADING = "Four principles of medical ethics";
 
 /**
  * Static scene introducing the four principles of biomedical ethics as
@@ -20,63 +31,89 @@ interface PrinciplistFrameworkProps {
  *
  * Names, definitions, and colors come from `src/design`. Identity only (no
  * +1/-1 tags). No motion or timers: the parent owns scene timing.
+ *
+ * Sizing: everything is in `em`, so it scales with the font size of whatever
+ * container it is placed in (16px by default). The column count follows the
+ * container's width (one column when two cards of ~15em do not fit), not the
+ * viewport.
  */
 export default function PrinciplistFramework({
-  heading = "Four principles of medical ethics",
+  heading = DEFAULT_HEADING,
   description,
+  highlight,
   className = "",
 }: PrinciplistFrameworkProps) {
   const headingId = useId();
+  const active = highlight && highlight.length > 0 ? highlight : null;
 
   return (
     <section
-      aria-labelledby={headingId}
+      aria-labelledby={heading === null ? undefined : headingId}
+      aria-label={heading === null ? DEFAULT_HEADING : undefined}
       style={{ color: NEUTRAL.ink }}
       className={className}
     >
-      <h2
-        id={headingId}
-        className="text-balance text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-4xl"
-      >
-        {heading}
-      </h2>
+      {heading !== null && (
+        <h2
+          id={headingId}
+          className="text-balance font-semibold leading-tight tracking-tight"
+          style={{ fontSize: "1.9em" }}
+        >
+          {heading}
+        </h2>
+      )}
       {description !== undefined && description !== "" && (
         <p
-          className="mt-3 max-w-2xl text-pretty text-base leading-relaxed md:text-lg"
-          style={{ color: NEUTRAL.inkMuted }}
+          className="max-w-[40em] text-pretty leading-relaxed"
+          style={{ color: NEUTRAL.inkMuted, marginTop: "0.6em", fontSize: "1.05em" }}
         >
           {description}
         </p>
       )}
 
-      <ul className="mt-6 grid grid-cols-1 gap-3 md:mt-8 md:grid-cols-2 md:gap-4">
+      <ul
+        // Two columns whenever two cards fit side by side, otherwise one.
+        style={{
+          display: "grid",
+          gap: "0.7em",
+          marginTop: heading === null && !description ? 0 : "1.2em",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(min(100%, max(15em, calc(50% - 0.35em))), 1fr))",
+        }}
+      >
         {VALUE_ORDER.map((id) => {
           const value = VALUES[id];
+          const on = active?.includes(id) ?? false;
           return (
             <li
               key={id}
-              // Same 1px border plus a 4px color rule on the left for all four.
-              style={{ borderLeftColor: value.color }}
-              className="flex items-start gap-4 rounded-xl border border-l-4 border-line bg-white p-4 md:p-6"
+              // Same 1px border plus a 0.3em color rule on the left for all four.
+              style={{
+                borderTopColor: on ? value.color : NEUTRAL.line,
+                borderRightColor: on ? value.color : NEUTRAL.line,
+                borderBottomColor: on ? value.color : NEUTRAL.line,
+                borderLeftColor: value.color,
+                backgroundColor: on ? valueTint(id, 9) : NEUTRAL.surface,
+                opacity: active && !on ? 0.55 : 1,
+                transition: "opacity 200ms, background-color 200ms, border-color 200ms",
+              }}
+              className="flex items-start gap-[0.8em] rounded-[0.8em] border border-l-[0.3em] p-[0.9em]"
             >
               <span
                 aria-hidden="true"
                 style={{ backgroundColor: value.color }}
-                className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg text-base font-semibold text-white"
+                className="flex size-[2em] shrink-0 items-center justify-center rounded-[0.5em] font-semibold text-white"
               >
                 {value.letter}
               </span>
-              <div>
+              <div className="min-w-0">
                 <h3
-                  className="text-xl font-semibold leading-snug tracking-tight md:text-2xl"
-                  style={{ color: valueInk(id) }}
+                  className="font-semibold leading-snug tracking-tight"
+                  style={{ color: valueInk(id), fontSize: "1.25em" }}
                 >
                   {value.name}
                 </h3>
-                <p
-                  className="mt-1.5 text-base leading-relaxed md:text-lg"
-                  style={{ color: NEUTRAL.ink }}
-                >
+                <p className="leading-snug" style={{ marginTop: "0.15em", color: NEUTRAL.ink }}>
                   {value.definition}
                 </p>
               </div>
