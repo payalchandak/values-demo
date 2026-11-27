@@ -10,7 +10,7 @@ export const regressionBeats = [
   { name: "rows", startMs: 0 }, // three case rows, an ellipsis, and "50 cases"
   { name: "weights", startMs: 2000 }, // four shared weight bars rise
   { name: "links", startMs: 4500 }, // each weight connects to every row
-  { name: "expand", startMs: 6500 }, // the opening case opens
+  { name: "expand", startMs: 6500 }, // one row opens
   { name: "tradeoffs", startMs: 7800 }, // its case trade-offs are highlighted
   { name: "weighted", startMs: 10000 }, // x shared value weights
   { name: "predicted", startMs: 12500 }, // = predicted choice probability

@@ -2,25 +2,31 @@ import { useEffect, useMemo } from "react";
 import { LayoutGroup } from "framer-motion";
 import Hud from "../../components/Hud";
 import PausedBadge from "../../components/PausedBadge";
-import type { StudyCase } from "../../study/types";
 import { useChapterClock } from "../../useChapterClock";
 import { regressionBeats } from "./beats";
-import { priorityMismatch } from "./data";
+import { bestFitIndex, fitGap, priorityMismatch } from "./data";
 import { DEFAULT_PROFILE_KEY, allCases, profileByKey } from "./dataset";
 import { regressionChapter, type RegressionProps } from "./RegressionChapter";
 
-/** The opening case. The integration agent will swap in the final picker. */
-const OPENING_CASE_ID = "0b5a2bcb-0946-461a-8ba1-8f29213f01c5";
+/**
+ * Dev-only rows: the trio the stack chapter shows, first one highlighted. The
+ * chapter itself never names a case; integration passes the picker's output.
+ */
+const DEV_CASE_PREFIXES = ["0b5a2bcb", "0c790bb1", "1f92a8ed"] as const;
 const PRIORITY_TOLERANCE = 0.001;
+const MAX_EXPANDED_GAP = 0.25;
 
-/** The first three cases in cases.json, with the opening case moved to the front. */
 function devRows(): RegressionProps["rows"] {
-  const opening = allCases.find((c) => c.id === OPENING_CASE_ID);
-  if (!opening) throw new Error(`Opening case ${OPENING_CASE_ID} is not in cases.json`);
-  const rest: StudyCase[] = allCases.filter((c) => c.id !== OPENING_CASE_ID).slice(0, 2);
-  const [second, third] = rest;
-  if (!second || !third) throw new Error("cases.json has fewer than three cases");
-  return [opening, second, third];
+  const [a, b, c] = DEV_CASE_PREFIXES.map((prefix) => {
+    const matches = allCases.filter((x) => x.id.startsWith(prefix));
+    const [match] = matches;
+    if (matches.length !== 1 || !match) {
+      throw new Error(`Expected exactly one case starting with ${prefix}, found ${matches.length}`);
+    }
+    return match;
+  });
+  if (!a || !b || !c) throw new Error("Expected three dev cases");
+  return [a, b, c];
 }
 
 /**
@@ -38,6 +44,7 @@ export default function RegressionDev() {
   const profile = useMemo(() => profileByKey(profileKey), [profileKey]);
   const rows = useMemo(devRows, []);
   // Stable identity: the clock memoizes on this array.
+  // expandedIndex is left to the chapter's default (best fit) on purpose.
   const chapters = useMemo(() => [regressionChapter({ rows, profile })], [rows, profile]);
 
   const clock = useChapterClock(chapters);
@@ -55,6 +62,17 @@ export default function RegressionDev() {
     mismatch > PRIORITY_TOLERANCE
       ? `Computed priorities differ from profile.priorities for "${profile.key}" by ${mismatch.toFixed(4)} (tolerance ${PRIORITY_TOLERANCE}).`
       : null;
+
+  // The expanded row should be a case where the prediction visibly fits.
+  const expandedIndex = bestFitIndex(rows, profile);
+  const expandedRow = rows[expandedIndex];
+  const gap = expandedRow ? fitGap(expandedRow, profile) : undefined;
+  const gapWarning =
+    gap === undefined
+      ? `The expanded row (${expandedRow?.id ?? "none"}) has no observed count for "${profile.key}".`
+      : gap > MAX_EXPANDED_GAP
+        ? `The expanded row (${expandedRow?.id}) fits poorly: |predicted - k/10| = ${gap.toFixed(2)} > ${MAX_EXPANDED_GAP}.`
+        : null;
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-canvas">
@@ -78,14 +96,24 @@ export default function RegressionDev() {
         ))}
       </nav>
 
-      {mismatchError && (
-        <div
-          role="alert"
-          className="fixed inset-x-3 top-9 z-40 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs font-medium text-red-800"
-        >
-          {mismatchError}
-        </div>
-      )}
+      <div className="fixed inset-x-3 top-9 z-40 flex flex-col gap-1">
+        {mismatchError && (
+          <div
+            role="alert"
+            className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs font-medium text-red-800"
+          >
+            {mismatchError}
+          </div>
+        )}
+        {gapWarning && (
+          <div
+            role="status"
+            className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900"
+          >
+            Warning: {gapWarning}
+          </div>
+        )}
+      </div>
 
       <main className="mx-auto h-full w-full max-w-5xl px-6 pb-24 pt-14 md:px-10">
         <LayoutGroup>

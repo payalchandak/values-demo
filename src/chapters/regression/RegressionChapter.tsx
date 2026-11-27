@@ -16,6 +16,7 @@ import {
   MODEL_RUNS,
   TEMPERATURE,
   VALUE_ORDER,
+  bestFitIndex,
   deltaOf,
   logit,
   observedCount,
@@ -29,10 +30,19 @@ import { DEFAULT_PROFILE_KEY, TOTAL_CASES, profileByKey } from "./dataset";
 /* -------------------------------------------------------------------------- */
 
 export interface RegressionProps {
-  /** Exactly three example cases. The first is the opening case and is the one that expands. */
+  /**
+   * Exactly three example cases, supplied by the caller (the chapter never names
+   * a case). The first row is highlighted as the opening case.
+   */
   rows: readonly [StudyCase, StudyCase, StudyCase];
   /** Whose decisions are shown. Defaults to the profile with key `gpt`. */
   profile?: Profile;
+  /**
+   * Which row (0..2) expands to show the worked prediction. Defaults to the row
+   * whose predicted probability is closest to its observed k/10, so the
+   * walkthrough lands on a case where the model visibly fits.
+   */
+  expandedIndex?: number;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -69,7 +79,7 @@ function TextSwap({ state, className }: { state: TextState; className: string })
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Phase A: shared weights, case rows, the opening row expanded               */
+/*  Phase A: shared weights, case rows, one row expanded                       */
 /* -------------------------------------------------------------------------- */
 
 /** Case label | four value columns | result. Shared by head, rows, and rails. */
@@ -233,7 +243,7 @@ function ExpandedPanel({
         }}
       >
         <div
-          className="flex items-center text-[11px] leading-tight text-gray-500"
+          className="flex items-center pl-1 text-[11px] leading-tight text-gray-500"
           style={fade(p.weighted)}
         >
           <span>
@@ -282,7 +292,7 @@ function ExpandedPanel({
           />
         </div>
         <div
-          className="-mt-1 self-start pr-2 text-[11px] leading-snug text-gray-500 sm:pr-4"
+          className="-mt-1 self-start pl-1 pr-2 text-[11px] leading-snug text-gray-500 sm:pr-4"
           style={{ gridColumn: "1 / 6" }}
         >
           {/* Opaque, so the shared-weight rails break around the text instead of striking through it. */}
@@ -312,27 +322,33 @@ const stagger = (rows: number, index: number, count: number) =>
 function CaseRow({
   index,
   count,
+  expandedIndex,
   row,
   profile,
   p,
 }: {
   index: number;
   count: number;
+  expandedIndex: number;
   row: StudyCase;
   profile: Profile;
   p: TableProgress;
 }) {
   const delta = deltaOf(row);
-  const isFocus = index === 0;
+  const isFocus = index === expandedIndex; // the row that opens
+  const isFirst = index === 0; // always the highlighted opening row
   const appear = stagger(p.rows, index, count);
+  // Once a row is open, the others recede; the highlighted first row recedes less.
+  const recede = isFocus ? 0 : isFirst ? 0.2 : 0.55;
+  const tint = isFocus ? p.open * 100 : isFirst ? 55 : 0;
   return (
     <div
       className="rounded-lg border-b border-gray-100"
       style={{
-        // Once the opening case is open, the other rows recede.
-        opacity: isFocus ? appear : appear * (1 - 0.55 * p.open),
+        opacity: appear * (1 - recede * p.open),
         transform: `translateY(${(1 - appear) * 10}px)`,
-        backgroundColor: isFocus ? `color-mix(in srgb, #f4f5f7 ${p.open * 100}%, white)` : undefined,
+        backgroundColor: tint > 0 ? `color-mix(in srgb, #f4f5f7 ${tint}%, white)` : undefined,
+        boxShadow: isFirst ? "inset 3px 0 0 #1B2433" : undefined,
       }}
     >
       <div
@@ -416,10 +432,12 @@ function Rails({ links, weighted }: { links: number; weighted: number }) {
 function TableLayer({
   p,
   rows,
+  expandedIndex,
   profile,
 }: {
   p: TableProgress;
   rows: RegressionProps["rows"];
+  expandedIndex: number;
   profile: Profile;
 }) {
   const scale = barScale(profile.weights);
@@ -450,7 +468,15 @@ function TableLayer({
       <div className="relative mt-0.5">
         <Rails links={p.links} weighted={p.weighted} />
         {rows.map((row, i) => (
-          <CaseRow key={row.id} index={i} count={count} row={row} profile={profile} p={p} />
+          <CaseRow
+            key={row.id}
+            index={i}
+            count={count}
+            expandedIndex={expandedIndex}
+            row={row}
+            profile={profile}
+            p={p}
+          />
         ))}
         <EllipsisRow index={rows.length} count={count} p={p} />
       </div>
@@ -719,9 +745,13 @@ export function RegressionScene({
   elapsedMs,
   rows,
   profile = profileByKey(DEFAULT_PROFILE_KEY),
+  expandedIndex = bestFitIndex(rows, profile),
 }: RegressionProps & { elapsedMs: number }) {
   // The engine's first tick can land a few ms below zero; nothing here is defined before 0.
   const t = Math.max(0, elapsedMs);
+  if (!Number.isInteger(expandedIndex) || expandedIndex < 0 || expandedIndex >= rows.length) {
+    throw new Error(`expandedIndex ${expandedIndex} is not a row index (0..${rows.length - 1})`);
+  }
   const table: TableProgress = {
     rows: segment(t, "rows", 1800),
     weights: motionAt(t, "weights", 1400),
@@ -768,7 +798,7 @@ export function RegressionScene({
             className="h-full"
             style={{ opacity: tableOpacity, visibility: tableOpacity <= 0 ? "hidden" : "visible" }}
           >
-            <TableLayer p={table} rows={rows} profile={profile} />
+            <TableLayer p={table} rows={rows} expandedIndex={expandedIndex} profile={profile} />
           </div>
           {fit > 0 && (
             <div className="absolute inset-0">
@@ -783,7 +813,7 @@ export function RegressionScene({
   );
 }
 
-/** The chapter for the player. `rows` is required; `profile` defaults to GPT. */
+/** The chapter for the player. `rows` is required; `profile` defaults to GPT; `expandedIndex` to the best-fit row. */
 export function regressionChapter(props: RegressionProps): Chapter {
   return {
     id: "regression",
