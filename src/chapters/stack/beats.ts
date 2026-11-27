@@ -10,10 +10,10 @@ import type { Beat } from "../../types";
  *
  *   card       one full-size case card, holding
  *   shrink     the card shrinks to stack size
- *   fan        the other cases fan out behind it, "N dilemmas" label arrives
- *   markers    choice markers accumulate along card edges
- *   lift       two more cards slide out of the fan beside the first
- *   flip       the three foreground cards flip to their tag-chip backs; the background fan fades out
+ *   fan        the card is at pile size and the "N dilemmas" label arrives
+ *   markers    choice markers accumulate along the card edges
+ *   lift       two more cards slide out beside the first
+ *   flip       the three foreground cards flip to their tag-chip backs
  *   settle     the three tag cards sit so the trade-offs can be read
  *   fade       the "N dilemmas" label fades ahead of the table
  *   morph      the three cards morph into table rows, ellipsis + count label

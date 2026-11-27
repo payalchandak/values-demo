@@ -27,13 +27,10 @@ export interface Layout {
   stageW: number;
   stageH: number;
   center: { x: number; y: number };
-  /** Face scale of the hero card, of cards in the fan, and of the foreground trio. */
+  /** Face scale of the hero card, of the shrunk card, and of the foreground trio. */
   heroScale: number;
   fanScale: number;
   trioScale: number;
-  fanRadius: number;
-  fanHalfAngle: number; // degrees
-  fanMaxStep: number; // degrees between neighbouring cards
   /** Foreground trio centres. Card 0 is the first row of the table. */
   trio: readonly { x: number; y: number }[];
   rowW: number;
@@ -56,9 +53,6 @@ export const WIDE: Layout = {
   heroScale: 2.2,
   fanScale: 1,
   trioScale: 1,
-  fanRadius: 300,
-  fanHalfAngle: 34,
-  fanMaxStep: 4,
   trio: [
     { x: 180, y: 300 },
     { x: 500, y: 300 },
@@ -83,9 +77,6 @@ export const TALL: Layout = {
   heroScale: 1.35,
   fanScale: 0.62,
   trioScale: 0.9,
-  fanRadius: 190,
-  fanHalfAngle: 26,
-  fanMaxStep: 4,
   trio: [
     { x: 200, y: 100 },
     { x: 200, y: 296 },
@@ -161,31 +152,6 @@ function span(t: number, times: StackBeatTimes, from: keyof StackBeatTimes, to: 
   return clamp01((t - a) / (b - a));
 }
 
-/**
- * Fan slots for the background cards. Cases 1..n-1 take slots from the
- * middle outward, so cases 1 and 2 sit just behind the first card and are
- * the ones that lift out to join the foreground trio.
- */
-function fanSlots(backgroundCount: number, layout: Layout) {
-  const mid = (backgroundCount - 1) / 2;
-  const step =
-    backgroundCount > 1 ? Math.min((2 * layout.fanHalfAngle) / (backgroundCount - 1), layout.fanMaxStep) : 0;
-  const order = Array.from({ length: backgroundCount }, (_, j) => j).sort((p, q) => {
-    const dp = Math.abs(p - mid);
-    const dq = Math.abs(q - mid);
-    return dp !== dq ? dp - dq : q - p;
-  });
-  // order[k] = slot index for background card k (case k + 1).
-  return order.map((j) => ({ slot: j, angle: (j - mid) * step, depth: Math.abs(j - mid) }));
-}
-
-/** Card centre after rotating `angleDeg` about the pivot that sits `fanRadius` below the stack. */
-const onArc = (angleDeg: number, layout: Layout) => {
-  const r = (angleDeg * Math.PI) / 180;
-  const R = layout.fanRadius;
-  return { x: layout.center.x + R * Math.sin(r), y: layout.center.y + R - R * Math.cos(r) };
-};
-
 export function computeFrame(
   t: number,
   times: StackBeatTimes,
@@ -195,11 +161,9 @@ export function computeFrame(
 ): StackFrame {
   const L = layout;
   const n = choice1Counts.length;
-  const slots = fanSlots(n - 1, L);
 
   const shrinkP = easeInOut(span(t, times, "shrink", "fan"));
   const fanLinear = span(t, times, "fan", "markers");
-  const fanP = easeInOut(fanLinear);
   const markersP = span(t, times, "markers", "lift");
   const liftP = easeInOut(span(t, times, "lift", "flip"));
   const flipP = span(t, times, "flip", "settle");
@@ -208,31 +172,20 @@ export function computeFrame(
   const highlightP = easeInOut(span(t, times, "highlight", "end"));
 
   const heroScale = lerp(L.heroScale, L.fanScale, shrinkP);
-  // The pile leaves as the three cards flip, so the trade-off section is just those cards.
-  const fanLeave = easeInOut(flipP);
-  const backgroundOpacity = t < times.fan ? 0 : (1 - fanLeave) * (1 - fadeP);
 
   const cards: CardFrame[] = [];
   for (let i = 0; i < n; i++) {
     const foreground = i < FOREGROUND;
-    const slot = i > 0 ? slots[i - 1] : undefined;
 
-    // 1. Base placement: hero card, fan slot, or trio slot.
+    // Only the foreground trio is drawn. The other cases never fan out.
+    // The two side cards wait stacked on the hero, then slide out to the trio.
     let cx = L.center.x;
     let cy = L.center.y;
     let rot = 0;
-    let scale = i === 0 ? heroScale : L.fanScale;
-    if (slot) {
-      const angle = slot.angle * fanP;
-      const p = onArc(angle, L);
-      cx = p.x;
-      cy = p.y;
-      rot = angle;
-    }
+    let scale = foreground ? heroScale : L.fanScale;
     if (foreground) {
       cx = lerp(cx, L.trio[i].x, liftP);
       cy = lerp(cy, L.trio[i].y, liftP);
-      rot = lerp(rot, 0, liftP);
       scale = lerp(scale, L.trioScale, liftP);
     }
 
@@ -251,14 +204,11 @@ export function computeFrame(
     const swap = clamp01(morphLocal / 0.25);
     const rowOpacity = clamp01((morphLocal - 0.6) / 0.35);
 
-    // 4. Edge markers accumulate left to right across the stack; the foreground trio leads.
-    const rank = foreground ? i : FOREGROUND + (slot?.slot ?? 0);
-    const delay = (rank / (n + FOREGROUND)) * 0.55;
-    const local = t < times.markers ? 0 : clamp01((markersP - delay) / 0.45);
+    // 4. Edge markers accumulate across the foreground trio.
+    const delay = foreground ? (i / (FOREGROUND + 2)) * 0.55 : 1;
+    const local = !foreground || t < times.markers ? 0 : clamp01((markersP - delay) / 0.45);
     const dots = Math.round(TRIALS * local);
     const markerOpacity = 1 - clamp01(morphLocal / 0.3);
-
-    const bgOpacity = foreground ? 1 : backgroundOpacity;
 
     cards.push({
       index: i,
@@ -267,10 +217,10 @@ export function computeFrame(
       w,
       h,
       rot,
-      zIndex: foreground ? 1000 - i : 500 - (slot?.depth ?? 0),
+      zIndex: foreground ? 1000 - i : 0,
       faceScale: scale,
       flipDeg: flipLocal * 180,
-      opacity: bgOpacity,
+      opacity: foreground ? 1 : 0,
       faceOpacity: 1 - swap,
       shellOpacity: swap,
       rowOpacity,

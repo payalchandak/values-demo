@@ -30,8 +30,7 @@ import { MARK_INTERVAL_MS, OPENING_BEATS, OFFSETS, at, caseCharsAt, ramp, visibi
 /** Storyboard copy, verbatim. */
 const HEADLINES = [
   { text: "Do Language Models Share Your Doctor's Priorities?", size: "2.6em" }, // ch1
-  { text: "What would you recommend?", size: "1.7em" }, // ch2
-  { text: "Let's ask a language model.", size: "1.7em" }, // ch3, with thinking
+  { text: "What would you recommend?", size: "1.7em" }, // ch2, then it leaves and the model answers
   { text: "Clinical decisions require prioritizing competing values.", size: "1.7em" }, // ch4
 ] as const;
 
@@ -441,9 +440,6 @@ function OptionCard({
   showChips: boolean;
   sharedIcon: boolean;
 }) {
-  // Framework chapter: both cards are neutral, with no accent bar. A red bar
-  // on one choice would read as a judgment.
-  const neutral = t >= FRAMEWORK_AT;
   const frame = selected ? OPTION_ACCENT : NEUTRAL.line;
   const iconHere =
     sharedIcon &&
@@ -463,12 +459,7 @@ function OptionCard({
       aria-current={selected ? "true" : undefined}
       className="rounded-[0.9em] border p-[0.8em] transition-colors duration-75 ease-out"
       style={{
-        borderLeftWidth: neutral ? 1 : "0.3em",
-        paddingLeft: neutral ? "calc(0.8em + 0.3em - 1px)" : undefined,
-        borderTopColor: frame,
-        borderRightColor: frame,
-        borderBottomColor: frame,
-        borderLeftColor: neutral ? NEUTRAL.line : OPTION_ACCENT,
+        borderColor: frame,
         backgroundColor: selected ? "#F4F4F5" : "#FAFAFA",
         boxShadow: selected ? `0 0 0 1px ${OPTION_ACCENT}` : "none",
         color: NEUTRAL.ink,
@@ -503,8 +494,7 @@ function OptionCard({
 const HEADLINE_STARTS = [
   at("hook", "headline"),
   at("dilemma", "question"),
-  at("model", "think"), // arrives with the thinking panel, after the recommendation question has left
-  FRAMEWORK_AT,
+  FRAMEWORK_AT, // the model chapter has no headline: the question leaves, then the response arrives
 ] as const;
 
 const SceneBody = memo(function SceneBody({
@@ -558,7 +548,7 @@ const SceneBody = memo(function SceneBody({
   const logoFade = ease(Math.min(1, riseT / 0.62));
   const logoLift = ease(Math.min(1, Math.max(0, (riseT - 0.5) / 0.5)));
   const logoOpacity = logoOpen * (1 - logoFade);
-  // The question leaves at the model chapter, before the language-model header.
+  // The question leaves at the model chapter. Nothing replaces it; the response panel is next.
   const questionExit = ramp(t, ask, ask + FADE_MS);
 
   // The verbatim case stays up through the model chapter; the response sits below it.

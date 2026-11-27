@@ -65,7 +65,7 @@ const MARKS_AT = EXTRACTED_AT + 1200;
 
 const model = [
   { name: "ask", startMs: 0 }, // "What would you recommend?" leaves; no headline yet
-  { name: "think", startMs: THINK_AT }, // "Let's ask a language model." and the thinking panel
+  { name: "think", startMs: THINK_AT }, // thinking panel; the question has already left
   { name: "reveal", startMs: REVEAL_AT }, // answer starts typing
   { name: "revealed", startMs: REVEALED_AT }, // last character is on screen
   { name: "highlight", startMs: HIGHLIGHT_AT }, // recommendation sentence sweeps
