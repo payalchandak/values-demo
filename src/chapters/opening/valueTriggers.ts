@@ -35,7 +35,7 @@ export const TRIGGERS: Readonly<Record<Value, ValueTrigger>> = {
   N: {
     sentence:
       "His spouse is present but works nights, and you cannot confirm means restriction at home or removal of other poisons.",
-    caption: "Discharge leaves the risk of repeat self-poisoning.",
+    caption: "A hold lowers the risk of repeat self-poisoning.",
   },
   J: {
     sentence:
