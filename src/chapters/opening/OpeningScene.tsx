@@ -252,9 +252,12 @@ function OpeningMark({
 }
 
 /**
- * The paper title and the question occupy one heading. They crossfade in place,
- * and the box eases from the title's height to the question's, so the case
- * card moves up instead of jumping. A seek measures the same box playback uses.
+ * The paper title and the question occupy one heading. The box eases from the
+ * title's height to the question's, so the case card moves up instead of
+ * jumping. While that height is between the two, both lines are centered in
+ * the clip and taken out of flow — otherwise the row stays as tall as the
+ * paper title and the question is sliced off. A seek measures the same box
+ * playback uses.
  */
 function HeadlineReplace({
   mix,
@@ -277,10 +280,17 @@ function HeadlineReplace({
   const p = Math.min(1, Math.max(0, mix));
   const gone = Math.min(1, Math.max(0, exit));
   const settledTitle = p <= 0 && gone <= 0;
-  const settledQuestion = p >= 1 && gone <= 0;
+  const settledQuestion = p >= 0.98 && gone <= 0;
   const from = titleH === 0 ? questionH : titleH;
   const to = questionH === 0 ? titleH : questionH;
   const headingH = (from + (to - from) * p) * (1 - gone);
+  // Only the replacement move. The exit keeps the in-flow grid so its own drift still applies.
+  const swapping = p > 0.001 && !settledQuestion && gone <= 0;
+  const questionTransform = swapping
+    ? "translateY(-50%)"
+    : drift > 0
+      ? `translateY(${drift * -0.35}em)`
+      : undefined;
   return (
     <div className="w-full" style={{ marginBottom: `calc(${STACK_GAP} * -1)` }}>
       <div
@@ -299,7 +309,11 @@ function HeadlineReplace({
             fontSize: HEADLINES[0].size,
             color: NEUTRAL.ink,
             opacity: titleOpacity,
-            position: settledQuestion ? "absolute" : undefined,
+            position: swapping || settledQuestion ? "absolute" : undefined,
+            top: swapping ? "50%" : undefined,
+            left: swapping ? 0 : undefined,
+            right: swapping ? 0 : undefined,
+            transform: swapping ? "translateY(-50%)" : undefined,
           }}
           aria-hidden={titleOpacity < 0.5}
         >
@@ -313,8 +327,11 @@ function HeadlineReplace({
             fontSize: HEADLINES[1].size,
             color: NEUTRAL.ink,
             opacity: questionOpacity,
-            transform: drift > 0 ? `translateY(${drift * -0.35}em)` : undefined,
-            position: settledTitle ? "absolute" : undefined,
+            position: swapping || settledTitle ? "absolute" : undefined,
+            top: swapping ? "50%" : undefined,
+            left: swapping ? 0 : undefined,
+            right: swapping ? 0 : undefined,
+            transform: questionTransform,
           }}
           aria-hidden={questionOpacity < 0.5}
         >
@@ -529,11 +546,11 @@ const SceneBody = memo(function SceneBody({
 
   const dilemmaStart = at("dilemma", "question");
   const ask = at("model", "ask");
-  // The paper title and the question overlap in the heading slot, then the extra lines close up.
-  const swap = ease(ramp(t, dilemmaStart - HEADING_SWAP_MS, dilemmaStart));
-  const titleLeave = Math.min(1, swap / 0.55);
-  const questionIn = Math.min(1, Math.max(0, (swap - 0.2) / 0.6));
-  const space = Math.min(1, Math.max(0, (swap - 0.3) / 0.7));
+  // Title fades clear, then the slot eases down, then the question fades in whole.
+  const swap = ramp(t, dilemmaStart - HEADING_SWAP_MS, dilemmaStart);
+  const titleLeave = ease(Math.min(1, swap / 0.32));
+  const space = ease(Math.min(1, Math.max(0, (swap - 0.24) / 0.44)));
+  const questionIn = ease(Math.min(1, Math.max(0, (swap - 0.66) / 0.34)));
   // Logo and title open on the same curve. The logo then fades as the case starts.
   const logoOpen = ease(ramp(t, at("hook", "logo"), at("hook", "logoHold")));
   const riseT = ramp(t, at("hook", "logoRise"), at("hook", "logoGone"));
@@ -563,7 +580,9 @@ const SceneBody = memo(function SceneBody({
   const vignetteOpacity = ramp(t, FRAMEWORK_AT, FRAMEWORK_AT + FADE_MS) * (1 - clearP);
 
   const showOptions = t >= at("dilemma", "options") && !cleared;
-  const optionsOpacity = ramp(t, at("dilemma", "options"), at("dilemma", "options") + FADE_MS) * (1 - clearP);
+  const optionsEnter =
+    ease(ramp(t, at("dilemma", "options"), at("dilemma", "options") + OPTIONS_IN_MS)) * (1 - clearP);
+  const optionsMoving = showOptions && optionsEnter > 0 && optionsEnter < 1;
   const selectedIndex = t >= at("model", "extract") && t < at("model", "collapse") ? openingCase.response.chosen : null;
   const showChips = t >= FRAMEWORK_AT;
 
@@ -605,7 +624,7 @@ const SceneBody = memo(function SceneBody({
       )}
 
       {showSummary && (
-        <Block probe={probe} className="w-full" layout={!headingMoving}>
+        <Block probe={probe} className="w-full" layout={!headingMoving && !optionsMoving}>
           <div style={{ opacity: summaryOpacity }} aria-hidden={summaryOpacity === 0 || hidePatient}>
             <div style={{ visibility: hidePatient ? "hidden" : undefined }}>
               <PatientCard shared={!probe} typedChars={caseCharsAt(t)} />
@@ -631,14 +650,13 @@ const SceneBody = memo(function SceneBody({
       )}
 
       {showOptions && (
-        <Block probe={probe} className="w-full" layout={!headingMoving}>
-          <ul
-            className="grid w-full grid-cols-1 items-stretch gap-[0.6em] @md:grid-cols-2"
-            style={{ opacity: optionsOpacity }}
-          >
-            <OptionCard index={0} t={t} selected={selectedIndex === 0} showChips={showChips} />
-            <OptionCard index={1} t={t} selected={selectedIndex === 1} showChips={showChips} />
-          </ul>
+        <Block probe={probe} className="w-full" layout={!headingMoving && !optionsMoving}>
+          <FadeSlot enter={optionsEnter}>
+            <ul className="grid w-full grid-cols-1 items-stretch gap-[0.6em] @md:grid-cols-2">
+              <OptionCard index={0} t={t} selected={selectedIndex === 0} showChips={showChips} />
+              <OptionCard index={1} t={t} selected={selectedIndex === 1} showChips={showChips} />
+            </ul>
+          </FadeSlot>
         </Block>
       )}
 
