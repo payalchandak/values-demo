@@ -63,12 +63,24 @@ export const COLLAPSE_MS = 300;
 const COLLAPSE_AT = EXTRACTED_AT;
 const FIRST_DOT_AT = COLLAPSE_AT + COLLAPSE_MS;
 /** Each repeat query: the mark turns once, then its dot lands. */
-const RERUN_SPIN_MS = 450;
-const RERUN_GAP_MS = 120;
-const RERUN_MS = RERUN_SPIN_MS + RERUN_GAP_MS;
-const RERUNS_AT = FIRST_DOT_AT + 500;
 const RUN_COUNT = openingCase.decisions.length;
-const RERUNS_DONE_AT = RERUNS_AT + (RUN_COUNT - 1) * RERUN_MS;
+const RERUNS_AT = FIRST_DOT_AT + 500;
+/** The second decision takes its time; decisions 3 to 10 run much faster. */
+const SLOW_RERUN = { spinMs: 450, gapMs: 120 } as const;
+const FAST_RERUN = { spinMs: 200, gapMs: 40 } as const;
+
+/** Turn windows of the mark for decisions 2 to N (index 0 is decision 2), in chapter-local ms. */
+const RERUNS: readonly { startMs: number; endMs: number }[] = (() => {
+  const out: { startMs: number; endMs: number }[] = [];
+  let at = RERUNS_AT;
+  for (let i = 0; i < RUN_COUNT - 1; i++) {
+    const { spinMs, gapMs } = i === 0 ? SLOW_RERUN : FAST_RERUN;
+    out.push({ startMs: at, endMs: at + spinMs });
+    at += spinMs + gapMs;
+  }
+  return out;
+})();
+const RERUNS_DONE_AT = RERUNS.length > 0 ? RERUNS[RERUNS.length - 1].endMs + FAST_RERUN.gapMs : RERUNS_AT;
 
 /** Turns of the provider mark before the first answer types: two full turns. */
 const FIRST_SPIN_DEG = 720;
@@ -78,16 +90,15 @@ const FIRST_SPIN_DEG = 720;
  * The first lands as the answer collapses. Each later one lands as a turn of the mark ends.
  */
 export const RUN_DOTS: readonly { startMs: number }[] = Array.from({ length: RUN_COUNT }, (_, i) => ({
-  startMs: i === 0 ? FIRST_DOT_AT - MOVE_MS : RERUNS_AT + (i - 1) * RERUN_MS + RERUN_SPIN_MS,
+  startMs: i === 0 ? FIRST_DOT_AT - MOVE_MS : RERUNS[i - 1].endMs,
 }));
 
 /** Rotation of the provider mark in degrees at chapter-local time `e`. Cumulative, so every turn ends upright. */
 export function markSpinDeg(e: number): number {
   let deg = ramp(e, THINK_AT, REVEAL_AT) * FIRST_SPIN_DEG;
-  for (let i = 1; i < RUN_COUNT; i++) {
-    const start = RERUNS_AT + (i - 1) * RERUN_MS;
-    const p = ramp(e, start, start + RERUN_SPIN_MS);
-    deg += (p * p * (3 - 2 * p)) * 360;
+  for (const turn of RERUNS) {
+    const p = ramp(e, turn.startMs, turn.endMs);
+    deg += p * p * (3 - 2 * p) * 360;
   }
   return deg;
 }
@@ -102,8 +113,8 @@ const model = [
   { name: "extracted", startMs: EXTRACTED_AT },
   { name: "collapse", startMs: COLLAPSE_AT }, // answer shrinks away, first dot lands
   { name: "reruns", startMs: RERUNS_AT }, // the mark turns again for each repeat query
-  { name: "rerunsDone", startMs: RERUNS_DONE_AT + RERUN_MS },
-  { name: "end", startMs: RERUNS_DONE_AT + RERUN_MS + 2600 },
+  { name: "rerunsDone", startMs: RERUNS_DONE_AT },
+  { name: "end", startMs: RERUNS_DONE_AT + 2600 },
 ] as const satisfies readonly Beat[];
 
 const round100 = (ms: number): number => Math.round(ms / 100) * 100;
