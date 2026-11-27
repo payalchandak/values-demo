@@ -19,6 +19,8 @@ export interface ChapterContext {
    * `useTransform` / `motion` styles to animate without re-rendering React.
    */
   time: MotionValue<number>;
+  /** Jump back to the start of the first chapter and play. */
+  restart: () => void;
 }
 
 /**

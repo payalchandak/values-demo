@@ -93,7 +93,7 @@ export function useChapterClock(chapters: readonly Chapter[]) {
     let last = performance.now();
 
     const tick = (now: number) => {
-      const dt = Math.min(now - last, MAX_FRAME_MS);
+      const dt = Math.min(Math.max(0, now - last), MAX_FRAME_MS);
       last = now;
 
       let chapter = chapterRef.current;

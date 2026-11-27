@@ -1,5 +1,5 @@
 import { LayoutGroup } from "framer-motion";
-import type { Chapter } from "./types";
+import type { Chapter, ChapterContext } from "./types";
 import { useChapterClock } from "./useChapterClock";
 import PausedBadge from "./components/PausedBadge";
 import Hud from "./components/Hud";
@@ -15,6 +15,13 @@ interface DemoPlayerProps {
 export default function DemoPlayer({ chapters }: DemoPlayerProps) {
   const clock = useChapterClock(chapters);
   const chapter = chapters[clock.chapterIndex];
+  const ctx: ChapterContext = {
+    elapsedMs: clock.elapsedMs,
+    progress: clock.progress,
+    isPaused: clock.isPaused,
+    time: clock.time,
+    restart: clock.restart,
+  };
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-canvas">
@@ -28,12 +35,7 @@ export default function DemoPlayer({ chapters }: DemoPlayerProps) {
         */}
         <LayoutGroup>
           <div className="h-full w-full">
-            {chapter.render({
-              elapsedMs: clock.elapsedMs,
-              progress: clock.progress,
-              isPaused: clock.isPaused,
-              time: clock.time,
-            })}
+            {chapter.render(ctx)}
           </div>
         </LayoutGroup>
       </main>
@@ -46,7 +48,7 @@ export default function DemoPlayer({ chapters }: DemoPlayerProps) {
         onPrev={clock.prev}
         onNext={clock.next}
         onToggle={clock.togglePause}
-        onRestart={clock.restart}
+        onRestart={ctx.restart}
         onSeek={(i) => clock.seek(i)}
       />
     </div>
