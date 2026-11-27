@@ -1,76 +1,69 @@
-import { useId } from "react";
-import type {
-  NormalizedPriorities,
-  PerValue,
-  ValueDefinition,
-  ValueId,
-} from "../data/demoData";
+import { useId, useLayoutEffect } from "react";
+import { isMotionValue, motion, useMotionValue, useTransform } from "framer-motion";
+import type { MotionValue } from "framer-motion";
+import type { Value } from "../study/types";
+import { NEUTRAL, VALUES, VALUE_COLORS, VALUE_ORDER, valueInk } from "../design";
+
+/* -------------------------------------------------------------------------- */
+/*  Public API                                                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Radial length of one axis: a plain number, or a MotionValue to animate it.
+ * Either way the number is a priority on the fixed 0 to `RADAR_SCALE_MAX` scale.
+ */
+export type RadarLength = number | MotionValue<number>;
 
 export type RadarChartMode = "full" | "compact";
 
 export interface RadarChartProps {
   /**
-   * Normalized priorities for ONE decision-maker (not raw regression weights).
-   * Plotted exactly as given on a fixed 0–1 radial scale: never renormalized,
-   * never rescaled to the profile's own maximum, and 0 is a real value.
-   * If any entry is missing, non-finite, or outside [0, 1], no shape is drawn
-   * and the chart shows an explicit "Invalid data" state instead.
+   * One radial length per value.
+   *
+   * - Numbers: drawn as given. Missing, non-finite, or out-of-range numbers
+   *   draw nothing and show "Invalid data" (never clamped or renormalized).
+   * - MotionValues: the polygon and dots follow them frame by frame with no
+   *   React re-renders. They cannot be checked up front, so each frame's value
+   *   is clamped to the chart's scale (non-finite becomes 0). Springs that
+   *   overshoot therefore stop at the outer ring instead of leaving the plot.
+   * - Numbers and MotionValues can be mixed per axis.
    */
-  priorities: NormalizedPriorities;
-  /** Source of axis labels and colors (see `valueDefinitions`). */
-  values: PerValue<ValueDefinition>;
+  priorities: Readonly<Record<Value, RadarLength>>;
   /** Accessible name of the chart. */
   title: string;
-  /** Accessible description of the chart (what it shows / whose priorities). */
+  /** Accessible description (whose priorities, what they mean). */
   description: string;
   /**
-   * `full`: full value names, four reference rings with scale labels.
+   * `full`: value names and four reference rings with scale labels.
    * `compact`: A / B / N / J letters, two rings, no scale labels.
-   * Full names remain available to assistive technology in both modes.
    */
   mode?: RadarChartMode;
-  /** Sizing/positioning hook. The SVG fills the width of its container. */
   className?: string;
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Fixed layout                                                              */
-/* -------------------------------------------------------------------------- */
+/** A priority of this value reaches the outer ring. Identical for every chart. */
+export const RADAR_SCALE_MAX = 1;
 
-interface AxisSpec {
-  id: ValueId;
-  /** Direction in degrees, SVG convention (0 = right, 90 = down). */
-  angle: number;
-  /** Compact-mode letter. */
-  letter: string;
-  /** Where the label sits relative to its anchor point. */
-  placement: "top" | "right" | "bottom" | "left";
-}
-
-/** Axis order matches the paper: Beneficence top, then clockwise. Never data-driven. */
-const AXES: readonly AxisSpec[] = [
-  { id: "beneficence", angle: -90, letter: "B", placement: "top" },
-  { id: "autonomy", angle: 0, letter: "A", placement: "right" },
-  { id: "justice", angle: 90, letter: "J", placement: "bottom" },
-  { id: "nonmaleficence", angle: 180, letter: "N", placement: "left" },
+/** Fixed axis order and direction (SVG degrees, 0 = right, 90 = down). A at the top, then clockwise. */
+export const RADAR_AXES: readonly { value: Value; angle: number }[] = [
+  { value: "A", angle: -90 },
+  { value: "B", angle: 0 },
+  { value: "N", angle: 90 },
+  { value: "J", angle: 180 },
 ];
 
+/* -------------------------------------------------------------------------- */
+/*  Fixed geometry                                                            */
+/* -------------------------------------------------------------------------- */
+
 interface Geometry {
-  /** Radius that represents priority = 1. Identical for every profile. */
+  /** Pixels (viewBox units) from center to the outer ring. */
   radius: number;
   fontSize: number;
-  markerRadius: number;
-  /** Distance from the axis tip to the label anchor. */
+  dotRadius: number;
   labelGap: number;
-  /**
-   * Space reserved for the left (Nonmaleficence / N) and right
-   * (Autonomy / A) labels, in viewBox units. Reserved per side so the visible
-   * content, not just the plot center, is balanced in the box. Sized from
-   * measured text (13px/600: Nonmaleficence = 103, Autonomy = 65) plus slack
-   * for fallback fonts; they exist only so labels cannot clip.
-   */
-  labelWidthLeft: number;
-  labelWidthRight: number;
+  /** Room for the left (J) and right (B) labels. Same on both sides so the plot is centered. */
+  sideLabelWidth: number;
   padding: number;
   rings: readonly number[];
   showRingLabels: boolean;
@@ -81,10 +74,10 @@ const GEOMETRY: Record<RadarChartMode, Geometry> = {
   full: {
     radius: 104,
     fontSize: 13,
-    markerRadius: 4.5,
+    dotRadius: 5,
     labelGap: 12,
-    labelWidthLeft: 110,
-    labelWidthRight: 72,
+    // "Beneficence" at 13px/600 is about 80 wide; slack for fallback fonts.
+    sideLabelWidth: 86,
     padding: 6,
     rings: [0.25, 0.5, 0.75, 1],
     showRingLabels: true,
@@ -93,10 +86,9 @@ const GEOMETRY: Record<RadarChartMode, Geometry> = {
   compact: {
     radius: 38,
     fontSize: 13,
-    markerRadius: 3,
+    dotRadius: 3.25,
     labelGap: 8,
-    labelWidthLeft: 12,
-    labelWidthRight: 12,
+    sideLabelWidth: 10,
     padding: 4,
     rings: [0.5, 1],
     showRingLabels: false,
@@ -104,85 +96,83 @@ const GEOMETRY: Record<RadarChartMode, Geometry> = {
   },
 };
 
-/** Neutral palette (slate). Value colors are used only for markers and labels. */
-const NEUTRAL = {
-  axis: "#cbd5e1",
-  ring: "#e2e8f0",
-  scaleText: "#64748b",
-  fill: "rgba(71, 85, 105, 0.16)",
-  outline: "#475569",
-  halo: "#ffffff",
-} as const;
-
-/* -------------------------------------------------------------------------- */
-/*  Validation                                                                */
-/* -------------------------------------------------------------------------- */
-
-type IssueKind = "missing" | "not-finite" | "out-of-range";
-
-interface Issue {
-  id: ValueId;
-  kind: IssueKind;
-  value: unknown;
-}
-
-/**
- * Checks each axis without coercing or clamping. Typed as `unknown` per entry
- * on purpose: data can arrive malformed at runtime even when the type says
- * `number`. The sum is deliberately NOT checked or enforced; the chart plots
- * what it is given on the fixed scale.
- */
-function findIssues(priorities: NormalizedPriorities): Issue[] {
-  const issues: Issue[] = [];
-  for (const { id } of AXES) {
-    const value: unknown = priorities[id];
-    if (value === undefined || value === null) {
-      issues.push({ id, kind: "missing", value });
-    } else if (typeof value !== "number" || !Number.isFinite(value)) {
-      issues.push({ id, kind: "not-finite", value });
-    } else if (value < 0 || value > 1) {
-      issues.push({ id, kind: "out-of-range", value });
-    }
-  }
-  return issues;
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Helpers                                                                   */
-/* -------------------------------------------------------------------------- */
-
 const toRadians = (degrees: number): number => (degrees * Math.PI) / 180;
 
-/** Up to 3 decimals, no trailing zeros. */
+/** Fraction of the radius for a priority; always inside the plot. */
+const toFraction = (priority: number): number =>
+  Number.isFinite(priority) ? Math.min(1, Math.max(0, priority / RADAR_SCALE_MAX)) : 0;
+
 const formatNumber = (n: number): string => String(Number(n.toFixed(3)));
 
-const describeIssue = (issue: Issue, label: string): string => {
-  switch (issue.kind) {
-    case "missing":
-      return `${label} is missing`;
-    case "not-finite":
-      return `${label} is not a finite number`;
-    case "out-of-range":
-      return `${label} is outside 0 to 1 (${String(issue.value)})`;
-  }
-};
+/* -------------------------------------------------------------------------- */
+/*  Hooks and parts                                                           */
+/* -------------------------------------------------------------------------- */
 
-/** Darkened value color so label text stays readable on a light background. */
-const labelColor = (color: string): string => `color-mix(in srgb, ${color} 72%, #000)`;
+/** Normalizes a number-or-MotionValue into a MotionValue (one render path for both). */
+function useLength(input: RadarLength): MotionValue<number> {
+  const own = useMotionValue(typeof input === "number" ? input : 0);
+  useLayoutEffect(() => {
+    if (typeof input === "number") own.set(input);
+  }, [input, own]);
+  return isMotionValue(input) ? input : own;
+}
+
+interface Frame {
+  cx: number;
+  cy: number;
+  radius: number;
+}
+
+const vertexX = (f: Frame, angle: number, length: number): number =>
+  f.cx + f.radius * toFraction(length) * Math.cos(toRadians(angle));
+const vertexY = (f: Frame, angle: number, length: number): number =>
+  f.cy + f.radius * toFraction(length) * Math.sin(toRadians(angle));
+
+function VertexDot({
+  length,
+  value,
+  angle,
+  frame,
+  r,
+}: {
+  length: MotionValue<number>;
+  value: Value;
+  angle: number;
+  frame: Frame;
+  r: number;
+}) {
+  const cx = useTransform(length, (l) => vertexX(frame, angle, l));
+  const cy = useTransform(length, (l) => vertexY(frame, angle, l));
+  return (
+    <motion.circle
+      cx={cx}
+      cy={cy}
+      r={r}
+      fill={VALUE_COLORS[value]}
+      stroke={NEUTRAL.surface}
+      strokeWidth={1.5}
+      data-value={value}
+    />
+  );
+}
 
 /* -------------------------------------------------------------------------- */
 /*  Component                                                                 */
 /* -------------------------------------------------------------------------- */
 
 /**
- * Four-axis radar chart of one decision-maker's normalized priorities.
+ * Four-axis radar chart of one decision-maker's priorities.
  *
- * Responsive SVG (scales with its container's width). All profiles share one
- * fixed 0–1 radial scale, so shapes are directly comparable.
+ * - Axes are always A, B, N, J (top, right, bottom, left); never data-driven.
+ * - The scale is fixed (outer ring = `RADAR_SCALE_MAX`) and the plot sits at
+ *   the same place every time, so charts are directly comparable.
+ * - The polygon is neutral; only the vertex dots and axis labels use value colors.
+ * - Every radial length may be a MotionValue for animation.
+ *
+ * Responsive SVG: it scales with its container's width.
  */
 export default function RadarChart({
   priorities,
-  values,
   title,
   description,
   mode = "full",
@@ -195,48 +185,71 @@ export default function RadarChart({
   const g = GEOMETRY[mode];
   const compact = mode === "compact";
 
-  // The viewBox is sized so every label fits inside; the plot center sits
-  // wherever that puts it (same place for every profile in a given mode).
-  const sideReserve = g.radius + g.labelGap + g.padding;
-  const cx = sideReserve + g.labelWidthLeft;
-  const width = cx + sideReserve + g.labelWidthRight;
-  const halfHeight = g.radius + g.labelGap + g.fontSize + g.padding;
-  const cy = halfHeight;
-  const height = halfHeight * 2;
+  // Fixed viewBox: depends only on `mode`, never on data.
+  const reserveX = g.radius + g.labelGap + g.sideLabelWidth + g.padding;
+  const reserveY = g.radius + g.labelGap + g.fontSize + g.padding;
+  const frame: Frame = { cx: reserveX, cy: reserveY, radius: g.radius };
+  const width = reserveX * 2;
+  const height = reserveY * 2;
 
-  const point = (angle: number, fraction: number) => ({
-    x: cx + g.radius * fraction * Math.cos(toRadians(angle)),
-    y: cy + g.radius * fraction * Math.sin(toRadians(angle)),
+  const lengthA = useLength(priorities.A);
+  const lengthB = useLength(priorities.B);
+  const lengthN = useLength(priorities.N);
+  const lengthJ = useLength(priorities.J);
+  const lengths: Record<Value, MotionValue<number>> = {
+    A: lengthA,
+    B: lengthB,
+    N: lengthN,
+    J: lengthJ,
+  };
+
+  const polygonPoints = useTransform(
+    [lengthA, lengthB, lengthN, lengthJ],
+    (latest: number[]) =>
+      RADAR_AXES.map(
+        ({ angle }, i) =>
+          `${vertexX(frame, angle, latest[i]).toFixed(2)},${vertexY(frame, angle, latest[i]).toFixed(2)}`,
+      ).join(" "),
+  );
+
+  // Validation applies to plain numbers only (see `priorities` docs).
+  const invalid = VALUE_ORDER.filter((v) => {
+    const input: unknown = priorities[v];
+    if (isMotionValue(input)) return false;
+    return typeof input !== "number" || !Number.isFinite(input) || input < 0 || input > RADAR_SCALE_MAX;
   });
-  const pointsAttr = (fractions: readonly number[]): string =>
-    AXES.map(({ angle }, i) => {
-      const p = point(angle, fractions[i]);
-      return `${p.x.toFixed(2)},${p.y.toFixed(2)}`;
-    }).join(" ");
+  const valid = invalid.length === 0;
+  const animated = VALUE_ORDER.some((v) => isMotionValue(priorities[v]));
 
-  const issues = findIssues(priorities);
-  const valid = issues.length === 0;
+  const summary = !valid
+    ? `Chart not drawn because the data are invalid for: ${invalid.map((v) => VALUES[v].name).join(", ")}.`
+    : animated
+      ? "Values animate."
+      : `Priorities on a 0 to ${RADAR_SCALE_MAX} scale: ${VALUE_ORDER.map(
+          (v) => `${VALUES[v].name} ${formatNumber(priorities[v] as number)}`,
+        ).join(", ")}.`;
 
-  const summary = valid
-    ? `Normalized priorities on a 0 to 1 scale: ${AXES.map(
-        ({ id }) => `${values[id].label} ${formatNumber(priorities[id])}`,
-      ).join(", ")}.`
-    : `Chart not drawn because the data are invalid: ${issues
-        .map((issue) => describeIssue(issue, values[issue.id].label))
-        .join("; ")}.`;
+  const ringPoints = (fraction: number): string =>
+    RADAR_AXES.map(
+      ({ angle }) =>
+        `${(frame.cx + g.radius * fraction * Math.cos(toRadians(angle))).toFixed(2)},${(
+          frame.cy +
+          g.radius * fraction * Math.sin(toRadians(angle))
+        ).toFixed(2)}`,
+    ).join(" ");
 
-  const labelPosition = (axis: AxisSpec) => {
-    const offset = g.labelGap;
-    const tip = point(axis.angle, 1);
-    switch (axis.placement) {
-      case "top":
-        return { x: tip.x, y: tip.y - offset, anchor: "middle", dy: "0" } as const;
-      case "bottom":
-        return { x: tip.x, y: tip.y + offset + g.fontSize * 0.8, anchor: "middle", dy: "0" } as const;
-      case "right":
-        return { x: tip.x + offset, y: tip.y, anchor: "start", dy: "0.35em" } as const;
-      case "left":
-        return { x: tip.x - offset, y: tip.y, anchor: "end", dy: "0.35em" } as const;
+  const labelPosition = (angle: number) => {
+    const tipX = frame.cx + g.radius * Math.cos(toRadians(angle));
+    const tipY = frame.cy + g.radius * Math.sin(toRadians(angle));
+    switch (angle) {
+      case -90:
+        return { x: tipX, y: tipY - g.labelGap, anchor: "middle", dy: "0" } as const;
+      case 90:
+        return { x: tipX, y: tipY + g.labelGap + g.fontSize * 0.8, anchor: "middle", dy: "0" } as const;
+      case 0:
+        return { x: tipX + g.labelGap, y: tipY, anchor: "start", dy: "0.35em" } as const;
+      default:
+        return { x: tipX - g.labelGap, y: tipY, anchor: "end", dy: "0.35em" } as const;
     }
   };
 
@@ -255,7 +268,7 @@ export default function RadarChart({
       {g.rings.map((ring) => (
         <polygon
           key={ring}
-          points={pointsAttr(AXES.map(() => ring))}
+          points={ringPoints(ring)}
           fill="none"
           stroke={ring === 1 ? NEUTRAL.axis : NEUTRAL.ring}
           strokeWidth={0.75}
@@ -263,72 +276,67 @@ export default function RadarChart({
       ))}
 
       {/* Axes. */}
-      {AXES.map(({ id, angle }) => {
-        const tip = point(angle, 1);
-        return (
-          <line
-            key={id}
-            x1={cx}
-            y1={cy}
-            x2={tip.x}
-            y2={tip.y}
-            stroke={NEUTRAL.axis}
-            strokeWidth={0.75}
-          />
-        );
-      })}
+      {RADAR_AXES.map(({ value, angle }) => (
+        <line
+          key={value}
+          x1={frame.cx}
+          y1={frame.cy}
+          x2={frame.cx + g.radius * Math.cos(toRadians(angle))}
+          y2={frame.cy + g.radius * Math.sin(toRadians(angle))}
+          stroke={NEUTRAL.axis}
+          strokeWidth={0.75}
+        />
+      ))}
 
-      {/* Scale labels sit on the top-right edge of each ring. */}
+      {/* Scale labels on the A-B edge of each ring. */}
       {g.showRingLabels &&
         g.rings.map((ring) => (
           <text
             key={ring}
-            x={cx + (g.radius * ring) / 2 + 3}
-            y={cy - (g.radius * ring) / 2 - 2}
+            x={frame.cx + (g.radius * ring) / 2 + 3}
+            y={frame.cy - (g.radius * ring) / 2 - 2}
             fontSize={10}
-            fill={NEUTRAL.scaleText}
-            stroke={NEUTRAL.halo}
+            fill={NEUTRAL.inkFaint}
+            stroke={NEUTRAL.surface}
             strokeWidth={3}
             paintOrder="stroke"
             aria-hidden="true"
           >
-            {formatNumber(ring)}
+            {formatNumber(ring * RADAR_SCALE_MAX)}
           </text>
         ))}
 
-      {/* Data shape: neutral fill + neutral outline, only for valid data. */}
+      {/* Data shape: neutral fill and outline, with value-colored vertex dots. */}
       {valid ? (
         <>
-          <polygon
-            points={pointsAttr(AXES.map(({ id }) => priorities[id]))}
-            fill={NEUTRAL.fill}
-            stroke={NEUTRAL.outline}
+          <motion.polygon
+            points={polygonPoints}
+            fill={NEUTRAL.polygonFill}
+            stroke={NEUTRAL.polygonStroke}
             strokeWidth={g.strokeWidth}
             strokeLinejoin="round"
           />
-          {AXES.map(({ id, angle }) => {
-            const p = point(angle, priorities[id]);
-            return (
-              <circle
-                key={id}
-                cx={p.x}
-                cy={p.y}
-                r={compact ? 1.5 : 2.25}
-                fill={NEUTRAL.outline}
-              />
-            );
-          })}
+          {RADAR_AXES.map(({ value, angle }) => (
+            <VertexDot
+              key={value}
+              length={lengths[value]}
+              value={value}
+              angle={angle}
+              frame={frame}
+              r={g.dotRadius}
+            />
+          ))}
         </>
       ) : (
         <text
-          x={cx}
-          y={cy}
+          x={frame.cx}
+          y={frame.cy}
           textAnchor="middle"
           dy="0.35em"
           fontSize={compact ? 9 : 13}
           fontWeight={600}
-          fill={NEUTRAL.scaleText}
-          stroke={NEUTRAL.halo}
+          fill={NEUTRAL.inkFaint}
+          stroke={NEUTRAL.surface}
           strokeWidth={4}
           paintOrder="stroke"
           aria-hidden="true"
@@ -337,34 +345,23 @@ export default function RadarChart({
         </text>
       )}
 
-      {/* Value-colored endpoint markers and labels at the fixed axis tips. */}
-      {AXES.map((axis) => {
-        const definition = values[axis.id];
-        const tip = point(axis.angle, 1);
-        const pos = labelPosition(axis);
+      {/* Axis labels at the fixed tips. */}
+      {RADAR_AXES.map(({ value, angle }) => {
+        const pos = labelPosition(angle);
         return (
-          <g key={axis.id}>
-            <circle
-              cx={tip.x}
-              cy={tip.y}
-              r={g.markerRadius}
-              fill={definition.color}
-              stroke={NEUTRAL.halo}
-              strokeWidth={1.25}
-            />
-            <text
-              x={pos.x}
-              y={pos.y}
-              dy={pos.dy}
-              textAnchor={pos.anchor}
-              fontSize={g.fontSize}
-              fontWeight={600}
-              style={{ fill: labelColor(definition.color) }}
-            >
-              {compact && <title>{definition.label}</title>}
-              {compact ? axis.letter : definition.label}
-            </text>
-          </g>
+          <text
+            key={value}
+            x={pos.x}
+            y={pos.y}
+            dy={pos.dy}
+            textAnchor={pos.anchor}
+            fontSize={g.fontSize}
+            fontWeight={600}
+            style={{ fill: valueInk(value) }}
+          >
+            {compact && <title>{VALUES[value].name}</title>}
+            {compact ? VALUES[value].letter : VALUES[value].name}
+          </text>
         );
       })}
     </svg>

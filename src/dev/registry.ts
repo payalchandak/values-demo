@@ -9,6 +9,7 @@ export interface DevEntry {
 // Register dev-only components here, e.g.
 // { name: "foo", component: lazy(() => import("./Foo")) }
 export const registry: DevEntry[] = [
+  { name: "primitives", component: lazy(() => import("./PrimitivesPage")) },
   { name: "regression", component: lazy(() => import("../chapters/regression/Dev")) },
 ];
 

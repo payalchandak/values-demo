@@ -1,113 +1,88 @@
 import type { CSSProperties } from "react";
-import type { ValueAnnotation, ValueDefinition } from "../data/demoData";
+import type { Tag, Value } from "../study/types";
+import { NEUTRAL, TAGS, TagGlyph, VALUES, VALUE_COLORS, valueInk, valueTint } from "../design";
 
-interface ValueBadgeProps {
-  /** Value identity: label and color come from here (see `valueDefinitions`). */
-  value: ValueDefinition;
+export interface ValueBadgeProps {
+  value: Value;
   /**
    * How the thing being annotated relates to this value.
-   * Omitted means "no annotation shown" (identity only). It is NOT treated as
-   * neutral; pass `0` explicitly for a neutral annotation.
+   * Omitted = identity only (no tag shown). It is NOT treated as neutral:
+   * pass `0` explicitly for a neutral tag.
    */
-  annotation?: ValueAnnotation;
-  /** Smaller badge that hides the numeric code but keeps name + direction symbol. */
-  compact?: boolean;
+  tag?: Tag;
+  /** `name` shows "Autonomy"; `letter` shows "A". The tag cues are always shown. */
+  display?: "name" | "letter";
+  className?: string;
 }
-
-interface AnnotationPresentation {
-  symbol: string;
-  code: string;
-  description: string;
-}
-
-const PRESENTATION: Record<ValueAnnotation, AnnotationPresentation> = {
-  1: { symbol: "↑", code: "+1", description: "promotes (+1)" },
-  [-1]: { symbol: "↓", code: "\u22121", description: "undermines (\u22121)" },
-  0: { symbol: "\u2013", code: "0", description: "neutral (0)" },
-};
-
-/** Darkened variant of the value color so text stays readable on light tints. */
-const textColor = (color: string): string =>
-  `color-mix(in srgb, ${color} 72%, #000)`;
-
-const tint = (color: string, percent: number): string =>
-  `color-mix(in srgb, ${color} ${percent}%, transparent)`;
 
 /**
- * Every state uses the same 1.5px border and fixed height, so switching
- * annotation never changes the badge's height or shifts layout vertically.
- * - identity only: white fill, light value-colored border
- * - +1: tinted fill, solid value-colored border
- * - -1: white fill, solid value-colored (outlined) border
- * - 0:  no fill, faint border, gray text
+ * Chip styling per state. Every state has the same 1.5px border and fixed
+ * height, so switching tag never moves surrounding layout.
+ *
+ * - identity: white, light value border, value dot
+ * - +1:       SOLID value fill, white text
+ * - -1:       OUTLINED: white fill, value border, value-ink text
+ * - 0:        faint gray chip, gray text
  */
-function toneStyle(color: string, annotation: ValueAnnotation | undefined): CSSProperties {
-  switch (annotation) {
-    case 1:
-      return {
-        backgroundColor: tint(color, 16),
-        borderColor: color,
-        color: textColor(color),
-      };
-    case -1:
-      return {
-        backgroundColor: "#ffffff",
-        borderColor: color,
-        color: textColor(color),
-      };
-    case 0:
-      return {
-        backgroundColor: "transparent",
-        borderColor: tint(color, 30),
-        color: "#4b5563", // gray-600
-      };
-    case undefined:
-      return {
-        backgroundColor: "#ffffff",
-        borderColor: tint(color, 45),
-        color: textColor(color),
-      };
+function chipStyle(value: Value, tag: Tag | undefined): CSSProperties {
+  const color = VALUE_COLORS[value];
+  if (tag === undefined) {
+    return { backgroundColor: NEUTRAL.surface, borderColor: valueTint(value, 45), color: valueInk(value) };
+  }
+  switch (TAGS[tag].chip) {
+    case "solid":
+      return { backgroundColor: color, borderColor: color, color: "#FFFFFF" };
+    case "outlined":
+      return { backgroundColor: NEUTRAL.surface, borderColor: color, color: valueInk(value) };
+    case "faint":
+      return { backgroundColor: "transparent", borderColor: NEUTRAL.line, color: NEUTRAL.inkMuted };
   }
 }
 
 /**
- * Noninteractive label for a clinical value, optionally with its annotation.
+ * Noninteractive chip for one value, optionally carrying a tag.
  *
- * Example renderings: `Autonomy`, `Autonomy ↑ +1`, `Autonomy ↓ −1`, `Autonomy – 0`.
+ * Tag encoding is redundant on purpose (fill, glyph, and text all say the same thing):
+ *   promotes  solid chip    + up arrow   + "+1"
+ *   violates  outlined chip + down arrow + "-1"
+ *   neutral   faint chip    + dash       + "0"
  */
-export default function ValueBadge({ value, annotation, compact = false }: ValueBadgeProps) {
-  const presentation = annotation === undefined ? undefined : PRESENTATION[annotation];
+export default function ValueBadge({
+  value,
+  tag,
+  display = "name",
+  className = "",
+}: ValueBadgeProps) {
+  const meta = VALUES[value];
+  const tagMeta = tag === undefined ? undefined : TAGS[tag];
+  const text = display === "letter" ? meta.letter : meta.name;
 
   const ariaLabel =
-    presentation === undefined
-      ? value.label
-      : `${value.label}: ${presentation.description}`;
-
-  const size = compact ? "h-6 gap-1 px-2 text-[11px]" : "h-7 gap-1.5 px-2.5 text-xs";
+    tagMeta === undefined ? meta.name : `${meta.name}: ${tagMeta.word} (${tagMeta.code})`;
 
   return (
     <span
       role="img"
       aria-label={ariaLabel}
-      style={toneStyle(value.color, annotation)}
-      className={`inline-flex w-fit shrink-0 select-none items-center whitespace-nowrap rounded-full border-[1.5px] align-middle font-medium leading-none ${size}`}
+      data-value={value}
+      data-tag={tag}
+      style={chipStyle(value, tag)}
+      className={`inline-flex h-7 w-fit shrink-0 select-none items-center gap-1.5 whitespace-nowrap rounded-full border-[1.5px] px-2.5 align-middle text-xs font-semibold leading-none ${className}`.trim()}
     >
-      <span
-        aria-hidden="true"
-        className="inline-block size-1.5 shrink-0 rounded-full"
-        style={{ backgroundColor: value.color }}
-      />
-      <span aria-hidden="true">{value.label}</span>
-      {presentation !== undefined && (
+      {tagMeta === undefined && (
+        <span
+          aria-hidden="true"
+          className="inline-block size-1.5 shrink-0 rounded-full"
+          style={{ backgroundColor: VALUE_COLORS[value] }}
+        />
+      )}
+      <span aria-hidden="true">{text}</span>
+      {tagMeta !== undefined && (
         <>
-          <span aria-hidden="true" className="min-w-[0.75em] shrink-0 text-center font-semibold">
-            {presentation.symbol}
+          <TagGlyph glyph={tagMeta.glyph} />
+          <span aria-hidden="true" className="font-mono tabular-nums">
+            {tagMeta.code}
           </span>
-          {!compact && (
-            <span aria-hidden="true" className="shrink-0 font-mono font-semibold tabular-nums">
-              {presentation.code}
-            </span>
-          )}
         </>
       )}
     </span>
