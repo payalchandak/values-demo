@@ -79,8 +79,6 @@ const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 const ramp = (t: number, a: number, b: number) =>
   b <= a ? (t >= b ? 1 : 0) : clamp01((t - a) / (b - a));
 const smooth = (x: number) => x * x * (3 - 2 * x);
-const ease = (x: number) =>
-  x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2;
 const lerp = (a: number, b: number, p: number) => a + (b - a) * p;
 
 /** When case `i` starts to flash in. Case 0 is already there. */
@@ -406,6 +404,61 @@ interface Metrics {
   stageW: number;
 }
 
+/**
+ * A hidden copy of the opening's last frame, fitted to the stage. The scene
+ * mounts only once that box is known, so its font is never the shorter scene
+ * zone's. `onPx` reports the size the card has to start from.
+ */
+function StageFontProbe({
+  hostRef,
+  onPx,
+}: {
+  hostRef: { current: HTMLDivElement | null };
+  onPx: (px: number) => void;
+}) {
+  const onPxRef = useRef(onPx);
+  onPxRef.current = onPx;
+  const [box, setBox] = useState<{ w: number; h: number } | null>(null);
+  useLayoutEffect(() => {
+    const host = hostRef.current;
+    const stage = host?.closest<HTMLElement>("[data-stage]");
+    if (!host || !stage) return;
+    const apply = () => {
+      const w = stage.clientWidth;
+      const h = stage.clientHeight;
+      setBox((prev) => (prev && prev.w === w && prev.h === h ? prev : { w, h }));
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(stage);
+    return () => ro.disconnect();
+  }, [hostRef]);
+  useLayoutEffect(() => {
+    if (!box) return;
+    const root = hostRef.current?.querySelector<HTMLElement>("[data-opening-root]");
+    if (!root) return;
+    const read = () => {
+      const px = parseFloat(getComputedStyle(root).fontSize);
+      if (px > 1) onPxRef.current(px);
+    };
+    read();
+    const mo = new MutationObserver(read);
+    mo.observe(root, { attributes: true, attributeFilter: ["style"] });
+    void document.fonts?.ready.then(read);
+    return () => mo.disconnect();
+  }, [box, hostRef]);
+  return (
+    <div
+      ref={hostRef}
+      aria-hidden
+      className="pointer-events-none invisible absolute left-0 top-0 overflow-hidden"
+      style={box ? { width: box.w, height: box.h } : undefined}
+    >
+      {box ? <OpeningScene t={HELD_T} sharedIcon={false} /> : null}
+    </div>
+  );
+}
+
 /** Scale from a CSS transform matrix, or 1 when the element is unscaled. */
 function cssScale(el: HTMLElement | null): number {
   if (!el) return 1;
@@ -423,33 +476,25 @@ export default function CasesScene({ elapsedMs }: { elapsedMs: number }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const probeRef = useRef<HTMLDivElement>(null);
   const pileRef = useRef<HTMLDivElement>(null);
-  const [metrics, setMetrics] = useState<Metrics>({ openingPx: 16, stageW: 0 });
+  const [metrics, setMetrics] = useState<Metrics>({ openingPx: 0, stageW: 0 });
 
+  // The opening fitted its type to the whole stage. This probe has to be that
+  // same box before it measures, or the first paint uses the shorter scene
+  // zone and the case snaps smaller just as the card starts to draw.
+  const onOpeningPx = (px: number) => {
+    setMetrics((prev) => (Math.abs(prev.openingPx - px) < 0.2 ? prev : { ...prev, openingPx: px }));
+  };
   useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root) return;
     const measure = () => {
-      const openingRoot = probeRef.current?.querySelector<HTMLElement>(
-        "[data-opening-root]",
-      );
-      const px = openingRoot
-        ? parseFloat(getComputedStyle(openingRoot).fontSize)
-        : NaN;
-      const next: Metrics = {
-        openingPx: Number.isFinite(px) && px > 1 ? px : 16,
-        stageW: root.clientWidth,
-      };
       setMetrics((prev) =>
-        Math.abs(prev.openingPx - next.openingPx) < 0.2 &&
-        Math.abs(prev.stageW - next.stageW) < 0.5
-          ? prev
-          : next,
+        Math.abs(prev.stageW - root.clientWidth) < 0.5 ? prev : { ...prev, stageW: root.clientWidth },
       );
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(root);
-    void document.fonts?.ready.then(measure);
     return () => ro.disconnect();
   }, []);
 
@@ -457,11 +502,10 @@ export default function CasesScene({ elapsedMs }: { elapsedMs: number }) {
   // Gentler than the cubic: the middle of that curve was steep enough to read as a snap.
   const boxP = smooth(ramp(elapsedMs, boxAt, boxAt + BOX_MS));
 
-  // The opening's last frame is scaled up to fill the stage. The column width
-  // is already easing from that column to the card, so the scale only takes
-  // off the fill — it must not shrink a second time on top of the width.
-  // On-screen size therefore moves once, from the filled frame to the card.
-  // Layout only: once the ease is done, no transform is left for the vote scene to measure.
+  // If the opening's last frame is still scaled up to the stage, take that fill
+  // off while the column width eases to the card. The scale must not shrink a
+  // second time on top of the width, or the group snaps small and the card
+  // chases it. Once the ease is done, no transform is left to measure.
   useLayoutEffect(() => {
     const root = rootRef.current;
     const pile = pileRef.current;
@@ -499,8 +543,7 @@ export default function CasesScene({ elapsedMs }: { elapsedMs: number }) {
 
   // Type stays at the opening's size, or less when two columns of labels would not fit the stage.
   const fitPx = Math.max(8, (metrics.stageW - SIDE * 2) / FIT_EM);
-  const fontPx =
-    metrics.stageW > 0 ? Math.min(metrics.openingPx, fitPx) : metrics.openingPx;
+  const fontPx = metrics.openingPx > 0 ? Math.min(metrics.openingPx, fitPx) : 0;
 
   let topIndex = 0;
   CARDS.forEach((_, i) => {
@@ -517,17 +560,15 @@ export default function CasesScene({ elapsedMs }: { elapsedMs: number }) {
 
   return (
     <div ref={rootRef} className="relative h-full w-full">
-      <div
-        ref={probeRef}
-        data-probe
-        aria-hidden
-        className="pointer-events-none invisible absolute inset-0 overflow-hidden"
-      >
-        <OpeningScene t={HELD_T} sharedIcon={false} />
-      </div>
+      <StageFontProbe hostRef={probeRef} onPx={onOpeningPx} />
 
       <div className="absolute inset-0 flex items-center justify-center">
-        <div ref={pileRef} data-pile className="@container relative box-border grid origin-center" style={shell}>
+        <div
+          ref={pileRef}
+          data-pile
+          className="@container relative box-border grid origin-center"
+          style={{ ...shell, visibility: fontPx > 0 ? undefined : "hidden" }}
+        >
           {CARDS.map((card, i) => {
             if (i > 0 && elapsedMs < startOf(i)) return null;
             return (
