@@ -20,11 +20,11 @@ import OpeningResponse from "./OpeningResponse";
 import ValueStrip from "./ValueStrip";
 import TuckedCase from "./TuckedCase";
 import Vignette from "./Vignette";
-import { CARD_CLASS } from "./cardClass";
+import { CARD_CLASS, CARD_SURFACE } from "./cardClass";
 import { CHARCOAL, CHARCOAL_FAINT } from "./charcoal";
 import { ROW_VARS } from "./rowMetrics";
 import { valueSteps } from "./valueSteps";
-import { COLLAPSE_MS, OPENING_BEATS, OFFSETS, PILL_ENTER_MS, at, caseCharsAt, modelHandoff, ramp, stripProgress, visibility } from "./timeline";
+import { CASE_SHRINK_MS, COLLAPSE_MS, OPENING_BEATS, OFFSETS, PILL_ENTER_MS, at, caseCharsAt, modelHandoff, ramp, stripProgress, visibility } from "./timeline";
 
 /* -------------------------------------------------------------------------- */
 /*  Copy                                                                       */
@@ -86,7 +86,6 @@ const MAX_FONT_PX = 22;
  * the viewport instead of the font that later, denser chapters fit into.
  * It eases back to that shared size before the case arrives.
  */
-const HERO_EXIT_MS = 480;
 /** NeurIPS lockup, from the SVG's own width and height. */
 const LOGO_ASPECT = 26.738739 / 59.671822;
 const HERO_TITLE_CAP = 96;
@@ -177,12 +176,6 @@ function measureHero(sceneW: number, sceneH: number, fs: number, lineProbe: HTML
  */
 const MIN_READABLE_PX = 12;
 
-/**
- * The paper title leaves, the heading eases down to one line, then
- * "What would you recommend?" fades in whole. Readable type is never clipped.
- * The move finishes as the dilemma chapter starts.
- */
-const HEADING_SWAP_MS = 980;
 /** The two choices fade in and the case eases up to make room. */
 const OPTIONS_IN_MS = 680;
 
@@ -198,10 +191,10 @@ const easeOut = (x: number) => 1 - (1 - Math.min(1, Math.max(0, x))) ** 3;
  * chosen once per viewport and never changes during playback. The framework
  * chapter is probed once per value (at its highlight and once both labels have landed)
  * because the focused layout enlarges a different sentence for each. The hook
- * is probed before the heading swap, while the title still occupies its full space.
+ * is probed at its last frame, where the question slot is already reserved.
  */
 const PROBE_TIMES: readonly number[] = [
-  at("hook", "end") - HEADING_SWAP_MS - 1,
+  at("hook", "end") - 1,
   at("dilemma", "end") - 1,
   at("model", "extracted"),
   at("model", "end") - 1, // the case tucked, GPT's decision row on screen
@@ -326,55 +319,6 @@ function GrowIn({ enter, children }: { enter: number; children: ReactNode }) {
 
 const HEADING_CLASS =
   "mx-auto w-full max-w-[30em] text-balance text-center font-semibold leading-[1.12] tracking-tight";
-
-/** NeurIPS mark above the title. Its slot closes as it fades, so the title eases up. */
-function OpeningMark({
-  opacity,
-  lift,
-  drift,
-  open,
-  hero,
-  lockup,
-}: {
-  opacity: number;
-  lift: number;
-  drift: number;
-  open: number;
-  /** 1 = the viewport-sized opening card. 0 = the size the rest of the chapter fits. */
-  hero: number;
-  lockup: HeroLockup;
-}) {
-  const [ref, measured] = useBoxHeight();
-  const p = Math.min(1, Math.max(0, lift));
-  const h = Math.min(1, Math.max(0, hero));
-  const restLogo = Math.min(16 * lockup.fs, lockup.sceneW * 0.68);
-  const logoW = lockup.logo > 0 ? restLogo * (1 - h) + lockup.logo * h : undefined;
-  const gap = lockup.gap > 0 ? `calc(${STACK_GAP} * ${1 - h} + ${lockup.gap * h}px)` : STACK_GAP;
-  return (
-    <div
-      className="w-full overflow-hidden"
-      style={{
-        height: p <= 0 || measured === 0 ? "auto" : measured * (1 - p),
-        marginBottom: `calc(${STACK_GAP} * -1)`,
-      }}
-    >
-      <div ref={ref} className="flex flex-col items-center">
-        <img
-          src={neuripsLogo}
-          alt="NeurIPS"
-          className={logoW === undefined ? "w-[min(16em,68%)]" : "h-auto max-w-full"}
-          style={{
-            width: logoW,
-            aspectRatio: logoW === undefined ? undefined : "59.671822 / 26.738739",
-            opacity,
-            transform: `translateY(${drift * -0.45}em) scale(${0.94 + 0.06 * open})`,
-          }}
-        />
-        <div aria-hidden style={{ height: gap }} />
-      </div>
-    </div>
-  );
-}
 
 /**
  * The paper title and the question occupy one heading. The box eases from the
@@ -747,6 +691,126 @@ function CaseHandoff({
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Hook and typing overlays: pure functions of the opening clock              */
+/* -------------------------------------------------------------------------- */
+
+/** Margin between the full-scene case card and the scene's edge, in px. */
+const CASE_MARGIN_PX = 8;
+const CASE_MIN_PX = 8;
+const CASE_MAX_PX = 120;
+/** The card's padding, in em of its own font. Matches CARD_CLASS. */
+const CASE_PAD_EM = 0.9;
+
+interface Rect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  /** Font size in px of the text inside. */
+  fs: number;
+}
+
+const sameRect = (a: Rect | null, b: Rect) =>
+  a !== null &&
+  Math.abs(a.left - b.left) < 0.5 &&
+  Math.abs(a.top - b.top) < 0.5 &&
+  Math.abs(a.width - b.width) < 0.5 &&
+  Math.abs(a.height - b.height) < 0.5 &&
+  Math.abs(a.fs - b.fs) < 0.05;
+
+/** The case card's start and end of its settle, from where it sits in the dilemma layout. */
+const dilemmaStartMs = at("dilemma", "question");
+const caseTypingStartMs = at("hook", "patient");
+/** Whether the full-scene card (typing, then shrinking) is on screen at `t`. */
+const caseOverlayAt = (t: number) => t >= caseTypingStartMs && t < dilemmaStartMs + CASE_SHRINK_MS;
+
+/** NeurIPS mark and paper title, filling the scene. Both open together and fade out together. */
+function HeroOverlay({ t, lockup }: { t: number; lockup: HeroLockup }) {
+  const gone = at("hook", "logoGone");
+  if (t >= gone || lockup.sceneW <= 0) return null;
+  const open = ease(ramp(t, at("hook", "logo"), at("hook", "logoHold")));
+  const out = ease(ramp(t, at("hook", "logoRise"), gone));
+  return (
+    <div
+      aria-hidden={open * (1 - out) < 0.5}
+      className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"
+      style={{ opacity: open * (1 - out) }}
+    >
+      <img
+        src={neuripsLogo}
+        alt="NeurIPS"
+        style={{
+          width: lockup.logo,
+          maxWidth: "100%",
+          height: "auto",
+          aspectRatio: "59.671822 / 26.738739",
+          transform: `scale(${0.94 + 0.06 * open})`,
+        }}
+      />
+      <h1
+        className="text-center font-semibold tracking-tight"
+        style={{
+          marginTop: lockup.gap,
+          fontSize: lockup.title,
+          lineHeight: HERO_LINE_HEIGHT,
+          color: NEUTRAL.ink,
+        }}
+      >
+        {HERO_TITLE_LINES.map((line) => (
+          <span key={line} className="block whitespace-nowrap">
+            {line}
+          </span>
+        ))}
+      </h1>
+    </div>
+  );
+}
+
+/**
+ * The case, typed on a card that fills the scene. When the dilemma starts the
+ * card shrinks onto `target`, the in-flow card's place, and hands over to it.
+ * The full text is always laid out, with the untyped tail hidden, so nothing
+ * reflows while it types.
+ */
+function CaseOverlay({ t, full, target }: { t: number; full: Rect | null; target: Rect | null }) {
+  if (!caseOverlayAt(t) || full === null || target === null) return null;
+  const text = openingCase.vignette;
+  const typed = caseCharsAt(t);
+  const p = easeOut(ramp(t, dilemmaStartMs, dilemmaStartMs + CASE_SHRINK_MS));
+  const lerp = (a: number, b: number) => a + (b - a) * p;
+  return (
+    <div
+      role="img"
+      aria-label={text}
+      className={`pointer-events-none absolute box-border flex items-center ${CARD_SURFACE}`}
+      style={{
+        left: lerp(full.left, target.left),
+        top: lerp(full.top, target.top),
+        width: lerp(full.width, target.width),
+        height: lerp(full.height, target.height),
+        fontSize: lerp(full.fs, target.fs),
+        padding: `${CASE_PAD_EM}em`,
+        borderColor: NEUTRAL.line,
+        color: NEUTRAL.ink,
+      }}
+    >
+      <p className="leading-[1.5]" style={{ textWrap: "pretty" }}>
+        <span>{text.slice(0, typed)}</span>
+        {typed < text.length && (
+          <span aria-hidden className="relative inline-block w-0 align-baseline">
+            <span
+              className="absolute bg-current"
+              style={{ left: "0.05em", width: "0.07em", height: "1.05em", top: "-0.85em" }}
+            />
+          </span>
+        )}
+        <span style={{ visibility: "hidden" }}>{text.slice(typed)}</span>
+      </p>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /*  Scene body: a pure function of the opening clock `t`                       */
 /* -------------------------------------------------------------------------- */
 
@@ -763,7 +827,7 @@ const SceneBody = memo(function SceneBody({
   sharedIcon,
   hidePatient,
   recallPatient,
-  lockup,
+  caseOverlay,
   ghost = false,
 }: {
   t: number;
@@ -772,7 +836,8 @@ const SceneBody = memo(function SceneBody({
   sharedIcon: boolean;
   hidePatient: boolean;
   recallPatient: boolean;
-  lockup: HeroLockup;
+  /** The full-scene typing card (drawn by OpeningScene) is on screen: keep the in-flow card's place, unseen. */
+  caseOverlay: boolean;
   /** An invisible copy that only holds the icon's anchor (see OpeningScene). Never the patient's shared card. */
   ghost?: boolean;
 }) {
@@ -796,23 +861,9 @@ const SceneBody = memo(function SceneBody({
 
   const dilemmaStart = at("dilemma", "question");
   const ask = at("model", "ask");
-  // Title fades clear, then the slot eases down, then the question fades in whole.
-  const swap = ramp(t, dilemmaStart - HEADING_SWAP_MS, dilemmaStart);
-  const titleLeave = ease(Math.min(1, swap / 0.32));
-  const space = ease(Math.min(1, Math.max(0, (swap - 0.24) / 0.44)));
-  const questionIn = ease(Math.min(1, Math.max(0, (swap - 0.66) / 0.34)));
-  // Logo and title open on the same curve. The logo then fades as the case starts.
-  const logoOpen = ease(ramp(t, at("hook", "logo"), at("hook", "logoHold")));
-  const riseT = ramp(t, at("hook", "logoRise"), at("hook", "logoGone"));
-  // The opening card fills the screen, then settles to the shared size before the case is mounted.
-  const logoRise = at("hook", "logoRise");
-  const hero = probe ? 0 : 1 - ease(ramp(t, logoRise - HERO_EXIT_MS, logoRise));
-  const titlePx =
-    hero > 0 && lockup.title > 0 ? 2.6 * lockup.fs * (1 - hero) + lockup.title * hero : undefined;
-  // Fade in place first, then close the slot once the mark is gone.
-  const logoFade = ease(Math.min(1, riseT / 0.62));
-  const logoLift = ease(Math.min(1, Math.max(0, (riseT - 0.5) / 0.5)));
-  const logoOpacity = logoOpen * (1 - logoFade);
+  // The question fades in as the full-scene case card shrinks into its place.
+  // It starts once the card has cleared its slot, and lands with it.
+  const questionIn = ease(ramp(t, dilemmaStart + CASE_SHRINK_MS * 0.35, dilemmaStart + CASE_SHRINK_MS));
   // The question fades, then its slot closes, while the response grows in below the options.
   const handoff = modelHandoff(t - ask);
   const questionExit = handoff.questionCollapse;
@@ -865,7 +916,7 @@ const SceneBody = memo(function SceneBody({
   const valuesAt = at("framework", VALUE_ORDER[0]);
   const showStrip = t >= valuesAt && !cleared;
   const handoffMoving = (questionExit > 0 && questionExit < 1) || (responseEnter > 0 && responseEnter < 1);
-  const headingMoving = (space > 0 && space < 1) || handoffMoving;
+  const headingMoving = handoffMoving;
   const showQuestionHeading = h === 0 || (h === 1 && questionExit < 1);
   const sceneStill = !headingMoving && !optionsMoving && !tuckMoving && !stripping && !chipsMoving;
 
@@ -877,18 +928,13 @@ const SceneBody = memo(function SceneBody({
       }`}
       style={{ gap: STACK_GAP, ...ROW_VARS }}
     >
-      {riseT < 1 && (
-        <OpeningMark opacity={logoOpacity} lift={logoLift} drift={logoFade} open={logoOpen} hero={hero} lockup={lockup} />
-      )}
-
       {showQuestionHeading && (
         <HeadlineReplace
-          mix={h === 0 ? space : 1}
+          mix={1}
           exit={h === 0 ? 0 : questionExit}
           drift={h === 0 ? 0 : handoff.questionFade}
-          titleOpacity={h === 0 ? logoOpen * (1 - titleLeave) : 0}
-          questionOpacity={h === 0 ? questionIn : 1 - handoff.questionFade}
-          titleSize={h === 0 && titlePx !== undefined ? `${titlePx}px` : undefined}
+          titleOpacity={0}
+          questionOpacity={questionIn * (1 - handoff.questionFade)}
         />
       )}
 
@@ -907,12 +953,12 @@ const SceneBody = memo(function SceneBody({
 
       {showSummary && (
         <Block probe={probe} className="w-full" layout={sceneStill}>
-          <div style={{ opacity: summaryOpacity }} aria-hidden={summaryOpacity === 0 || hidePatient}>
-            <div style={{ visibility: hidePatient ? "hidden" : undefined }}>
+          <div style={{ opacity: summaryOpacity }} aria-hidden={summaryOpacity === 0 || hidePatient || caseOverlay}>
+            <div data-case-slot style={{ visibility: hidePatient || caseOverlay ? "hidden" : undefined }}>
               {tucked ? (
                 <TuckedCase tuck={tuck} shared={sharedCard} />
               ) : (
-                <PatientCard shared={sharedCard} typedChars={caseCharsAt(t)} />
+                <PatientCard shared={sharedCard} />
               )}
             </div>
           </div>
@@ -1014,6 +1060,11 @@ export default function OpeningScene({
   // Narrow-screen vignette layout; chosen by the fit below, not by a fixed breakpoint.
   const [focused, setFocused] = useState(false);
   const [lockup, setLockup] = useState<HeroLockup>(EMPTY_LOCKUP);
+  // The full-scene card, and the in-flow card's place it shrinks into.
+  const [fullRect, setFullRect] = useState<Rect | null>(null);
+  const [target, setTarget] = useState<Rect | null>(null);
+  const caseProbeRef = useRef<HTMLDivElement>(null);
+  const overlayOn = caseOverlayAt(t);
 
   // Choose the largest font size at which the fullest state of every chapter
   // fits the box. If the full vignette would need type smaller than
@@ -1024,7 +1075,8 @@ export default function OpeningScene({
     const full = fullProbesRef.current;
     const narrow = focusedProbesRef.current;
     const heroProbe = heroProbeRef.current;
-    if (!root || !full || !narrow || !heroProbe) return;
+    const caseProbe = caseProbeRef.current;
+    if (!root || !full || !narrow || !heroProbe || !caseProbe) return;
     const lineProbe = heroProbe.querySelector<HTMLElement>("[data-hero-word]");
     if (!lineProbe) return;
 
@@ -1064,6 +1116,27 @@ export default function OpeningScene({
       const scene = root.querySelector<HTMLElement>(":scope > [data-scene-body]");
       const next = measureHero(scene?.clientWidth || root.clientWidth, root.clientHeight, fs, lineProbe);
       setLockup((prev) => (sameLockup(prev, next) ? prev : next));
+
+      // Largest type at which the whole case fits the full-scene card.
+      const width = Math.max(0, root.clientWidth - 2 * CASE_MARGIN_PX);
+      const height = Math.max(0, root.clientHeight - 2 * CASE_MARGIN_PX);
+      caseProbe.style.width = `${width}px`;
+      const caseFits = (px: number) => {
+        caseProbe.style.fontSize = `${px}px`;
+        return caseProbe.offsetHeight <= height;
+      };
+      let lo = CASE_MIN_PX;
+      let hi = CASE_MAX_PX;
+      if (caseFits(hi)) lo = hi;
+      else {
+        for (let i = 0; i < 14; i++) {
+          const mid = (lo + hi) / 2;
+          if (caseFits(mid)) lo = mid;
+          else hi = mid;
+        }
+      }
+      const nextFull: Rect = { left: CASE_MARGIN_PX, top: CASE_MARGIN_PX, width, height, fs: Math.floor(lo * 10) / 10 };
+      setFullRect((prev) => (sameRect(prev, nextFull) ? prev : nextFull));
     };
 
     fit();
@@ -1072,6 +1145,24 @@ export default function OpeningScene({
     void document.fonts?.ready.then(fit);
     return () => observer.disconnect();
   }, []);
+
+  // Where the in-flow card sits. Measured only while the full-scene card needs it.
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    const slot = root?.querySelector<HTMLElement>("[data-case-slot]");
+    if (!root || !slot || !overlayOn) return;
+    const card = slot.firstElementChild ?? slot;
+    const r = card.getBoundingClientRect();
+    const o = root.getBoundingClientRect();
+    const next: Rect = {
+      left: r.left - o.left,
+      top: r.top - o.top,
+      width: r.width,
+      height: r.height,
+      fs: parseFloat(getComputedStyle(slot).fontSize) || 16,
+    };
+    setTarget((prev) => (sameRect(prev, next) ? prev : next));
+  });
 
   const probeSet = (ref: typeof fullProbesRef, isFocused: boolean) => (
     <div ref={ref} data-probe aria-hidden="true" className="pointer-events-none invisible absolute left-0 top-0 w-full">
@@ -1084,7 +1175,7 @@ export default function OpeningScene({
             sharedIcon={false}
             hidePatient={false}
             recallPatient={false}
-            lockup={EMPTY_LOCKUP}
+            caseOverlay={false}
           />
         </div>
       ))}
@@ -1099,6 +1190,7 @@ export default function OpeningScene({
       className="@container relative h-full w-full"
       style={{ fontSize: "var(--fs)" }}
     >
+      <CaseOverlay t={t} full={fullRect} target={target} />
       <SceneBody
         t={t}
         probe={false}
@@ -1106,12 +1198,21 @@ export default function OpeningScene({
         sharedIcon={sharedIcon}
         hidePatient={hidePatient}
         recallPatient={recallPatient}
-        lockup={lockup}
+        caseOverlay={overlayOn}
       />
+      <HeroOverlay t={t} lockup={lockup} />
       <div ref={heroProbeRef} aria-hidden="true" className="pointer-events-none invisible absolute left-0 top-0">
         <span data-hero-word className="whitespace-nowrap font-semibold tracking-tight">
           {HERO_TITLE_LINES[1]}
         </span>
+      </div>
+      <div
+        ref={caseProbeRef}
+        aria-hidden="true"
+        className="pointer-events-none invisible absolute left-0 top-0 box-border leading-[1.5]"
+        style={{ padding: `${CASE_PAD_EM}em`, textWrap: "pretty" }}
+      >
+        {openingCase.vignette}
       </div>
       {probeSet(fullProbesRef, false)}
       {probeSet(focusedProbesRef, true)}

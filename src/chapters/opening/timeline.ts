@@ -23,28 +23,32 @@ const CASE_TYPE_CPS = 68;
 /** Settled case on screen after the last character, before the chapter ends. */
 const CASE_HOLD_MS = 3200;
 
-/** Logo and title open together, hold, then the logo fades as the case starts. */
+/** Logo and title open together, hold, then both fade out completely before the case types. */
 const LOGO_IN_MS = 560;
 const LOGO_HOLD_MS = 1400;
 const LOGO_FADE_MS = 700;
 const caseAt = LOGO_IN_MS + LOGO_HOLD_MS;
+const logoGoneAt = caseAt + LOGO_FADE_MS;
 
-const patientAt = caseAt;
+/** The case types on a full-scene card once the lockup is completely gone. */
+const patientAt = logoGoneAt;
 const typedAt = patientAt + Math.ceil((openingCase.vignette.length / CASE_TYPE_CPS) * 1000);
 
 const hook = [
   { name: "logo", startMs: 0 }, // NeurIPS mark and the paper title open together
   { name: "logoHold", startMs: LOGO_IN_MS },
   { name: "headline", startMs: 0 },
-  { name: "logoRise", startMs: caseAt }, // logo fades as the case begins
-  { name: "patient", startMs: patientAt },
-  { name: "logoGone", startMs: caseAt + LOGO_FADE_MS },
+  { name: "logoRise", startMs: caseAt }, // logo and title start fading out together
+  { name: "logoGone", startMs: logoGoneAt }, // nothing but the black canvas
+  { name: "patient", startMs: patientAt }, // full-scene case card starts typing
   { name: "typed", startMs: typedAt }, // last character has landed
   { name: "end", startMs: typedAt + CASE_HOLD_MS },
 ] as const satisfies readonly Beat[];
 
 /** Choices land, then a short still beat so the viewer can pick before the model answers. */
 const OPTIONS_AT = 600;
+/** The full-scene case card shrinks to its place while the question fades in. Ends before the options. */
+export const CASE_SHRINK_MS = 500;
 const DECIDE_HOLD_MS = 2000;
 const dilemma = [
   { name: "question", startMs: 0 }, // "What would you recommend?"
