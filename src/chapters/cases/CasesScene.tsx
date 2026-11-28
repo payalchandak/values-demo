@@ -40,8 +40,6 @@ const EDGE_EM = 0.2;
 const EDGE_SHRINK = 0.005;
 /** Edges past this depth sit together at the bottom of the pile. */
 const MAX_EDGES = 10;
-/** A card that has voted lifts this far as it leaves the pile. */
-const LIFT_EM = 1.5;
 /** A new card slides up from this far below. */
 const RISE_EM = 1;
 /** Dots wait for the card to be mostly in. */
@@ -66,10 +64,6 @@ const openingCard: DilemmaCard = {
 /** The opening's own case first, then the four that flash in after it. */
 export const CARDS: readonly DilemmaCard[] = [openingCard, ...addedCases];
 
-/** 0 to 1 as card `i` lifts off the pile. Used once the pile is complete. */
-export type Peel = (i: number) => number;
-const NO_PEEL: Peel = () => 0;
-
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 const ramp = (t: number, a: number, b: number) =>
   b <= a ? (t >= b ? 1 : 0) : clamp01((t - a) / (b - a));
@@ -91,11 +85,11 @@ function arrival(t: number, i: number): number {
 }
 
 /** How far up and back case `i` sits: each card that has landed on top of it adds a little. */
-function sink(t: number, i: number, peel: Peel): { up: number; shrink: number } {
+function sink(t: number, i: number): { up: number; shrink: number } {
   let depth = 0;
   for (let j = i + 1; j < CARDS.length; j++) {
     if (t < startOf(j)) break;
-    depth += arrival(t, j) * (1 - peel(j));
+    depth += arrival(t, j);
   }
   const d = Math.min(depth, MAX_EDGES);
   return { up: d * EDGE_EM, shrink: d * EDGE_SHRINK };
@@ -185,7 +179,6 @@ function CaseContent({
   sharedIcon,
   top,
   boxP,
-  peel,
 }: {
   card: DilemmaCard;
   index: number;
@@ -194,15 +187,12 @@ function CaseContent({
   /** The newest card on the pile holds the shared icon's anchor. */
   top: boolean;
   boxP: number;
-  peel: Peel;
 }) {
-  const gone = peel(index);
   const fast = isFast(index);
   // A skipped card lands at once: its frames match the card under it, and its text and marks blend over.
   const arrive = fast ? (t >= startOf(index) ? 1 : 0) : arrival(t, index);
-  const { up, shrink } = sink(t, index, peel);
-  // Once cards peel off, each one shows its own case as it comes to the top.
-  const live = fast && !(up >= EDGE_EM * 2) && peel === NO_PEEL;
+  const { up, shrink } = sink(t, index);
+  const live = fast && !(up >= EDGE_EM * 2);
   const mix = live ? blendOf(t, index) : null;
   const textMix = live ? blendOf(t, index, TEXT_BLEND_MS) : null;
   // Skipped cards keep their content while on top, then go blank once buried, which is never seen.
@@ -215,9 +205,9 @@ function CaseContent({
       style={{
         gap: STACK_GAP,
         padding: `${PAD_EM * boxP}em`,
-        opacity: arrive * (1 - gone),
-        visibility: arrive <= 0 || gone >= 1 ? "hidden" : undefined,
-        transform: `translateY(${rise - up - gone * LIFT_EM}em) scale(${1 - shrink})`,
+        opacity: arrive,
+        visibility: arrive <= 0 ? "hidden" : undefined,
+        transform: `translateY(${rise - up}em) scale(${1 - shrink})`,
         transformOrigin: "50% 0%",
         zIndex: index,
         ...ROW_VARS,
@@ -348,15 +338,7 @@ interface Metrics {
  * The opening's last frame condensed into one card, then five cases flashing
  * through it. Every weight is the chapter clock plus the measured stage size.
  */
-export default function CasesScene({
-  elapsedMs,
-  peel = NO_PEEL,
-}: {
-  elapsedMs: number;
-  ownIcons?: boolean;
-  /** After the pile is complete: how far each card has lifted off it. */
-  peel?: Peel;
-}) {
+export default function CasesScene({ elapsedMs }: { elapsedMs: number }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const probeRef = useRef<HTMLDivElement>(null);
   const [metrics, setMetrics] = useState<Metrics>({ openingPx: 16, stageW: 0 });
@@ -399,7 +381,7 @@ export default function CasesScene({
 
   let topIndex = 0;
   CARDS.forEach((_, i) => {
-    if (arrival(elapsedMs, i) >= 0.5 && peel(i) < 0.5) topIndex = i;
+    if (arrival(elapsedMs, i) >= 0.5) topIndex = i;
   });
 
   const shell: CSSProperties = {
@@ -435,7 +417,6 @@ export default function CasesScene({
                 sharedIcon={false}
                 top={i === topIndex}
                 boxP={boxP}
-                peel={peel}
               />
             );
           })}

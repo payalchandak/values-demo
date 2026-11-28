@@ -4,6 +4,14 @@ import type { Beat } from "../../types";
 export const FRAME_MS = 600;
 /** The white card fades in and the group narrows. */
 export const BOX_MS = 1000;
+/** The card moves up and shrinks while the value names arrive below it. */
+export const SHRINK_MS = 1100;
+/** A card's votes fly from the card to the bars over this long. */
+export const FLY_MS = 750;
+/** A vote eases into its bar over this long. */
+export const LAND_MS = 300;
+/** A shown case's votes leave it this long after it starts to come in, once it can be read. */
+export const VOTE_DELAY_MS = 1500;
 /** How long each case is held, from the moment it starts to flash in. Tune here. */
 export const CASE_HOLD_MS = 2600;
 /** A new card slides up and fades in over the pile. */
@@ -12,8 +20,10 @@ export const IN_MS = 450;
 export const DOT_STAGGER_MS = 70;
 /** How long one dot takes to appear. */
 export const DOT_IN_MS = 220;
-/** Hold after the last case. */
-export const HOLD_MS = 2200;
+/** After the last vote, the tally settles into the four priorities and the pile lifts away. */
+export const SETTLE_MS = 1300;
+/** The finished profile holds before the ring. */
+export const END_HOLD_MS = 900;
 
 /** Cards in all: the opening's case, then 49 more. */
 export const CASE_COUNT = 50;
@@ -27,8 +37,10 @@ export const FAST_IN_MS = 260;
 export const SKIP_MS = (CASE_COUNT - 5) * FAST_STEP_MS;
 
 const box = FRAME_MS;
-/** The anorexia case is not held: the next case follows as soon as the card has drawn. */
-const case2 = box + BOX_MS;
+const shrink = box + BOX_MS;
+/** The opening's case votes once the card has settled over the bars. */
+const vote = shrink + SHRINK_MS + 300;
+const case2 = vote + FLY_MS + 500;
 /** When the skip begins: after cases 2 and 3 have each been held. */
 export const SKIP_START = case2 + CASE_HOLD_MS * 2;
 
@@ -39,15 +51,40 @@ export const CASE_STARTS: readonly number[] = (() => {
   return out;
 })();
 
-const hold = CASE_STARTS[CASE_COUNT - 2] + CASE_HOLD_MS;
+/** When card `i`'s votes leave it. A skipped card votes as it lands. */
+export function voteAt(i: number): number {
+  if (i === 0) return vote;
+  return CASE_STARTS[i - 1] + (isFast(i) ? 0 : VOTE_DELAY_MS);
+}
 
+/** When card `i`'s votes are in the bars. */
+export function landAt(i: number): number {
+  return voteAt(i) + (isFast(i) ? FAST_IN_MS : FLY_MS);
+}
+
+const settle = landAt(CASE_COUNT - 1) + 600;
+const end = settle + SETTLE_MS + END_HOLD_MS;
+
+/**
+ *   frame   the opening's last frame
+ *   box     the white card draws around it
+ *   shrink  the card moves up and shrinks; the four value names arrive below
+ *   vote    the opening's case votes: its choice's votes fly to the bars
+ *   case2, case3  each case lands on the pile, is read, then votes
+ *   skip    46 cases flash through, each voting as it lands
+ *   case50  the last case, shown and voting at full pace
+ *   settle  the tally settles into the four priorities; the pile lifts away
+ *   end     the profile, held: the ring's first frame
+ */
 export const casesBeats = [
   { name: "frame", startMs: 0 },
   { name: "box", startMs: box },
+  { name: "shrink", startMs: shrink },
+  { name: "vote", startMs: vote },
   { name: "case2", startMs: CASE_STARTS[0] },
   { name: "case3", startMs: CASE_STARTS[1] },
   { name: "skip", startMs: CASE_STARTS[2] },
   { name: "case50", startMs: CASE_STARTS[CASE_COUNT - 2] },
-  { name: "hold", startMs: hold },
-  { name: "end", startMs: hold + HOLD_MS },
+  { name: "settle", startMs: settle },
+  { name: "end", startMs: end },
 ] as const satisfies readonly Beat[];

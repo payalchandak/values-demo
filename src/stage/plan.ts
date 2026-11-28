@@ -1,19 +1,18 @@
 import { casesBeats } from "../chapters/cases/beats";
 import { OPENING_BEATS, OFFSETS as OPENING_OFFSETS, type OpeningChapterKey } from "../chapters/opening/timeline";
-import { PROFILE_HEADLINE, VOTE_HEADLINE, voteBeats } from "../chapters/vote/beats";
+import { PROFILE_HEADLINE, VOTE_HEADLINE } from "../chapters/vote/beats";
 import { closingBeats, individualBeats } from "../chapters/ending";
 import { FADE_MS } from "../design/motion";
 import { beatStart, chapterDuration, type Beat } from "../types";
 import { morphBeats } from "./morphBeats";
 
-/** Chapter ids, in play order: opening (4), cases, vote, morph, ending (2). Reorder freely. */
+/** Chapter ids, in play order: opening (4), cases (each one voting), morph, ending (2). Reorder freely. */
 export const SEGMENTS = [
   "opening-hook",
   "opening-dilemma",
   "opening-framework",
   "opening-model",
   "cases",
-  "vote",
   "morph",
   "individual-models",
   "models-and-physicians",
@@ -33,7 +32,6 @@ export const SEGMENT_BEATS: Record<SegmentId, readonly Beat[]> = {
   "opening-framework": OPENING_BEATS.framework,
   "opening-model": OPENING_BEATS.model,
   cases: casesBeats,
-  vote: voteBeats,
   morph: morphBeats,
   "individual-models": individualBeats,
   "models-and-physicians": closingBeats,
@@ -58,7 +56,7 @@ export const OPENING_END_MS =
   OPENING_OFFSETS.model + chapterDuration({ beats: OPENING_BEATS.model });
 
 /* -------------------------------------------------------------------------- */
-/*  Headlines from the vote on (the opening draws its own, in the scene)      */
+/*  Headlines from the cases on (the opening draws its own, in the scene)      */
 /* -------------------------------------------------------------------------- */
 
 export const INDIVIDUAL_HEADLINE = "Different models. Different priorities.";
@@ -68,12 +66,12 @@ export interface HeadlineEntry {
   text: string;
 }
 
-const voteAt = (name: string) => SEGMENT_OFFSET.vote + beatStart(voteBeats, name);
+const casesAt = (name: string) => SEGMENT_OFFSET.cases + beatStart(casesBeats, name);
 
 /** Whole-demo times at which the headline changes. "" clears it (the closing question takes over). */
 export const HEADLINE_ENTRIES: readonly HeadlineEntry[] = [
-  { at: voteAt("shrink"), text: VOTE_HEADLINE },
-  { at: voteAt("settle"), text: PROFILE_HEADLINE },
+  { at: casesAt("shrink"), text: VOTE_HEADLINE },
+  { at: casesAt("settle"), text: PROFILE_HEADLINE },
   { at: SEGMENT_OFFSET["individual-models"], text: INDIVIDUAL_HEADLINE },
   { at: SEGMENT_OFFSET["models-and-physicians"] + beatStart(closingBeats, "question"), text: "" },
 ].slice().sort((a, b) => a.at - b.at);

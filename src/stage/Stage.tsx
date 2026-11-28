@@ -5,9 +5,8 @@ import ProviderIcon from "../components/ProviderIcon";
 import openaiLogo from "../assets/providers/openai.svg";
 import OpeningScene from "../chapters/opening/OpeningScene";
 import { markSpinDeg, modelHandoff } from "../chapters/opening/timeline";
-import CasesScene from "../chapters/cases/CasesScene";
 import VoteScene from "../chapters/vote/VoteScene";
-import { voteBeats } from "../chapters/vote/beats";
+import { casesBeats } from "../chapters/cases/beats";
 import IndividualModels from "../chapters/ending/IndividualModels";
 import ModelsAndPhysicians from "../chapters/ending/ModelsAndPhysicians";
 import { AUTOPLAY_MODELS, GALLERY_PHYSICIANS, INDIVIDUAL_MODELS } from "../chapters/ending/profiles";
@@ -62,8 +61,6 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
       return { from: "icon-response", mix: 0, opacity: modelHandoff(e).responseEnter };
     case "cases":
       // Every card draws its own icon, so the pile fades it with the card.
-      return { from: null, mix: 0, opacity: 0 };
-    case "vote":
       return { from: null, mix: 0, opacity: 0 };
     case "morph": {
       // The icon fades in at the donut hole when the labels arrive.
@@ -146,7 +143,7 @@ function Headline({ state }: { state: HeadlineState }) {
 /*  Stage                                                                     */
 /* -------------------------------------------------------------------------- */
 
-const VOTE_END = chapterDuration({ beats: voteBeats });
+const CASES_END = chapterDuration({ beats: casesBeats });
 
 /**
  * The one stage every chapter renders into. It is a single component, never
@@ -161,8 +158,6 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
   const iconRef = useRef<HTMLDivElement>(null);
 
   const inOpening = isOpening(segment);
-  const inCases = segment === "cases";
-  const showScenes = !inOpening && !inCases;
 
   useLayoutEffect(() => {
     const root = rootRef.current;
@@ -190,18 +185,17 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
 
   return (
     <div ref={rootRef} data-stage className="relative h-full w-full">
-      {(inOpening || inCases) && (
+      {inOpening && (
         <div className="absolute inset-0">
-          {inOpening && <OpeningScene t={openingTime(segment, e)} sharedIcon />}
-          {inCases && <CasesScene elapsedMs={e} />}
+          <OpeningScene t={openingTime(segment, e)} sharedIcon />
         </div>
       )}
 
-      {showScenes && (
+      {!inOpening && (
         <div className="absolute inset-0 flex flex-col" key="scenes">
           <Headline state={headlineAt(T)} />
           <div data-scene-zone className="relative min-h-0 flex-1">
-            {segment === "vote" && <VoteScene elapsedMs={e} profile={gptProfile} />}
+            {segment === "cases" && <VoteScene elapsedMs={e} profile={gptProfile} />}
 
             {segment === "morph" && (
               <>
@@ -212,7 +206,7 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
                     className="pointer-events-none absolute inset-0 bg-canvas"
                     style={{ opacity: 1 - e / GHOST_MS }}
                   >
-                    <VoteScene elapsedMs={VOTE_END} profile={gptProfile} />
+                    <VoteScene elapsedMs={CASES_END} profile={gptProfile} />
                   </div>
                 )}
               </>
