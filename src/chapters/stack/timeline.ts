@@ -88,8 +88,82 @@ export const TALL: Layout = {
   compactRows: true,
 };
 
-/** Tall for portrait-ish containers, wide otherwise. */
-export const layoutFor = (width: number, height: number): Layout => (width < height * 0.9 ? TALL : WIDE);
+/** Room left of the leftmost card for its decision dots, and a matching inset on the right. */
+const GRID_EDGE = DOT_SIZE + 10;
+const GRID_GAP_X = 22;
+const GRID_GAP_Y = 16;
+
+/**
+ * Widescreen grid: the largest cards that still fill the host. The stage is the
+ * host itself (the renderer then scales by 1), so a wide monitor gets wide cards
+ * instead of a fixed 1000×600 frame letterboxed in the middle.
+ */
+function wideLayout(width: number, height: number, n: number): Layout {
+  const innerW = Math.max(80, width - GRID_EDGE * 2);
+  const innerH = Math.max(80, height - 16);
+  let best: { cols: number; scale: number; fill: number } | null = null;
+  const colsMax = Math.min(14, Math.max(1, n));
+  for (let cols = 4; cols <= colsMax; cols++) {
+    const rows = Math.ceil(n / cols);
+    const gapsX = (cols - 1) * GRID_GAP_X;
+    const gapsY = (rows - 1) * GRID_GAP_Y;
+    if (gapsX >= innerW || gapsY >= innerH) continue;
+    const scale = Math.min((innerW - gapsX) / (cols * CARD_W), (innerH - gapsY) / (rows * CARD_H));
+    if (scale <= 0) continue;
+    const gridW = cols * CARD_W * scale + gapsX;
+    const gridH = rows * CARD_H * scale + gapsY;
+    const cand = { cols, scale, fill: (gridW * gridH) / (innerW * innerH) };
+    // Prefer bigger cards. Within a few percent, prefer the grid that covers more of the screen.
+    if (
+      !best ||
+      cand.scale > best.scale * 1.04 ||
+      (cand.scale >= best.scale * 0.96 && cand.fill > best.fill)
+    ) {
+      best = cand;
+    }
+  }
+  const picked = best ?? { cols: Math.min(9, n), scale: 0.32, fill: 0 };
+  const gridScale = Math.min(1.25, picked.scale);
+  const heroScale = Math.max(
+    gridScale,
+    Math.min(2.35, ((width - GRID_EDGE * 2) * 0.7) / CARD_W, ((height - 16) * 0.82) / CARD_H),
+  );
+  const rowW = Math.round(Math.min(1120, Math.max(560, width - 48)));
+  const compactRows = rowW < 760;
+  const rowH = compactRows ? 56 : 64;
+  const headerH = compactRows ? 40 : 48;
+  const headerY = 16;
+  const rowGap = 12;
+  const firstRow = headerY + headerH + 8;
+  const rowTops = [0, 1, 2].map((i) => firstRow + i * (rowH + rowGap));
+  const ellipsisY = rowTops[2] + rowH + 28;
+  return {
+    name: "wide",
+    stageW: width,
+    stageH: height,
+    center: { x: width / 2, y: height / 2 },
+    heroScale,
+    gridScale,
+    gridCols: picked.cols,
+    gridGapX: GRID_GAP_X,
+    gridGapY: GRID_GAP_Y,
+    rowW,
+    rowH,
+    headerY,
+    headerH,
+    rowTops,
+    ellipsisY,
+    countLabelY: ellipsisY + 32,
+    stackLabelY: height - 8,
+    compactRows,
+  };
+}
+
+/** Tall for portrait-ish containers. Widescreen builds a grid that fills the host. */
+export const layoutFor = (width: number, height: number, count = 50): Layout => {
+  if (width < 1 || height < 1) return WIDE;
+  return width < height * 0.9 ? TALL : wideLayout(width, height, count);
+};
 
 export interface CardFrame {
   index: number;
@@ -123,7 +197,7 @@ export interface CardFrame {
   fly: number;
   /** True from the first moment of this card's journey: its faces and edge dots are replaced by parts. */
   flying: boolean;
-  /** The finished row's own content (id, tags, bar). Only the first three cards have one. */
+  /** The finished row's own content (short name, tags, bar). Only the first three cards have one. */
   rowOpacity: number;
   /**
    * Edge markers: each edge carries one dot per model query (TRIALS). `dots`
@@ -294,15 +368,31 @@ export function computeFrame(
 /*  Where the contents of a row land                                           */
 /* -------------------------------------------------------------------------- */
 
-/** Column widths of a table row, shared by the row's own content and the parts that fly into it. */
+/**
+ * Column widths of a table row, shared by the row's own content and the parts that fly into it.
+ * Wide `caseW` fits the longest short name ("BRCA embryo screening", 165px at 14px) on one line.
+ * Compact `caseW` is the same goal at 12px; `rowGrid` shrinks it when the row is too narrow to spare it.
+ */
 export const ROW_GRID = {
-  wide: { pad: 20, caseW: 140, valueW: 96, freqPad: 20, gap: 12, countW: 48, chipW: 44, chipH: 26, barH: 10, chipRadius: 8, text: 14 },
-  compact: { pad: 12, caseW: 62, valueW: 34, freqPad: 10, gap: 8, countW: 36, chipW: 28, chipH: 22, barH: 8, chipRadius: 6, text: 12 },
+  wide: { pad: 20, caseW: 180, valueW: 96, freqPad: 20, gap: 12, countW: 48, chipW: 44, chipH: 26, barH: 10, chipRadius: 8, text: 14 },
+  compact: { pad: 12, caseW: 156, valueW: 32, freqPad: 10, gap: 8, countW: 36, chipW: 26, chipH: 22, barH: 8, chipRadius: 6, text: 12 },
 } as const;
+
+/** Shortest decision bar kept when a narrow row gives width to the case name. */
+const MIN_BAR = 36;
+
+/** The row's columns for this layout. Narrow rows keep a bar and give the rest to the name. */
+export function rowGrid(L: Layout) {
+  const g = L.compactRows ? ROW_GRID.compact : ROW_GRID.wide;
+  if (!L.compactRows) return g;
+  const reserved = 2 * g.pad + 4 * g.valueW + g.freqPad + g.gap + g.countW + MIN_BAR;
+  const caseW = Math.min(g.caseW, Math.max(88, L.rowW - reserved));
+  return { ...g, caseW };
+}
 
 /** Positions, in stage px, of every item in one table row (or in a row-shaped place). */
 export interface RowTargets {
-  /** Left edge and vertical centre of the case id. */
+  /** Left edge and vertical centre of the case's short name. */
   caseX: number;
   caseW: number;
   cy: number;
@@ -323,7 +413,7 @@ export interface RowTargets {
 
 /** Where the items of a table row land, for a row whose vertical centre is `cy`. */
 export function rowTargets(L: Layout, cy: number): RowTargets {
-  const g = L.compactRows ? ROW_GRID.compact : ROW_GRID.wide;
+  const g = rowGrid(L);
   const left = (L.stageW - L.rowW) / 2;
   const valuesLeft = left + g.pad + g.caseW;
   const freqLeft = valuesLeft + 4 * g.valueW;

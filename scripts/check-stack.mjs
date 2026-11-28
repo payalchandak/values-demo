@@ -11,13 +11,15 @@
 //      installed in this repo's node_modules).
 
 import { spawn } from "node:child_process";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const caseCards = JSON.parse(readFileSync(join(root, "src/study/data/caseCards.json"), "utf8"));
+const titleByPrefix = new Map(caseCards.map((card) => [card.id.slice(0, 8), card.title]));
 const OUT_DIR = process.env.OUT_DIR ?? join(tmpdir(), "check-stack");
 const VIEWPORTS = (process.argv.slice(2).length ? process.argv.slice(2) : ["390x844", "1440x900"]).map((v) => {
   const [width, height] = v.split("x").map(Number);
@@ -135,16 +137,16 @@ function problems(m, { table }) {
   return out;
 }
 
-/** Runs in the page. The three foreground rows (ids and k/10) and the header rows. */
+/** Runs in the page. The three foreground rows (short names and k/10) and the header rows. */
 function readTable() {
   const stage = document.querySelector("[data-testid=stack-stage]");
+  const names = [...stage.querySelectorAll("[data-case-name]")].map((e) => e.textContent.trim());
   const mono = [...stage.querySelectorAll("span.font-mono")].map((e) => e.textContent.trim());
-  const ids = mono.filter((t) => /^[0-9a-f]{8}$/.test(t));
   const counts = mono.filter((t) => /^\d+\/10$/.test(t));
   const header = [...document.querySelectorAll("[data-testid=fit-header] tbody tr")].map((tr) =>
     [...tr.children].map((td) => td.textContent.replace(/\s*\(.*\)$/, "").trim()),
   );
-  return { ids, counts, header };
+  return { names, counts, header };
 }
 
 const server = process.env.BASE_URL ? { url: process.env.BASE_URL, stop() {} } : await startDevServer();
@@ -175,11 +177,14 @@ try {
       if (name === "end") {
         const t = await page.evaluate(readTable);
         const headerIds = t.header.map((r) => r[0]);
+        const expectedNames = headerIds.map((id) => titleByPrefix.get(id) ?? `(no short name for ${id})`);
         const headerCounts = t.header.map((r) => r[1]);
-        if (JSON.stringify(t.ids) !== JSON.stringify(headerIds)) fail(`${tag} end`, `row ids ${t.ids} != header ${headerIds}`);
+        if (JSON.stringify(t.names) !== JSON.stringify(expectedNames)) {
+          fail(`${tag} end`, `row names ${JSON.stringify(t.names)} != ${JSON.stringify(expectedNames)}`);
+        }
         if (JSON.stringify(t.counts) !== JSON.stringify(headerCounts)) fail(`${tag} end`, `row counts ${t.counts} != header ${headerCounts}`);
-        if (t.ids.length !== 3) fail(`${tag} end`, `expected 3 table rows, found ${t.ids.length}`);
-        console.log(`${tag} table: ${t.ids.map((id, i) => `${id} ${t.counts[i]}`).join(", ")}`);
+        if (t.names.length !== 3) fail(`${tag} end`, `expected 3 table rows, found ${t.names.length}`);
+        console.log(`${tag} table: ${t.names.map((name, i) => `${name} ${t.counts[i]}`).join(", ")}`);
       }
     }
 

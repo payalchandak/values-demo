@@ -12,7 +12,7 @@ import type { Beat } from "../../types";
  *   turn       the card flips to its tag-chip back (its values)
  *   values     the tag back holds so the values can be read
  *   shrink     the card flips back and shrinks into the middle of the grid, becoming a
- *              title card; "N dilemmas" label arrives
+ *              title card
  *   reveal     the other cards appear one by one, spreading out from the first
  *   grid       every card is on screen and holds, so the titles can be read
  *   flip       every card flips to its tag-chip back, one after another (the structure)

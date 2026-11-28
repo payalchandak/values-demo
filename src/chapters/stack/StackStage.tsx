@@ -18,7 +18,7 @@ import {
   DOT_SIZE,
   FOREGROUND,
   layoutFor,
-  ROW_GRID,
+  rowGrid,
   rowTargets,
   TRIALS,
   WIDE,
@@ -26,17 +26,18 @@ import {
   type Layout,
 } from "./timeline";
 
-/** UUID ids are shown as their first 8 hex chars; other ids are shown whole. */
-const displayId = (id: string) => (/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(id) ? id.slice(0, 8) : id);
-
 /** Choice 1 and choice 2 colors: used by edge markers, card backs and the frequency bar. */
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 const CHOICE_COLORS = ["#D1495B", "#475569"] as const;
-/** A card at or below this face scale shows only its title; it blends to the full card over MINI_FADE above it. */
-const MINI_BELOW = 0.4;
-const MINI_FADE = 0.12;
+/**
+ * A card at or below this face scale shows only its big title. The full face
+ * (summary and choices) takes over once the card is large enough to read, so a
+ * magnified grid stays titles and the hero card stays the full case.
+ */
+const MINI_BELOW = 1.05;
+const MINI_FADE = 0.2;
 /** Option text stays in one ink. Red would read as a judgment on one choice. */
 const OPTION_INK = "#475569";
 const INK = "#1B2433";
@@ -114,7 +115,7 @@ export default function StackStage({
     if (!host) return;
     const measure = () => {
       const { width, height } = host.getBoundingClientRect();
-      const layout = layoutFor(width, height);
+      const layout = layoutFor(width, height, cases.length);
       const scale = Math.min(width / layout.stageW, height / layout.stageH);
       setFit({
         scale,
@@ -127,7 +128,7 @@ export default function StackStage({
     const observer = new ResizeObserver(measure);
     observer.observe(host);
     return () => observer.disconnect();
-  }, []);
+  }, [cases.length]);
 
   // Cards stay centered. As they become rows, the stage rises so the table
   // header sits just under the headline instead of in the middle of the scene.
@@ -151,12 +152,6 @@ export default function StackStage({
           color: INK,
         }}
       >
-        <Centered layout={L} y={L.stackLabelY} opacity={frame.stackLabel}>
-          <span className="text-lg font-semibold tracking-tight" style={{ color: `${INK}cc` }}>
-            {cases.length} physician-reviewed dilemmas
-          </span>
-        </Centered>
-
         <div
           style={{
             position: "absolute",
@@ -167,7 +162,7 @@ export default function StackStage({
             opacity: frame.headerOpacity,
           }}
         >
-          <TableHeader profileLabel={profileLabel ?? profileKey} compact={L.compactRows} handoff={handoff} />
+          <TableHeader profileLabel={profileLabel ?? profileKey} layout={L} handoff={handoff} />
         </div>
 
         <div style={{ opacity: handoff?.rest ?? 1 }}>
@@ -347,7 +342,7 @@ function StackCard({
               delta={delta}
               freqFill={card.freqFill}
               count={card.choice1Count}
-              compact={layout.compactRows}
+              layout={layout}
             />
           </div>
         </div>
@@ -465,7 +460,7 @@ function FlightParts({
   const item = caseCardFor(study);
   const count = card.choice1Count;
 
-  // Title, then the id it becomes in the Case column.
+  // The card title flies into the Case column and lands as that case's short name.
   const titleSize = lerp(BACK.titleSize * g, to.text, titleQ);
   const titleBox = {
     position: "absolute",
@@ -478,9 +473,10 @@ function FlightParts({
     textOverflow: "ellipsis",
     lineHeight: 1,
     fontSize: titleSize,
+    fontWeight: Math.round(lerp(700, 600, titleQ)),
+    letterSpacing: "-0.01em",
     color: INK,
   } as const;
-  const idIn = kept ? ramp(titleQ, 0.5, 0.85) : 0;
 
   // "CHOICE 1" / "CHOICE 2" stay behind, fading as their tags leave.
   const labelOpacity = 1 - ramp(lin, 0, 0.12);
@@ -617,12 +613,7 @@ function FlightParts({
       ))}
       {chips}
       {decisions}
-      <div style={{ ...titleBox, fontWeight: 700, letterSpacing: "-0.01em", opacity: (1 - idIn) * dissolve }}>{item.title}</div>
-      {kept && (
-        <div className="font-mono" style={{ ...titleBox, fontWeight: 600, letterSpacing: 0, opacity: idIn }}>
-          {displayId(study.id)}
-        </div>
-      )}
+      <div style={{ ...titleBox, opacity: dissolve }}>{item.title}</div>
       {kept && (
         <div
           className="font-mono"
@@ -799,18 +790,22 @@ function Chip({ value, tag }: { value: Value; tag: Tag }) {
 /*  Table row                                                                 */
 /* -------------------------------------------------------------------------- */
 
-const GRID = "140px repeat(4, 96px) 1fr";
-const GRID_COMPACT = "62px repeat(4, 34px) 1fr";
+/** Same columns as `rowGrid`, so the header, the settled rows and the flying parts share one grid. */
+const rowColumns = (layout: Layout) => {
+  const g = rowGrid(layout);
+  return `${g.caseW}px repeat(4, ${g.valueW}px) 1fr`;
+};
 
 function TableHeader({
   profileLabel,
-  compact,
+  layout,
   handoff,
 }: {
   profileLabel: string;
-  compact: boolean;
+  layout: Layout;
   handoff?: TableHandoff;
 }) {
+  const compact = layout.compactRows;
   const rest = handoff ? { opacity: handoff.rest } : undefined;
   const label = {
     fontSize: compact ? 10 : 10,
@@ -824,7 +819,7 @@ function TableHeader({
       className="font-mono"
       style={{
         display: "grid",
-        gridTemplateColumns: compact ? GRID_COMPACT : GRID,
+        gridTemplateColumns: rowColumns(layout),
         gridTemplateRows: "1fr 1fr",
         alignItems: "end",
         height: "100%",
@@ -891,30 +886,45 @@ function RowContent({
   delta,
   freqFill,
   count,
-  compact,
+  layout,
 }: {
   study: StudyCase;
   delta: ReturnType<typeof deltaOf>;
   freqFill: number;
   /** Queries (out of TRIALS) where the model chose choice 1. */
   count: number;
-  compact: boolean;
+  layout: Layout;
 }) {
+  const compact = layout.compactRows;
   const frequency = count / TRIALS;
-  const grid = compact ? ROW_GRID.compact : ROW_GRID.wide;
+  const grid = rowGrid(layout);
   const text = grid.text;
+  const name = caseCardFor(study).title;
   return (
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: compact ? GRID_COMPACT : GRID,
+        gridTemplateColumns: rowColumns(layout),
         alignItems: "center",
         height: "100%",
         padding: compact ? "0 12px" : "0 20px",
       }}
     >
-      <span className="font-mono" style={{ fontSize: text, fontWeight: 600 }}>
-        {displayId(study.id)}
+      <span
+        data-case-name=""
+        title={name}
+        style={{
+          fontSize: text,
+          fontWeight: 600,
+          letterSpacing: "-0.01em",
+          lineHeight: 1.15,
+          overflow: "hidden",
+          ...(compact
+            ? { display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const }
+            : { textOverflow: "ellipsis", whiteSpace: "nowrap" }),
+        }}
+      >
+        {name}
       </span>
       {VALUES.map((v) => {
         const d = delta[v];
