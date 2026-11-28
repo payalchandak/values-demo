@@ -22,7 +22,7 @@ import {
 import { HERO_CHROME } from "../chapters/ending/IndividualModels";
 import { easeInOut, ModelMark, ModelName } from "../chapters/ending/shared";
 import { NEUTRAL, VALUES, VALUE_ORDER } from "../design";
-import type { Profile } from "../study/types";
+import type { Profile, Value } from "../study/types";
 import { beatStart } from "../types";
 import { MORPH_HANDOFF_MS, MORPH_TIMING, morphBeats } from "./morphBeats";
 
@@ -44,14 +44,14 @@ const BAR_SUBCAPTION = "Relative priorities across the four values.";
 const at = (name: string) => beatStart(morphBeats, name);
 
 /**
- * The regression chapter's four priority bars slide into one row and stack end
+ * The vote chapter's four priority bars slide into one row and stack end
  * to end into a strip as long as the ring's circumference, the strip bends into
  * the ring, and names and percents fade in outside while the model mark lands
  * in the hole. The last frame is the hero donut, drawn by the same functions
  * the hero uses, in the same frame.
  *
- * The regression chapter also draws this at MORPH_HANDOFF_MS with `barGrow` to
- * grow the bars in, so the first frame here is exactly where that chapter ends.
+ * The vote chapter also draws this at MORPH_HANDOFF_MS with `shares` to grow
+ * its tally in, so the first frame here is exactly where that chapter ends.
  */
 export default function Morph({
   profile,
@@ -60,6 +60,7 @@ export default function Morph({
   names = 1,
   numbers = 1,
   bars: barsOpacity = 1,
+  shares,
 }: {
   profile: Profile;
   elapsedMs: number;
@@ -70,6 +71,8 @@ export default function Morph({
   numbers?: number;
   /** 0..1 opacity of the horizontal bars. */
   bars?: number;
+  /** Bar lengths as shares, in place of the profile's own. The vote chapter grows its tally here. */
+  shares?: Record<Value, number>;
 }) {
   useFontEpoch();
   const t = Math.max(0, elapsedMs);
@@ -111,7 +114,7 @@ export default function Morph({
 
     const bars = VALUE_ORDER.map((v, i) => {
       const span = spans[i];
-      const len0 = p[v] * track * barGrow;
+      const len0 = Math.max(0, shares ? shares[v] : p[v]) * track * barGrow;
       const x = lerp(barX, stripLeft + span.u0 * C, xP);
       const len = lerp(len0, (span.u1 - span.u0) * C, xP);
       const y = lerp(rowY(i), cy, yP);
@@ -163,7 +166,7 @@ export default function Morph({
         {numberOpacity > 0 && (
           <g style={{ opacity: numberOpacity }} fontFamily={FONT_STACK}>
             {bars.map((b) => (
-              <text key={b.v} x={barX + p[b.v] * track * barGrow + GAP} y={rowY(b.i)} dy="0.35em" fontSize={PERCENT_FS * f} fill={DONUT_MUTED}>
+              <text key={b.v} x={barX + Math.max(0, shares ? shares[b.v] : p[b.v]) * track * barGrow + GAP} y={rowY(b.i)} dy="0.35em" fontSize={PERCENT_FS * f} fill={DONUT_MUTED}>
                 {Math.round(p[b.v] * 100)}%
               </text>
             ))}

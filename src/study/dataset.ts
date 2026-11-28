@@ -1,6 +1,6 @@
-import casesData from "../../study/data/cases.json";
-import profilesData from "../../study/data/profiles.json";
-import type { Profile, StudyCase, Tag } from "../../study/types";
+import casesData from "./data/cases.json";
+import profilesData from "./data/profiles.json";
+import type { Profile, StudyCase, Tag } from "./types";
 
 /**
  * The one place the real study JSON is typed. JSON imports widen literal types

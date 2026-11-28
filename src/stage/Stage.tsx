@@ -6,24 +6,20 @@ import openaiLogo from "../assets/providers/openai.svg";
 import OpeningScene from "../chapters/opening/OpeningScene";
 import { markSpinDeg, modelHandoff } from "../chapters/opening/timeline";
 import CasesScene from "../chapters/cases/CasesScene";
-import { casesBeats } from "../chapters/cases/beats";
-import StackStage from "../chapters/stack/StackStage";
-import { stackBeats } from "../chapters/stack/beats";
-import { RegressionScene } from "../chapters/regression/RegressionChapter";
-import { regressionBeats } from "../chapters/regression/beats";
+import VoteScene from "../chapters/vote/VoteScene";
+import { voteBeats } from "../chapters/vote/beats";
 import IndividualModels from "../chapters/ending/IndividualModels";
 import ModelsAndPhysicians from "../chapters/ending/ModelsAndPhysicians";
 import { AUTOPLAY_MODELS, GALLERY_PHYSICIANS, INDIVIDUAL_MODELS } from "../chapters/ending/profiles";
 import { individualLabelWeight } from "../chapters/ending/beats";
 import { clamp01, easeInOut } from "../chapters/ending/shared";
 import { FADE_MS } from "../design/motion";
-import { foregroundCases, gptProfile, stackCases } from "./data";
+import { gptProfile } from "./data";
 import Morph from "./Morph";
 import { MORPH_TIMING, morphBeats } from "./morphBeats";
 import {
   headlineAt,
   isOpening,
-  SEGMENTS,
   openingTime,
   SEGMENT_OFFSET,
   type HeadlineState,
@@ -67,8 +63,7 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
     case "cases":
       // Every card draws its own icon, so the pile fades it with the card.
       return { from: null, mix: 0, opacity: 0 };
-    case "stack":
-    case "regression":
+    case "vote":
       return { from: null, mix: 0, opacity: 0 };
     case "morph": {
       // The icon fades in at the donut hole when the labels arrive.
@@ -151,25 +146,7 @@ function Headline({ state }: { state: HeadlineState }) {
 /*  Stage                                                                     */
 /* -------------------------------------------------------------------------- */
 
-const STACK_END = chapterDuration({ beats: stackBeats });
-const CASES_END = chapterDuration({ beats: casesBeats });
-const REGRESSION_END = chapterDuration({ beats: regressionBeats });
-
-function StackScene({ elapsedMs }: { elapsedMs: number }) {
-  return (
-    <StackStage
-      cases={stackCases}
-      beats={stackBeats}
-      elapsedMs={elapsedMs}
-      profileKey={gptProfile.key}
-      profileLabel={gptProfile.displayName}
-    />
-  );
-}
-
-function RegressionLayer({ elapsedMs }: { elapsedMs: number }) {
-  return <RegressionScene elapsedMs={elapsedMs} rows={foregroundCases} profile={gptProfile} showHeadline={false} />;
-}
+const VOTE_END = chapterDuration({ beats: voteBeats });
 
 /**
  * The one stage every chapter renders into. It is a single component, never
@@ -186,7 +163,6 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
   const inOpening = isOpening(segment);
   const inCases = segment === "cases";
   const showScenes = !inOpening && !inCases;
-  const prev: SegmentId | undefined = SEGMENTS[SEGMENTS.indexOf(segment) - 1];
 
   useLayoutEffect(() => {
     const root = rootRef.current;
@@ -225,22 +201,7 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
         <div className="absolute inset-0 flex flex-col" key="scenes">
           <Headline state={headlineAt(T)} />
           <div data-scene-zone className="relative min-h-0 flex-1">
-            {segment === "stack" && <StackScene elapsedMs={e} />}
-
-            {segment === "regression" && (
-              <>
-                <RegressionLayer elapsedMs={e} />
-                {e < GHOST_MS && (
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0 bg-canvas"
-                    style={{ opacity: 1 - e / GHOST_MS }}
-                  >
-                    <StackScene elapsedMs={STACK_END} />
-                  </div>
-                )}
-              </>
-            )}
+            {segment === "vote" && <VoteScene elapsedMs={e} profile={gptProfile} />}
 
             {segment === "morph" && (
               <>
@@ -251,7 +212,7 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
                     className="pointer-events-none absolute inset-0 bg-canvas"
                     style={{ opacity: 1 - e / GHOST_MS }}
                   >
-                    <RegressionLayer elapsedMs={REGRESSION_END} />
+                    <VoteScene elapsedMs={VOTE_END} profile={gptProfile} />
                   </div>
                 )}
               </>
@@ -277,16 +238,6 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
               />
             )}
           </div>
-        </div>
-      )}
-
-      {segment === "stack" && prev === "cases" && e < GHOST_MS && (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 z-20"
-          style={{ opacity: 1 - e / GHOST_MS }}
-        >
-          <CasesScene elapsedMs={CASES_END} ownIcons />
         </div>
       )}
 

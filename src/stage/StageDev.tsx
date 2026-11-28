@@ -20,13 +20,7 @@ export default function StageDev() {
   }));
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-canvas">
-      <main
-        className={
-          segment === "stack"
-            ? "mx-auto h-full w-full px-3 pb-24 pt-3 md:px-6 md:pt-8"
-            : "mx-auto h-full w-full max-w-5xl px-3 pb-24 pt-3 md:px-10 md:pt-8"
-        }
-      >
+      <main className="mx-auto h-full w-full max-w-5xl px-3 pb-24 pt-3 md:px-10 md:pt-8">
         <LayoutGroup>
           <div className="h-full w-full">
             <Stage

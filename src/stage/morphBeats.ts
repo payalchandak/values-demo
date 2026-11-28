@@ -5,7 +5,7 @@ import type { Beat } from "../types";
  * Bars-to-donut morph, as data. Every visual in `Morph` is a pure function of
  * chapter-local time, so it plays, pauses and scrubs on the chapter clock.
  *
- *   bars    the four priority bars from the regression chapter, held
+ *   bars    the four priority bars from the vote chapter, held
  *   stack   the bars slide into one row and stack end to end into a strip as
  *           long as the ring's circumference (each segment keeps its length)
  *   bend    the strip bends into the ring, first segment starting at 12 o'clock
@@ -36,5 +36,5 @@ export const morphBeats = [
   { name: "end", startMs: end },
 ] as const satisfies readonly Beat[];
 
-/** The regression card cross-fades into the bars over this long at the start. */
+/** The vote chapter's last frame cross-fades into the bars over this long at the start. */
 export const MORPH_HANDOFF_MS = FADE_MS;

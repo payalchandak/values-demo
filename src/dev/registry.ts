@@ -12,8 +12,6 @@ export const registry: DevEntry[] = [
   { name: "ending", component: lazy(() => import("../chapters/ending/EndingDev")) },
   { name: "donut", component: lazy(() => import("../chapters/ending/DonutDev")) },
   { name: "primitives", component: lazy(() => import("./PrimitivesPage")) },
-  { name: "stack", component: lazy(() => import("../chapters/stack/StackDev")) },
-  { name: "regression", component: lazy(() => import("../chapters/regression/Dev")) },
   { name: "opening", component: lazy(() => import("../chapters/opening/OpeningDev")) },
   { name: "stage", component: lazy(() => import("../stage/StageDev")) },
 ];

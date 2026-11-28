@@ -1,4 +1,4 @@
-import { allCases } from "../regression/dataset";
+import { allCases } from "../../study/dataset";
 import type { StudyCase, Tag, Value } from "../../study/types";
 
 /** Queries behind one GPT dot row. */
