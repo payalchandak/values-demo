@@ -9,7 +9,7 @@ import { openingRows } from "../opening/openingRows";
 import { ROW_VARS } from "../opening/rowMetrics";
 import { at } from "../opening/timeline";
 import { addedCases, GPT_TRIALS, type DilemmaCard } from "./data";
-import { BOX_MS, CASE_STARTS, casesBeats, DOT_IN_MS, DOT_STAGGER_MS, IN_MS, OUT_MS } from "./beats";
+import { BOX_MS, CASE_STARTS, casesBeats, DOT_IN_MS, DOT_STAGGER_MS, IN_MS } from "./beats";
 
 /** The opening's width cap, and the card's width once it has narrowed, in em. */
 const OPEN_EM = 46;
@@ -22,6 +22,13 @@ const SIDE = 12;
 const FIT_EM = 32;
 /** Gap between the stacked parts, as in the opening. */
 const STACK_GAP = "0.9em";
+/** Each card on the pile sits this far higher and a little smaller than the one above it. */
+const PEEK_EM = 0.8;
+const SHRINK = 0.04;
+/** A new card slides up from this far below. */
+const RISE_EM = 1;
+/** Dots wait for the card to be mostly in. */
+const DOT_DELAY_MS = 250;
 const CARD_SHADOW = "0 1px 2px rgba(16,24,40,0.04), 0 10px 28px -14px rgba(16,24,40,0.12)";
 
 const HELD_T = at("model", "end") - 1;
@@ -49,17 +56,22 @@ const lerp = (a: number, b: number, p: number) => a + (b - a) * p;
 /** When case `i` starts to flash in. Case 0 is already there. */
 const startOf = (i: number) => (i === 0 ? -Infinity : CASE_STARTS[i - 1]);
 
-/** Content opacity of case `i`: fades in after the old one is gone, fades out as the next begins. */
-function caseOpacity(t: number, i: number): number {
-  const enter = i === 0 ? 1 : smooth(ramp(t, startOf(i) + OUT_MS * 0.6, startOf(i) + OUT_MS * 0.6 + IN_MS));
-  const leave = i < CARDS.length - 1 ? smooth(ramp(t, startOf(i + 1), startOf(i + 1) + OUT_MS)) : 0;
-  return enter * (1 - leave);
+/** 0 to 1 as case `i` lands on the pile. Case 0 is already there. */
+function arrival(t: number, i: number): number {
+  return i === 0 ? 1 : smooth(ramp(t, startOf(i), startOf(i) + IN_MS));
+}
+
+/** How far down the pile case `i` has sunk: one per case that has landed on top of it. */
+function depthOf(t: number, i: number): number {
+  let d = 0;
+  for (let j = i + 1; j < CARDS.length; j++) d += arrival(t, j);
+  return d;
 }
 
 function dotOpacity(t: number, i: number, k: number, side: 0 | 1, index: number): number {
   if (i === 0) return 1;
   const order = side === 0 ? index : k + index;
-  const start = startOf(i) + OUT_MS + order * DOT_STAGGER_MS;
+  const start = startOf(i) + DOT_DELAY_MS + order * DOT_STAGGER_MS;
   return smooth(ramp(t, start, start + DOT_IN_MS));
 }
 
@@ -74,25 +86,44 @@ function CaseContent({
   index,
   t,
   sharedIcon,
+  boxP,
 }: {
   card: DilemmaCard;
   index: number;
   t: number;
   sharedIcon: boolean;
+  boxP: number;
 }) {
-  const opacity = caseOpacity(t, index);
+  const arrive = arrival(t, index);
+  const depth = depthOf(t, index);
+  const rise = (1 - arrive) * RISE_EM;
+  const buried = depth > 0.001;
   return (
     <div
-      className="col-start-1 row-start-1 flex min-w-0 flex-col"
+      className="relative isolate col-start-1 row-start-1 flex min-w-0 flex-col"
       style={{
         gap: STACK_GAP,
-        opacity,
-        visibility: opacity <= 0 ? "hidden" : undefined,
+        padding: `${PAD_EM * boxP}em`,
+        opacity: arrive,
+        visibility: arrive <= 0 ? "hidden" : undefined,
+        transform: `translateY(${rise - depth * PEEK_EM}em) scale(${1 - depth * SHRINK})`,
+        transformOrigin: "50% 0%",
+        zIndex: index,
         ...ROW_VARS,
         ["--pitch" as string]: PITCH,
       }}
-      aria-hidden={opacity <= 0}
+      aria-hidden={arrive <= 0 || buried}
     >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 border bg-white"
+        style={{
+          opacity: index === 0 ? boxP : 1,
+          borderColor: NEUTRAL.line,
+          borderRadius: 18,
+          boxShadow: CARD_SHADOW,
+        }}
+      />
       <CaseHeaderLine text={card.header} />
       <ul className="grid w-full min-w-0 grid-cols-2 grid-rows-[auto_auto] gap-x-[0.6em] gap-y-[0.45em] [&_li>div>p]:whitespace-nowrap">
         {([0, 1] as const).map((side) => (
@@ -161,7 +192,6 @@ export default function CasesScene({ elapsedMs, ownIcons = false }: { elapsedMs:
 
   const shell: CSSProperties = {
     width: `min(100%, ${lerp(OPEN_EM, CARD_EM, boxP)}em)`,
-    padding: `${PAD_EM * boxP}em`,
     fontSize: fontPx,
     ["--z" as string]: String(fontPx / 16),
   };
@@ -178,19 +208,9 @@ export default function CasesScene({ elapsedMs, ownIcons = false }: { elapsedMs:
       </div>
 
       <div className="absolute inset-0 flex items-center justify-center" style={{ padding: SIDE }}>
-        <div className="@container relative isolate box-border grid" style={shell}>
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 -z-10 border bg-white"
-            style={{
-              opacity: boxP,
-              borderColor: NEUTRAL.line,
-              borderRadius: 18,
-              boxShadow: CARD_SHADOW,
-            }}
-          />
+        <div className="@container relative box-border grid" style={shell}>
           {CARDS.map((card, i) => (
-            <CaseContent key={card.id} card={card} index={i} t={elapsedMs} sharedIcon={!ownIcons} />
+            <CaseContent key={card.id} card={card} index={i} t={elapsedMs} sharedIcon={!ownIcons} boxP={boxP} />
           ))}
         </div>
       </div>

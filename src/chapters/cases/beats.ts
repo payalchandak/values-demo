@@ -6,9 +6,7 @@ export const FRAME_MS = 600;
 export const BOX_MS = 1000;
 /** How long each case is held, from the moment it starts to flash in. Tune here. */
 export const CASE_HOLD_MS = 2600;
-/** The old content fades out. */
-export const OUT_MS = 300;
-/** The new content fades in, after the old one is gone. */
+/** A new card slides up and fades in over the pile. */
 export const IN_MS = 450;
 /** Dots on a new case land this far apart. */
 export const DOT_STAGGER_MS = 70;
