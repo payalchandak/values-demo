@@ -1,4 +1,4 @@
-import { memo, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, memo, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import type { ModelResponseTiming } from "../../components/ModelResponse";
 import neuripsLogo from "../../assets/neurips-logo.svg";
@@ -414,13 +414,13 @@ export function PatientCard({
 }
 
 /**
- * One value's tag on one choice: the full value name, then the tag. Three
- * redundant cues carry the tag, in charcoal only:
- *   promotes: solid chip + up arrow + "+1"
- *   violates: outlined chip + down arrow + "-1"
- *   neutral:  faint chip + dash + "0"
+ * The relation only, inside the pill. The value name sits outside it.
+ * Three redundant cues carry the relation, in charcoal only:
+ *   promotes: up arrow + solid chip + "promotes"
+ *   violates: down arrow + outlined chip + "violates"
+ *   neutral:  dash + faint chip + "neutral"
  */
-function TagChip({ v, tag }: { v: Value; tag: Tag }) {
+function RelationPill({ tag }: { tag: Tag }) {
   const meta = TAGS[tag];
   const style =
     meta.chip === "solid"
@@ -430,24 +430,23 @@ function TagChip({ v, tag }: { v: Value; tag: Tag }) {
         : { borderColor: CHARCOAL_FAINT, backgroundColor: NEUTRAL.surface, color: NEUTRAL.inkFaint };
   return (
     <span
-      aria-label={`${VALUES[v].name}: ${meta.word} (${meta.code})`}
-      className="inline-flex max-w-full items-center gap-x-[0.3em] whitespace-nowrap rounded-[1em] border px-[0.55em] py-[0.12em] font-semibold"
-      style={{ ...style, fontSize: "0.82em", borderWidth: meta.chip === "outlined" ? 1.5 : 1 }}
+      aria-hidden="true"
+      className="inline-flex items-center gap-x-[0.22em] rounded-[1em] border px-[0.5em] py-[0.08em] font-semibold leading-none tracking-tight [&>svg]:h-[0.9em] [&>svg]:w-[0.9em]"
+      style={{ ...style, borderWidth: meta.chip === "outlined" ? 1.5 : 1 }}
     >
-      <span aria-hidden="true">{VALUES[v].name}</span>
-      <span aria-hidden="true" className="inline-flex items-center gap-[0.25em]">
-        <TagGlyph glyph={meta.glyph} size={11} />
-        <span>{meta.code}</span>
-      </span>
+      <TagGlyph glyph={meta.glyph} size={12} />
+      <span>{meta.word}</span>
     </span>
   );
 }
 
 /**
- * The labels of one decision, outside the choice button, in a 2×2:
- * Autonomy, Beneficence / Nonmaleficence, Justice. A pill mounts in its cell
- * when its label starts to land, and a label already on screen stays put when
- * the next one arrives. Choice 1's label lands first, then Choice 2's.
+ * The labels of one decision, outside the choice button. Each value's name
+ * sits beside a pill that says promotes, violates, or neutral. Names share
+ * one column and the pills share the next, so the judgments line up.
+ * A row mounts when its label starts to land, and a label already on screen
+ * stays put when the next one arrives. Choice 1's label lands first, then
+ * Choice 2's.
  */
 function Chips({ index, t }: { index: 0 | 1; t: number }) {
   const steps = valueSteps(t);
@@ -456,16 +455,27 @@ function Chips({ index, t }: { index: 0 | 1; t: number }) {
   const shown = VALUE_ORDER.filter((v) => weight[v] > 0);
   if (shown.length === 0) return null;
   return (
-    <div className="grid w-full grid-cols-2 gap-x-[0.4em] gap-y-[0.35em]">
-      {shown.map((v) => (
-        <div
-          key={v}
-          className="flex min-w-0 justify-center"
-          style={{ opacity: weight[v], transform: `scale(${0.92 + 0.08 * weight[v]})`, transformOrigin: "center" }}
-        >
-          <TagChip v={v} tag={tags[v]} />
-        </div>
-      ))}
+    <div
+      className="mx-auto grid w-fit grid-cols-[auto_auto] items-center gap-x-[0.45em] gap-y-[0.28em]"
+      style={{ fontSize: "0.78em", color: CHARCOAL }}
+    >
+      {shown.map((v) => {
+        const mount = {
+          opacity: weight[v],
+          transform: `scale(${0.92 + 0.08 * weight[v]})`,
+          transformOrigin: "center",
+        };
+        return (
+          <Fragment key={v}>
+            <span aria-hidden="true" className="text-right font-semibold leading-none" style={mount}>
+              {VALUES[v].name}:
+            </span>
+            <span aria-label={`${VALUES[v].name}: ${TAGS[tags[v]].word}`} className="justify-self-start" style={mount}>
+              <RelationPill tag={tags[v]} />
+            </span>
+          </Fragment>
+        );
+      })}
     </div>
   );
 }
