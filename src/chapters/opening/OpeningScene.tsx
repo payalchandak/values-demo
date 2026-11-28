@@ -35,7 +35,7 @@ import { CASE_SHRINK_MS, COLLAPSE_MS, OPENING_BEATS, OFFSETS, PILL_ENTER_MS, at,
 const HEADLINES = [
   { text: "Do Language Models Share Your Doctor's Priorities?", size: "2.6em" }, // ch1
   { text: "Physicians disagree on the decision", size: "1.7em" }, // ch2
-  { text: "Clinical decisions require prioritizing competing values.", size: "1.7em" }, // ch4
+  { text: "Physicians disagree because they prioritize different values.", size: "1.7em" }, // ch4
 ] as const;
 
 /** Display name only. Never a model version. */
