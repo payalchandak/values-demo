@@ -221,6 +221,8 @@ const round100 = (ms: number): number => Math.round(ms / 100) * 100;
  * added. Labels already added stay under the choices.
  */
 const NAME_MS = 1500; // name and definition in the heading, vignette still plain
+/** The framework heading holds once the physician icons have left, so it can be read. */
+const FRAMEWORK_HEADING_READ_MS = 1000;
 const HIGHLIGHT_BASE_MS = 900; // still hold of the fully tinted sentence, before the first label
 const HIGHLIGHT_PER_WORD_MS = 180; // the tint crosses one word in this long
 const CHIP_GAP_MS = 700; // Choice 1 label, then Choice 2 label
@@ -242,9 +244,10 @@ export function highlightSweepMs(v: Value): number {
 }
 
 const framework = (() => {
-  // "Clinical decisions require ...": the heading swaps, the physician icons fade out, the case stays put
+  // The heading swaps while the physician icons leave. The settled heading then holds before the values.
   const beats: Beat[] = [{ name: "framework", startMs: 0 }];
-  let cursor = 1200; // the heading swaps and the physician icons leave; then the values
+  const settledAt = Math.max(HEADING_SWAP_MS, VOTES_FADE_MS + VOTES_CLOSE_MS);
+  let cursor = settledAt + FRAMEWORK_HEADING_READ_MS;
   for (const v of VALUE_ORDER) {
     const highlight = cursor + NAME_MS;
     // A value with no span has no highlight beat and no still hold: its labels follow its name.
