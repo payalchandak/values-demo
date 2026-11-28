@@ -90,8 +90,6 @@ function Segment({ seg, s }: { seg: VignetteSegment; s: ValueSteps }) {
  * highlighted is enlarged.
  */
 export default function Vignette({ t, focused }: { t: number; focused: boolean }) {
-  const s = valueSteps(t);
-
   return (
     <div
       role="group"
@@ -99,9 +97,15 @@ export default function Vignette({ t, focused }: { t: number; focused: boolean }
       className="w-full rounded-[0.9em] border bg-white p-[0.9em] shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_28px_-14px_rgba(16,24,40,0.12)]"
       style={{ borderColor: NEUTRAL.line, color: NEUTRAL.ink }}
     >
-      {focused ? <FocusedText s={s} /> : <FullText s={s} />}
+      <VignetteText t={t} focused={focused} />
     </div>
   );
+}
+
+/** The vignette's text alone, tints included, for a card that is not this one (the tucked case). */
+export function VignetteText({ t, focused }: { t: number; focused: boolean }) {
+  const s = valueSteps(t);
+  return focused ? <FocusedText s={s} /> : <FullText s={s} />;
 }
 
 function FullText({ s }: { s: ValueSteps }) {

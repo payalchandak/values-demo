@@ -10,8 +10,8 @@ import { morphBeats } from "./morphBeats";
 export const SEGMENTS = [
   "opening-hook",
   "opening-dilemma",
-  "opening-model",
   "opening-framework",
+  "opening-model",
   "stack",
   "regression",
   "morph",
@@ -23,15 +23,15 @@ export type SegmentId = (typeof SEGMENTS)[number];
 export const OPENING_KEY: Partial<Record<SegmentId, OpeningChapterKey>> = {
   "opening-hook": "hook",
   "opening-dilemma": "dilemma",
-  "opening-model": "model",
   "opening-framework": "framework",
+  "opening-model": "model",
 };
 
 export const SEGMENT_BEATS: Record<SegmentId, readonly Beat[]> = {
   "opening-hook": OPENING_BEATS.hook,
   "opening-dilemma": OPENING_BEATS.dilemma,
-  "opening-model": OPENING_BEATS.model,
   "opening-framework": OPENING_BEATS.framework,
+  "opening-model": OPENING_BEATS.model,
   stack: stackBeats,
   regression: compressBeats,
   morph: morphBeats,
@@ -55,7 +55,7 @@ export const openingTime = (id: SegmentId, elapsedMs: number) => OPENING_OFFSETS
 
 /** End of the four opening chapters on the shared opening clock: sum of their durations. */
 export const OPENING_END_MS =
-  OPENING_OFFSETS.framework + chapterDuration({ beats: OPENING_BEATS.framework });
+  OPENING_OFFSETS.model + chapterDuration({ beats: OPENING_BEATS.model });
 
 /* -------------------------------------------------------------------------- */
 /*  Headlines from the stack on (the opening draws its own, in the scene)     */

@@ -1,15 +1,14 @@
-import { useLayoutEffect, useRef, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import ProviderIcon from "../../components/ProviderIcon";
 import { openingCase } from "./openingCase";
 import { openingRows } from "./openingRows";
 import { COLUMN_GAP, DOT_GAP, DOT_SIZE, EDGE_PAD, ICON_GAP, ROW_HEIGHT } from "./rowMetrics";
 import { CHARCOAL } from "./charcoal";
-import { decisionDotEnter, easeInOut, OFFSETS, stripProgress } from "./timeline";
+import { decisionDotEnter, OFFSETS } from "./timeline";
 
 /**
  * GPT's ten decisions as one dot row under the choices. The first dot is
  * already beside the mark; the other nine land one per spin.
- * The row fades and its slot closes as the values slide arrives.
  */
 
 /** Same slot as the opening's mark: 36px at the base size, scaled with the scene. */
@@ -38,20 +37,8 @@ function Dot({ opacity }: { opacity: number }) {
 }
 
 export default function DecisionBoard({ t, sharedIcon }: { t: number; sharedIcon: boolean }) {
-  const slotRef = useRef<HTMLDivElement>(null);
-  const rowRef = useRef<HTMLDivElement>(null);
   const gpt = openingRows.models[0];
   const e = t - OFFSETS.model;
-  const settle = easeInOut(stripProgress(t));
-
-  useLayoutEffect(() => {
-    const slot = slotRef.current;
-    const row = rowRef.current;
-    if (!slot || !row) return;
-    // At rest the slot is the row's own height, in em. It only closes while the row leaves.
-    slot.style.height = settle === 0 ? "" : `${row.offsetHeight * (1 - settle)}px`;
-    slot.style.overflow = settle === 0 ? "visible" : "hidden";
-  });
 
   // Dots sit on the side each query chose, in run order. The first is already beside the mark;
   // each later one lands as the mark finishes a spin.
@@ -59,13 +46,12 @@ export default function DecisionBoard({ t, sharedIcon }: { t: number; sharedIcon
     openingCase.decisions.flatMap((choice, i) => (choice === side ? [<Dot key={i} opacity={i === 0 ? 1 : decisionDotEnter(e, i)} />] : []));
 
   return (
-    <div ref={slotRef} className="w-full shrink-0">
+    <div className="w-full shrink-0">
       <div
-        ref={rowRef}
         role="img"
         aria-label={`${gpt.name} chose Choice 1 in ${gpt.choice1} of ${gpt.trials} queries`}
         className="grid w-full grid-cols-2 items-center"
-        style={{ height: ROW_HEIGHT, columnGap: COLUMN_GAP, opacity: 1 - settle }}
+        style={{ height: ROW_HEIGHT, columnGap: COLUMN_GAP }}
       >
         <div className="flex min-w-0 items-center" style={{ paddingLeft: EDGE_PAD, gap: ICON_GAP }}>
           <IconSlot anchor={sharedIcon ? "icon-response" : undefined}>

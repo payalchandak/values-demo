@@ -18,14 +18,15 @@ import { openingCase } from "./openingCase";
 import DecisionBoard from "./DecisionBoard";
 import OpeningResponse from "./OpeningResponse";
 import ValueStrip from "./ValueStrip";
-import Vignette from "./Vignette";
+import TuckedCase from "./TuckedCase";
+import Vignette, { VignetteText } from "./Vignette";
 import { PhysicianVotes } from "./DoctorSplit";
 import { CARD_CLASS, CARD_SURFACE } from "./cardClass";
 import { CHARCOAL, CHARCOAL_FAINT } from "./charcoal";
 import { ROW_VARS } from "./rowMetrics";
 import { valueSteps } from "./valueSteps";
 import { triggerWords } from "./valueTriggers";
-import { CASE_SHRINK_MS, COLLAPSE_MS, OPENING_BEATS, OFFSETS, PILL_ENTER_MS, at, caseCharsAt, modelHandoff, ramp, stripProgress, visibility, voteEnter } from "./timeline";
+import { CASE_SHRINK_MS, COLLAPSE_MS, OPENING_BEATS, HEADING_SWAP_MS, OFFSETS, PILL_ENTER_MS, at, caseCharsAt, modelHandoff, MODEL_HANDOFF_MS, ramp, caseSettle, visibility, voteEnter, votesOut } from "./timeline";
 
 /* -------------------------------------------------------------------------- */
 /*  Copy                                                                       */
@@ -35,7 +36,7 @@ import { CASE_SHRINK_MS, COLLAPSE_MS, OPENING_BEATS, OFFSETS, PILL_ENTER_MS, at,
 const HEADLINES = [
   { text: "Do Language Models Share Your Doctor's Priorities?", size: "2.6em" }, // ch1
   { text: "Physicians disagree on the decision", size: "1.7em" }, // ch2
-  { text: "Doctors disagree because they prioritize different values.", size: "1.6em" }, // ch4
+  { text: "Doctors disagree because they prioritize different values.", size: "1.6em" }, // ch3, replaces the ch2 heading in the same slot
 ] as const;
 
 /** Display name only. Never a model version. */
@@ -62,8 +63,8 @@ const RESPONSE_TIMING: ModelResponseTiming = {
 };
 
 /**
- * The framework chapter's first beat. GPT's row leaves while the
- * plain vignette and the new headline arrive; the value walk follows.
+ * The framework chapter's first beat, straight from the dilemma's last frame:
+ * the heading changes and the physician icons leave; the value walk follows.
  */
 const FRAMEWORK_AT = at("framework", "framework");
 
@@ -196,12 +197,13 @@ const easeOut = (x: number) => 1 - (1 - Math.min(1, Math.max(0, x))) ** 3;
  */
 const PROBE_TIMES: readonly number[] = [
   at("hook", "end") - 1,
-  at("dilemma", "end") - 1,
-  at("model", "extracted"),
-  at("model", "end") - 1, // the case still full, GPT's decision row on screen
+  at("dilemma", "end") - 1, // the case, the options and the physician icons
   ...VALUE_ORDER.filter((v) => triggerWords(v) > 0).map((v) => at("framework", `${v}Highlight`) + 400),
   ...VALUE_ORDER.map((v) => at("framework", `${v}Chip2`) + PILL_ENTER_MS),
-  at("framework", "all") + 800,
+  at("framework", "all") + 800, // tinted case, labels under both choices, names cleared
+  at("model", "ask") + MODEL_HANDOFF_MS / 2, // the case tucking while the response arrives
+  at("model", "extracted"), // the case tucked, the labels and the whole answer on screen
+  at("model", "end") - 1, // the case tucked, the labels and GPT's decision row on screen
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -336,6 +338,7 @@ function HeadlineReplace({
   titleOpacity,
   questionOpacity,
   titleSize,
+  swapClinical = 0,
 }: {
   /** 0 = the paper title's box, 1 = the question's box. */
   mix: number;
@@ -347,6 +350,8 @@ function HeadlineReplace({
   questionOpacity: number;
   /** Override for the opening card. Omit to use the shared headline size. */
   titleSize?: string;
+  /** 0..1 cross-fade from the ch2 heading to the framework heading. */
+  swapClinical?: number;
 }) {
   const [titleRef, titleH] = useBoxHeight();
   const [questionRef, questionH] = useBoxHeight();
@@ -415,7 +420,17 @@ function HeadlineReplace({
           }}
           aria-hidden={questionOpacity < 0.5}
         >
-          {HEADLINES[1].text}
+          <span className="grid items-center">
+            <span style={{ gridArea: "1 / 1", opacity: 1 - swapClinical }} aria-hidden={swapClinical > 0.5}>
+              {HEADLINES[1].text}
+            </span>
+            <span
+              style={{ gridArea: "1 / 1", opacity: swapClinical, fontSize: `${parseFloat(HEADLINES[2].size) / parseFloat(HEADLINES[1].size)}em` }}
+              aria-hidden={swapClinical < 0.5}
+            >
+              {HEADLINES[2].text}
+            </span>
+          </span>
         </h1>
       </div>
       <div aria-hidden style={{ height: `calc(${STACK_GAP} * ${1 - gone})` }} />
@@ -627,6 +642,24 @@ function Chips({ index, t }: { index: 0 | 1; t: number }) {
   );
 }
 
+/**
+ * The physician icons on their way out: they fade first, then the slot they held closes,
+ * so the labels that follow open into the same place. Gone once closed.
+ */
+function VotesLeave({ t, children }: { t: number; children: ReactNode }) {
+  const [ref, measured] = useBoxHeight();
+  const { fade, close } = votesOut(t);
+  if (close >= 1) return null;
+  const closing = close > 0 && measured > 0;
+  return (
+    <div style={{ height: closing ? measured * (1 - close) : undefined, overflow: closing ? "hidden" : undefined }}>
+      <div ref={ref} style={{ opacity: 1 - fade }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function OptionCard({
   index,
   t,
@@ -638,7 +671,7 @@ function OptionCard({
   t: number;
   selected: boolean;
   showChips: boolean;
-  /** Opening time while the physician icons are shown, or null once they are not. */
+  /** Opening time while the physician icons are on screen, or null once they have left. */
   votes: number | null;
 }) {
   const frame = selected ? OPTION_ACCENT : `color-mix(in srgb, ${NEUTRAL.ink} 28%, white)`;
@@ -658,7 +691,12 @@ function OptionCard({
           {openingCase.choices[index]}
         </p>
       </div>
-      {showChips ? <Chips index={index} t={t} /> : votes !== null ? <PhysicianVotes index={index} enterOf={(i) => voteEnter(votes, i)} /> : null}
+      {votes !== null && (
+        <VotesLeave t={t}>
+          <PhysicianVotes index={index} enterOf={(i) => voteEnter(votes, i)} />
+        </VotesLeave>
+      )}
+      {showChips && <Chips index={index} t={t} />}
     </li>
   );
 }
@@ -818,12 +856,6 @@ function CaseOverlay({ t, full, target }: { t: number; full: Rect | null; target
 /*  Scene body: a pure function of the opening clock `t`                       */
 /* -------------------------------------------------------------------------- */
 
-const HEADLINE_STARTS = [
-  at("hook", "headline"),
-  at("dilemma", "question"),
-  FRAMEWORK_AT, // the model chapter has no headline: the question leaves, then the response arrives
-] as const;
-
 const SceneBody = memo(function SceneBody({
   t,
   probe,
@@ -845,37 +877,27 @@ const SceneBody = memo(function SceneBody({
   /** An invisible copy that only holds the icon's anchor (see OpeningScene). Never the patient's shared card. */
   ghost?: boolean;
 }) {
-  /* Headline: the old one fades out as its chapter ends, the new one fades in just after. */
-  let h = 0;
-  HEADLINE_STARTS.forEach((s, i) => {
-    if (t >= s) h = i;
-  });
-  const next = HEADLINE_STARTS[h + 1];
-  const openingEnd = at("framework", "end");
-  // The stack handoff brings the patient card back before the new framework beat ends.
-  const recall = Math.max(at("framework", "all"), openingEnd - RECALL_LEAD_MS);
-  const clearP = recallPatient ? ramp(t, recall, recall + FADE_MS) : 0;
-  const cleared = recallPatient && t >= recall + FADE_MS;
-  const headlineExit =
-    next === undefined
-      ? recallPatient
-        ? 1 - ramp(t, openingEnd, openingEnd + FADE_MS)
-        : 1
-      : 1 - ramp(t, next - FADE_MS, next);
-
   const dilemmaStart = at("dilemma", "question");
   const ask = at("model", "ask");
+  const openingEnd = at("model", "end");
+  // The stack handoff brings the patient card back before the last beat ends.
+  const recall = openingEnd - RECALL_LEAD_MS;
+  const clearP = recallPatient ? ramp(t, recall, recall + FADE_MS) : 0;
+  const cleared = recallPatient && t >= recall + FADE_MS;
+
+  // The heading slot holds the question, the physicians heading and the framework heading in turn.
+  // The model chapter clears it.
+  const inHook = t < dilemmaStart;
   // The question fades in as the full-scene case card shrinks into its place.
   // It starts once the card has cleared its slot, and lands with it.
   const questionIn = ease(ramp(t, dilemmaStart + CASE_SHRINK_MS * 0.35, dilemmaStart + CASE_SHRINK_MS));
-  // The question fades, then its slot closes, while the response grows in below the options.
+  const headingClinical = ease(ramp(t, FRAMEWORK_AT, FRAMEWORK_AT + HEADING_SWAP_MS));
+  // The heading leaves and the case tucks to its header together, while the response arrives below the options.
   const handoff = modelHandoff(t - ask);
   const questionExit = handoff.questionCollapse;
+  const showHeading = inHook || questionExit < 1;
 
-  // The verbatim case stays up through the model chapter; the response sits below it.
-  // With the stack handoff, it returns once the framework has cleared, in time for the last beat.
-    const modelsAt = at("model", "models");
-  const frameworkEnd = at("framework", "end");
+  const modelsAt = at("model", "models");
   const sharedCard = !probe && !ghost;
   const showSummary = (t >= at("hook", "patient") && t < FRAMEWORK_AT) || (recallPatient && t >= recall + FADE_MS);
   const summaryOpacity =
@@ -883,17 +905,19 @@ const SceneBody = memo(function SceneBody({
       ? ramp(t, recall + FADE_MS, recall + FADE_MS * 2)
       : visibility(t, at("hook", "patient"), at("hook", "patient") + FADE_MS);
   const responseEnter = handoff.responseEnter;
-  // GPT's dot row takes over from the answer the moment it arrives, and stay through the framework chapter.
   const showResponse = t >= ask && responseEnter > 0 && t < modelsAt;
-  const showBoard = t >= modelsAt && t < frameworkEnd;
+  const showBoard = t >= modelsAt && t < openingEnd;
   const collapse = ramp(t, at("model", "collapse"), at("model", "collapse") + COLLAPSE_MS);
 
-  // The one-line case grows into the vignette as GPT's row leaves.
-  const stripLinear = stripProgress(t);
-  const stripP = ease(stripLinear);
-  const stripping = t >= FRAMEWORK_AT && stripLinear < 1;
-  const showVignette = t >= FRAMEWORK_AT && !stripping && !cleared;
-  const vignetteOpacity = (1 - clearP);
+  // The case: the plain card through the dilemma, the vignette that takes its tints through the
+  // framework chapter, and the one-line header in the model chapter. A narrow screen's focused
+  // vignette shows less text, so the card settles into it; a wide one shows the same text, so it just swaps.
+  const settle = caseSettle(t);
+  const stripping = focused && t >= FRAMEWORK_AT && settle < 1 && t < ask;
+  const showVignette = t >= FRAMEWORK_AT && t < ask && !stripping && !cleared;
+  const vignetteOpacity = 1 - clearP;
+  const tuck = ease(ramp(t, ask, ask + MODEL_HANDOFF_MS));
+  const showTuck = t >= ask && !cleared;
 
   const showOptions = t >= at("dilemma", "options") && !cleared;
   const optionsEnter =
@@ -901,8 +925,10 @@ const SceneBody = memo(function SceneBody({
   const optionsMoving = showOptions && optionsEnter > 0 && optionsEnter < 1;
   const selectedIndex = t >= at("model", "extract") && t < at("model", "collapse") ? openingCase.response.chosen : null;
   const showChips = t >= FRAMEWORK_AT;
-  // Space is held from the options on, so the icons arrive without moving anything.
-  const votes = showOptions && t < at("model", "ask") ? t : null;
+  // Space is held from the options on, so the icons arrive without moving anything. They leave in the framework chapter.
+  const out = votesOut(t);
+  const votes = showOptions && out.close < 1 ? t : null;
+  const votesMoving = out.close > 0 && out.close < 1;
   const steps = valueSteps(t);
   // While a label is opening, its height already follows the clock. A layout
   // animation on top of that would trail the row and make the arrival feel late.
@@ -915,11 +941,11 @@ const SceneBody = memo(function SceneBody({
     });
 
   const valuesAt = at("framework", VALUE_ORDER[0]);
-  const showStrip = t >= valuesAt && !cleared;
+  const showStrip = t >= valuesAt && !cleared && questionExit < 1;
   const handoffMoving = (questionExit > 0 && questionExit < 1) || (responseEnter > 0 && responseEnter < 1);
+  const tuckMoving = t >= ask && tuck < 1;
   const headingMoving = handoffMoving;
-  const showQuestionHeading = h === 0 || (h === 1 && questionExit < 1);
-  const sceneStill = !headingMoving && !optionsMoving && !stripping && !chipsMoving;
+  const sceneStill = !headingMoving && !optionsMoving && !stripping && !chipsMoving && !votesMoving && !tuckMoving;
 
   return (
     <div
@@ -929,27 +955,15 @@ const SceneBody = memo(function SceneBody({
       }`}
       style={{ gap: STACK_GAP, ...ROW_VARS }}
     >
-      {showQuestionHeading && (
+      {showHeading && (
         <HeadlineReplace
           mix={1}
-          exit={h === 0 ? 0 : questionExit}
-          drift={h === 0 ? 0 : handoff.questionFade}
+          exit={inHook ? 0 : questionExit}
+          swapClinical={headingClinical}
+          drift={inHook ? 0 : handoff.questionFade}
           titleOpacity={0}
           questionOpacity={questionIn * (1 - handoff.questionFade)}
         />
-      )}
-
-      {h > 1 && (
-        <Block probe={probe} className="w-full" layout={false}>
-          <FadeSlot enter={stripP}>
-            <h1
-              className="mx-auto max-w-[30em] text-balance text-center font-semibold leading-[1.12] tracking-tight"
-              style={{ fontSize: HEADLINES[h].size, color: NEUTRAL.ink, opacity: headlineExit }}
-            >
-              {HEADLINES[h].text}
-            </h1>
-          </FadeSlot>
-        </Block>
       )}
 
       {showSummary && (
@@ -964,21 +978,27 @@ const SceneBody = memo(function SceneBody({
 
       {stripping && (
         <Block probe={probe} className="w-full" layout={false}>
-          <CaseHandoff t={t} settle={stripP} focused={focused} shared={sharedCard && !hidePatient} />
+          <CaseHandoff t={t} settle={settle} focused={focused} shared={sharedCard && !hidePatient} />
         </Block>
       )}
 
       {showVignette && (
-        <Block probe={probe} className="w-full" layout={!chipsMoving}>
+        <Block probe={probe} className="w-full" layout={!chipsMoving && !votesMoving}>
           <div style={{ opacity: vignetteOpacity }}>
             <Vignette t={t} focused={focused} />
           </div>
         </Block>
       )}
 
+      {showTuck && (
+        <Block probe={probe} className="w-full" layout={sceneStill}>
+          <TuckedCase tuck={tuck} shared={sharedCard && !hidePatient} body={<VignetteText t={t} focused={focused} />} />
+        </Block>
+      )}
+
       {showStrip && (
         <Block probe={probe} className="w-full" layout={false}>
-          <FadeSlot enter={ease(ramp(t, valuesAt, valuesAt + 420))}>
+          <FadeSlot enter={ease(ramp(t, valuesAt, valuesAt + 420)) * (1 - questionExit)}>
             <div style={{ opacity: 1 - clearP }}>
               <ValueStrip t={t} introAt={valuesAt - 1000} />
             </div>
@@ -989,12 +1009,7 @@ const SceneBody = memo(function SceneBody({
       {showOptions && (
         <Block probe={probe} className="w-full" layout={sceneStill}>
           <FadeSlot enter={optionsEnter}>
-            <ul
-              className={`grid w-full grid-cols-1 gap-y-[0.7em] @md:grid-cols-2 @md:grid-rows-[auto_auto] @md:gap-x-[0.6em] @md:gap-y-[0.45em] ${
-                // GPT's dot row sits under these two buttons.
-                showBoard ? "@max-md:grid-cols-2 @max-md:gap-x-[0.6em] @max-md:gap-y-0" : ""
-              }`}
-            >
+            <ul className="grid w-full grid-cols-1 gap-y-[0.7em] @md:grid-cols-2 @md:grid-rows-[auto_auto] @md:gap-x-[0.6em] @md:gap-y-[0.45em]">
               <OptionCard index={0} t={t} selected={selectedIndex === 0} showChips={showChips} votes={votes} />
               <OptionCard index={1} t={t} selected={selectedIndex === 1} showChips={showChips} votes={votes} />
             </ul>
@@ -1006,7 +1021,7 @@ const SceneBody = memo(function SceneBody({
         <Block
           probe={probe}
           className="w-full"
-          layout={!headingMoving}
+          layout={!headingMoving && !tuckMoving}
           style={responseEnter < 1 ? { marginTop: `calc(${STACK_GAP} * ${responseEnter - 1})` } : undefined}
         >
           <GrowIn enter={responseEnter}>

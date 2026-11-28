@@ -162,12 +162,14 @@ const REPEAT_FAST_MS = 380;
 const REPEAT_GAP_MS = 60;
 /** GPT's ten decisions held for reading. TODO: tune after visual review */
 export const DECISIONS_HOLD_MS = 2400;
+/** The physician icons fade out over this span from the framework chapter's start, then their slot closes. */
+export const VOTES_FADE_MS = 350;
+export const VOTES_CLOSE_MS = 500;
 /**
- * The values slide arrives over this span: the vignette opens and GPT's
- * decision row fades out. It does not stay on that slide.
- * TODO: tune after visual review
+ * On a narrow screen the full case card settles into the focused vignette
+ * over this span from the framework chapter's start. A wide screen shows the same text, so nothing moves.
  */
-export const STRIP_MS = 1000;
+export const CASE_SETTLE_MS = 600;
 
 const MODELS_AT = COLLAPSE_AT + COLLAPSE_MS + SPINS_DELAY_MS;
 
@@ -201,9 +203,9 @@ const model = [
 const round100 = (ms: number): number => Math.round(ms / 100) * 100;
 
 /*
- * The framework chapter walks the four values one at a time. Its first beat is
- * the reset: the model answer leaves and the plain vignette arrives with the
- * headline. Inside each value's window:
+ * The framework chapter walks the four values one at a time. It starts from the
+ * dilemma's last frame with no reset: the heading changes, the physician icons
+ * fade out, and the case and options stay where they are. Inside each value's window:
  *   <v>           its full name and definition appear; the vignette is plain
  *   <v>Highlight  the tint starts across its trigger sentence; the rest dims
  *   <v>Chip1      its label lands under Choice 1
@@ -235,8 +237,9 @@ export function highlightSweepMs(v: Value): number {
 }
 
 const framework = (() => {
-  const beats: Beat[] = [{ name: "framework", startMs: 0 }]; // "Clinical decisions require ..."
-  let cursor = 1800; // the grouped models have left; hold the slide, then the values
+  // "Clinical decisions require ...": the heading swaps, the physician icons fade out, the case stays put
+  const beats: Beat[] = [{ name: "framework", startMs: 0 }];
+  let cursor = 1200; // the heading swaps and the physician icons leave; then the values
   for (const v of VALUE_ORDER) {
     const highlight = cursor + NAME_MS;
     // A value with no span has no highlight beat and no still hold: its labels follow its name.
@@ -252,14 +255,14 @@ const framework = (() => {
     cursor = chip2 + PILL_ENTER_MS;
   }
   beats.push({ name: "all", startMs: cursor }); // names cleared; four tints remain, four labels on each choice
-  beats.push({ name: "end", startMs: cursor + 5000 });
+  beats.push({ name: "end", startMs: cursor + 2500 }); // hold the tinted case and labels, then the model answers
   return beats as readonly Beat[];
 })();
 
-export const OPENING_BEATS = { hook, dilemma, model, framework } as const;
+export const OPENING_BEATS = { hook, dilemma, framework, model } as const;
 export type OpeningChapterKey = keyof typeof OPENING_BEATS;
 
-const ORDER: readonly OpeningChapterKey[] = ["hook", "dilemma", "model", "framework"];
+const ORDER: readonly OpeningChapterKey[] = ["hook", "dilemma", "framework", "model"];
 
 /** Start of each chapter on the shared opening clock. */
 export const OFFSETS: Readonly<Record<OpeningChapterKey, number>> = (() => {
@@ -314,12 +317,20 @@ export function decisionDotEnter(elapsedMs: number, index: number): number {
   return spin ? ramp(elapsedMs, spin.end - MODEL_ROW_IN_MS, spin.end) : 1;
 }
 
-/** 0 at the values slide's start, 1 once the decision row has faded out. */
-export function stripProgress(t: number): number {
+/** The physician icons leaving, from the framework chapter's start: `fade` is their opacity loss, `close` their slot closing. Both 0..1. */
+export function votesOut(t: number): { fade: number; close: number } {
   const start = at("framework", "framework");
-  return ramp(t, start, start + STRIP_MS);
+  return {
+    fade: easeInOut(ramp(t, start, start + VOTES_FADE_MS)),
+    close: easeInOut(ramp(t, start + VOTES_FADE_MS, start + VOTES_FADE_MS + VOTES_CLOSE_MS)),
+  };
 }
 
+/** 0 at the framework chapter's start, 1 once the focused vignette has replaced the full case card. */
+export function caseSettle(t: number): number {
+  const start = at("framework", "framework");
+  return easeInOut(ramp(t, start, start + CASE_SETTLE_MS));
+}
 
 /** 0..1: how far physician icon number `i` (in vote order) has appeared at opening time `t`. */
 export const voteEnter = (t: number, i: number): number => ramp(t, voteStartMs(i), voteStartMs(i) + VOTE_IN_MS);
