@@ -17,7 +17,7 @@ const HIGHLIGHT = "rgba(27, 36, 51, 0.14)";
 
 /**
  * How much of the answer stays on screen. The reply is longer than this;
- * it scrolls, and the parse brings the recommendation sentence back into view.
+ * it scrolls, and the parse settles on the suggestion at the end.
  */
 const ANSWER_WINDOW = "16em";
 
@@ -155,7 +155,7 @@ export default function OpeningResponse({
   );
   const progress = getResponseProgress(elapsedMs, timing);
   const typed = typedCount(progress.elapsedMs, timing.revealStartMs, timing.revealEndMs, text.length);
-  // The parse: scroll from wherever typing finished back to the marked sentence, then sweep it.
+  // The parse: settle on the marked sentence at the end of the reply, then sweep it.
   const parseWindow = Math.max(1, timing.outlineStartMs - timing.highlightStartMs);
   const find = ramp(progress.elapsedMs, timing.highlightStartMs, timing.highlightStartMs + parseWindow * 0.42);
   const sweep = ramp(
@@ -170,17 +170,26 @@ export default function OpeningResponse({
   useLayoutEffect(() => {
     const scroller = scrollerRef.current;
     if (!scroller) return;
-    const max = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
-    const contentTop = (el: HTMLElement) =>
-      el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
-    const clamp = (n: number) => Math.max(0, Math.min(max, n));
-    const caret = caretRef.current;
-    const mark = markRef.current;
-    const follow = caret ? clamp(contentTop(caret) - scroller.clientHeight + 36) : max;
-    const found = mark ? clamp(contentTop(mark) - 8) : 0;
-    scroller.scrollTop = follow * (1 - find) + found * find;
-    const over = max > 1;
-    setOverflows((prev) => (prev === over ? prev : over));
+    const place = () => {
+      const max = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+      const contentTop = (el: HTMLElement) =>
+        el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+      const clamp = (n: number) => Math.max(0, Math.min(max, n));
+      const caret = caretRef.current;
+      const mark = markRef.current;
+      const follow = caret ? clamp(contentTop(caret) - scroller.clientHeight + 36) : max;
+      // The suggestion is the last sentence, so bring it to the bottom of the window, fully in view.
+      const found = mark
+        ? clamp(contentTop(mark) - scroller.clientHeight + mark.getBoundingClientRect().height + 20)
+        : max;
+      scroller.scrollTop = follow * (1 - find) + found * find;
+      const over = max > 1;
+      setOverflows((prev) => (prev === over ? prev : over));
+    };
+    place();
+    const ro = new ResizeObserver(place);
+    ro.observe(scroller);
+    return () => ro.disconnect();
   }, [typed, find, text, layout]);
   const thinking = typed === 0;
   const dots = ".".repeat((Math.floor(Math.max(0, progress.elapsedMs - timing.thinkStartMs) / 400) % 3) + 1);
@@ -327,18 +336,18 @@ export default function OpeningResponse({
               maxHeight: ANSWER_WINDOW,
               overflowY: "auto",
               position: "relative",
-              // Once the sentence is found, soften the cut so the rest of the reply is still implied.
+              // The suggestion sits at the bottom. Soften the top so the earlier reasoning reads as what came before it.
               maskImage:
                 overflows && find > 0.65
-                  ? "linear-gradient(to bottom, #000 0, #000 calc(100% - 1.1em), transparent)"
+                  ? "linear-gradient(to bottom, transparent, #000 1.1em, #000 100%)"
                   : undefined,
               WebkitMaskImage:
                 overflows && find > 0.65
-                  ? "linear-gradient(to bottom, #000 0, #000 calc(100% - 1.1em), transparent)"
+                  ? "linear-gradient(to bottom, transparent, #000 1.1em, #000 100%)"
                   : undefined,
             }}
           >
-            <p className="relative whitespace-pre-wrap leading-snug">
+            <p className="relative whitespace-pre-wrap leading-snug" style={{ paddingBottom: "0.45em" }}>
               {thinking && (
                 <span className="absolute left-0 top-0" style={{ color: NEUTRAL.inkMuted }}>
                   Thinking{dots}

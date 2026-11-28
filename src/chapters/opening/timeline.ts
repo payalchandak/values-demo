@@ -87,7 +87,7 @@ const THINK_AT = 500;
 const REVEAL_AT = THINK_AT + SPIN_MS;
 const REVEALED_AT = REVEAL_AT + REVEAL_MS;
 const HIGHLIGHT_AT = REVEALED_AT + 1000;
-/** Scroll back to the recommendation sentence, then mark it, before the choice is outlined. */
+/** Settle on the final suggestion, then mark it, before the choice is outlined. */
 const EXTRACT_AT = HIGHLIGHT_AT + 1700;
 const EXTRACTED_AT = EXTRACT_AT + 1000;
 /**

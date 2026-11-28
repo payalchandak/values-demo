@@ -44,12 +44,12 @@
       "excerpt": {
         "runIndex": 0,
         "runChoice": 1,
-        "wordCount": 232,
-        "text": "**I recommend a feeding tube.**\n\nShe is eating only about a quarter of her meals and refuses oral supplements, and her intake has not improved since yesterday. Her weight is stable and her QTc is normal, so it is tempting to watch another day. I would not. The admission is for bradycardia and orthostatic hypotension, and the intake that goes with that has not moved.\n\nA few facts drive that:\n\n- She is taking about a quarter of her meals and refusing supplements, with no improvement over the last day.\n- She agrees to try harder tomorrow, but nothing in the last day shows the intake turning, so I would not treat that as a plan.\n- Her abdomen is distended, bowel sounds are absent, and she has vomited twice today, which makes another day of watching a weak default.\n- Continued monitoring only works if she replaces the nutrition she is refusing. I do not see that starting.\n\nA feeding tube would override a preference she is stating clearly. I would not call that a small cost, and continued monitoring is the option that respects it. Monitoring also leaves the same meals and the same refusal in place. Her rhythm is stable enough that the problem to treat is the intake, not an emergency around the procedure.\n\nOn the facts given, I would place the feeding tube rather than continue monitoring.",
+        "wordCount": 170,
+        "text": "She is eating only about a quarter of her meals and refuses oral supplements, and neither has improved since yesterday. Her weight has been stable and her QTc is normal, so another day of watching is not an unreasonable hope. She agrees to try harder tomorrow, and a feeding tube would go against a preference she is stating in plain words.\n\nContinued monitoring is the choice that respects what she is asking. It also leaves the intake where it is. She was admitted for bradycardia and orthostatic hypotension, and a stable weight on this little food is not the same as the deficit turning around.\n\nA feeding tube would replace what she is not taking, and it would override her. Her abdomen is distended, bowel sounds are absent, and she has vomited twice today, which makes me less willing to count on tomorrow. Her rhythm is stable enough that the question is the nutrition, not an emergency around the procedure.\n\nI would place the feeding tube rather than continue monitoring.",
         "recommendation": {
-          "start": 0,
-          "end": 31,
-          "text": "**I recommend a feeding tube.**"
+          "start": 918,
+          "end": 981,
+          "text": "I would place the feeding tube rather than continue monitoring."
         }
       }
     },
