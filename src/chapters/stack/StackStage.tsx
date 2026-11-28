@@ -642,7 +642,7 @@ function FlightParts({
  * A column of dots hugging a card edge, one dot per model query: choice 1 dots
  * first, then choice 2. The column keeps its full height; dots arrive top to bottom.
  */
-function DotStrip({ side, frame }: { side: "left" | "right"; frame: CardFrame }) {
+export function DotStrip({ side, frame }: { side: "left" | "right"; frame: CardFrame }) {
   // Dots shrink with small cards so a column never outgrows its card.
   const k = Math.min(1, frame.faceScale);
   const dot = DOT_SIZE * k;
@@ -716,7 +716,7 @@ const TAG_STYLE: Record<Tag, { bg: string; fg: string }> = {
   1: { bg: "#E6F4EC", fg: "#1D7A4D" },
 };
 
-const CardBack = memo(function CardBack({ study }: { study: StudyCase }) {
+export const CardBack = memo(function CardBack({ study }: { study: StudyCase }) {
   const card = caseCardFor(study);
   return (
     <div style={{ ...caseFaceStyle, display: "flex", flexDirection: "column" }}>

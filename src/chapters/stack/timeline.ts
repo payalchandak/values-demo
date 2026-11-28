@@ -273,7 +273,6 @@ export function computeFrame(
   const n = choice1Counts.length;
   const slots = gridSlots(n, L);
 
-  const turnP = easeInOut(span(t, times, "turn", "values"));
   const shrinkP = easeInOut(span(t, times, "shrink", "reveal"));
   const revealP = span(t, times, "reveal", "grid");
   const flipP = span(t, times, "flip", "settle");
@@ -302,7 +301,7 @@ export function computeFrame(
     //    decisions arrive and while their contents leave for the table.
     const flipOut = easeInOut(clamp01((flipP - rank * 0.55) / 0.45));
     //    The hero also turns over once at the start (turnP), and back as it shrinks (shrinkP).
-    const heroTurn = i === 0 ? turnP - shrinkP : 0;
+    const heroTurn = i === 0 ? 1 - shrinkP : 0;
     const flipLocal = flipOut + heroTurn;
 
     // 3. The journey. Strictly one case at a time for the rows, then a quick wave for the rest.
@@ -325,7 +324,9 @@ export function computeFrame(
 
     // 4. Edge markers accumulate across every card, spreading out from the middle.
     const local = t < times.markers ? 0 : clamp01((markersP - rank * 0.55) / 0.45);
-    const dots = Math.round(TRIALS * local);
+    //    The hero arrives from the opening with its dots in; they leave as it shrinks and return with the rest.
+    const heroDots = i === 0 && t < times.markers;
+    const dots = heroDots ? TRIALS : Math.round(TRIALS * local);
 
     cards.push({
       index: i,
@@ -349,7 +350,7 @@ export function computeFrame(
       rowOpacity: foreground && arrived ? 1 : 0,
       dots,
       choice1Count: choice1Counts[i],
-      markerOpacity: flyingNow ? 0 : 1,
+      markerOpacity: flyingNow ? 0 : heroDots ? 1 - shrinkP : 1,
       freqFill: foreground && arrived ? 1 : 0,
       highlight: i === 0 ? highlightP : 0,
     });

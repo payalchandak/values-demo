@@ -8,9 +8,9 @@ import type { Beat } from "../../types";
  * (or passing your own list to `createStackChapter`). Nothing in the
  * animation code knows a duration.
  *
- *   card       one full-size case card, holding
- *   turn       the card flips to its tag-chip back (its values)
- *   values     the tag back holds so the values can be read
+ *   card       the opening's card, already on its tag-chip side with its dots in, holding
+ *   turn       (empty: the card arrives already turned)
+ *   values     (empty: the tag side already held in the opening)
  *   shrink     the card flips back and shrinks into the middle of the grid, becoming a
  *              title card
  *   reveal     the other cards appear one by one, spreading out from the first
@@ -47,11 +47,11 @@ export const STACK_BEAT_NAMES = [
 export type StackBeatName = (typeof STACK_BEAT_NAMES)[number];
 
 /** The hero card sits still before it shrinks. */
-const CARD_HOLD_MS = 1200;
+const CARD_HOLD_MS = 1600;
 /** The hero card flips to its tag back. */
-const TURN_MS = 700;
+const TURN_MS = 0;
 /** The hero's tag back holds so the values can be read. */
-const VALUES_HOLD_MS = 2000;
+const VALUES_HOLD_MS = 0;
 /** The hero card flips back and shrinks into the grid. */
 const SHRINK_MS = 700;
 /** The other cards appear one by one. Each card fades in over 30% of this (see the timeline). */

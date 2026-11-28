@@ -186,6 +186,9 @@ const REPEAT_SPINS: readonly { start: number; end: number }[] = (() => {
 })();
 const LAST_DOT_AT = REPEAT_SPINS[REPEAT_SPINS.length - 1].end + MODEL_ROW_IN_MS;
 
+/** The opening's last frame collapses into the stack's first card over this span. */
+export const CARD_COLLAPSE_MS = 1500;
+
 const model = [
   { name: "ask", startMs: 0 }, // "Physicians disagree on the decision" starts leaving; the response eases in with it
   { name: "think", startMs: THINK_AT }, // mark spins; the panel is arriving with it
@@ -197,8 +200,15 @@ const model = [
   { name: "firstDot", startMs: FIRST_DOT_AT }, // the excerpt's dot rises beside the mark
   { name: "collapse", startMs: COLLAPSE_AT }, // answer shrinks away; the first dot stays
   { name: "models", startMs: MODELS_AT }, // the mark spins once per remaining query; each spin ends in a dot
-  { name: "end", startMs: LAST_DOT_AT + DECISIONS_HOLD_MS },
+  { name: "card", startMs: LAST_DOT_AT + DECISIONS_HOLD_MS }, // case and options shrink and fade into one card
+  { name: "end", startMs: LAST_DOT_AT + DECISIONS_HOLD_MS + CARD_COLLAPSE_MS },
 ] as const satisfies readonly Beat[];
+
+/** 0..1 progress of that collapse, from chapter-local time in the model chapter. */
+export function cardCollapse(elapsedMs: number): number {
+  const start = LAST_DOT_AT + DECISIONS_HOLD_MS;
+  return easeInOut(ramp(elapsedMs, start, start + CARD_COLLAPSE_MS));
+}
 
 const round100 = (ms: number): number => Math.round(ms / 100) * 100;
 

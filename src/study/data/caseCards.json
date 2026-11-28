@@ -298,5 +298,11 @@
     "specialty": "Obstetrics",
     "title": "Pregnancy deadline",
     "summary": "They may end the pregnancy if the fetus is unaffected, and a transfer would miss the legal deadline."
+  },
+  {
+    "id": "0b5a2bcb-0946-461a-8ba1-8f29213f01c5-illustrative",
+    "specialty": "Eating disorders",
+    "title": "Anorexia feeding tube",
+    "summary": "A young woman with anorexia refuses supplements and eats little, and a feeding tube would override her wishes."
   }
 ]

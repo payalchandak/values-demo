@@ -4,7 +4,7 @@ import { beatStart, chapterDuration } from "../types";
 import ProviderIcon from "../components/ProviderIcon";
 import openaiLogo from "../assets/providers/openai.svg";
 import OpeningScene from "../chapters/opening/OpeningScene";
-import { markSpinDeg, modelHandoff } from "../chapters/opening/timeline";
+import { cardCollapse, markSpinDeg, modelHandoff } from "../chapters/opening/timeline";
 import StackStage from "../chapters/stack/StackStage";
 import { stackBeats } from "../chapters/stack/beats";
 import { RegressionScene } from "../chapters/regression/RegressionChapter";
@@ -60,7 +60,7 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
       // The model has not answered yet: the shared icon waits for the model chapter.
       return { from: null, mix: 0, opacity: 0 };
     case "opening-model":
-      return { from: "icon-response", mix: 0, opacity: modelHandoff(e).responseEnter };
+      return { from: "icon-response", mix: 0, opacity: modelHandoff(e).responseEnter * (1 - cardCollapse(e)) };
     case "stack":
     case "regression":
       return { from: null, mix: 0, opacity: 0 };
@@ -178,6 +178,8 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
 
   const inOpening = isOpening(segment);
   const showScenes = !inOpening;
+  // The opening's last 1.5 s: everything shrinks and fades while the stack's first card fades in.
+  const collapse = segment === "opening-model" ? cardCollapse(e) : 0;
 
   useLayoutEffect(() => {
     const root = rootRef.current;
@@ -206,9 +208,28 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
   return (
     <div ref={rootRef} data-stage className="relative h-full w-full">
       {inOpening && (
-        <div className="absolute inset-0" key="opening">
-          <OpeningScene t={openingTime(segment, e)} sharedIcon />
-        </div>
+        <>
+          <div
+            className="absolute inset-0"
+            key="opening"
+            style={collapse > 0 ? { opacity: 1 - collapse, transform: `scale(${1 - 0.4 * collapse})` } : undefined}
+          >
+            <OpeningScene t={openingTime(segment, e)} sharedIcon />
+          </div>
+          {collapse > 0 && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 flex flex-col"
+              key="card"
+              style={{ opacity: collapse, transform: `scale(${0.75 + 0.25 * collapse})` }}
+            >
+              <div className="shrink-0" style={{ minHeight: "4.5rem" }} />
+              <div className="relative min-h-0 flex-1">
+                <StackScene elapsedMs={0} />
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {showScenes && (
