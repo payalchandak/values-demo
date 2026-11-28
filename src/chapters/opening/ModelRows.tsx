@@ -3,7 +3,7 @@ import ProviderIcon from "../../components/ProviderIcon";
 import { NEUTRAL } from "../../design";
 import { CHARCOAL } from "./charcoal";
 import { openingRows, type ModelRow } from "./openingRows";
-import { COLUMN_GAP, DOT_GAP, DOT_SIZE, EDGE_PAD, ICON_GAP, ROW_HEIGHT } from "./rowMetrics";
+import { COLUMN_GAP, DOT_GAP, DOT_SIZE, EDGE_PAD, ICON_GAP, ROW_HEIGHT, iconOnLeft } from "./rowMetrics";
 import { modelRowEnter, physicianEnter, physicianRowEnter } from "./timeline";
 
 const clamp01 = (n: number): number => Math.min(Math.max(n, 0), 1);
@@ -29,16 +29,18 @@ function useBoxHeight() {
   return [setNode, height] as const;
 }
 
-/** Same slot as the opening's mark: 36px at the base size, scaled with the scene. */
-function IconSlot({ children }: { children: ReactNode }) {
+/** Same slot as the opening's mark: 36px at the base size, scaled with the scene. Empty when this side is the minority. */
+function IconSlot({ children }: { children?: ReactNode }) {
   return (
     <span
       className="inline-flex shrink-0 items-center justify-center"
       style={{ width: "calc(36px * var(--z))", height: "calc(36px * var(--z))" }}
     >
-      <span className="inline-flex" style={{ zoom: "var(--z)" }}>
-        {children}
-      </span>
+      {children != null && (
+        <span className="inline-flex" style={{ zoom: "var(--z)" }}>
+          {children}
+        </span>
+      )}
     </span>
   );
 }
@@ -56,7 +58,19 @@ function Dot({ opacity = 1 }: { opacity?: number }) {
 
 const repeat = (n: number, make: (i: number) => ReactNode): ReactNode[] => Array.from({ length: n }, (_, i) => make(i));
 
+function Dots({ n }: { n: number }) {
+  return (
+    <span className="flex items-center" style={{ gap: DOT_GAP }}>
+      {repeat(n, (i) => (
+        <Dot key={i} />
+      ))}
+    </span>
+  );
+}
+
 function ModelRowView({ row, enter }: { row: ModelRow; enter: number }) {
+  const onLeft = iconOnLeft(row.choice1, row.choice2);
+  const logo = <ProviderIcon src={row.logo.src} alt={row.logo.alt} size={36} />;
   return (
     <div
       role="img"
@@ -71,19 +85,12 @@ function ModelRowView({ row, enter }: { row: ModelRow; enter: number }) {
       }}
     >
       <div className="flex min-w-0 items-center" style={{ paddingLeft: EDGE_PAD, gap: ICON_GAP }}>
-        <IconSlot>
-          <ProviderIcon src={row.logo.src} alt={row.logo.alt} size={36} />
-        </IconSlot>
-        <span className="flex items-center" style={{ gap: DOT_GAP }}>
-          {repeat(row.choice1, (i) => (
-            <Dot key={i} />
-          ))}
-        </span>
+        <IconSlot>{onLeft ? logo : null}</IconSlot>
+        <Dots n={row.choice1} />
       </div>
-      <div className="flex min-w-0 items-center justify-end" style={{ paddingRight: EDGE_PAD, gap: DOT_GAP }}>
-        {repeat(row.choice2, (i) => (
-          <Dot key={i} />
-        ))}
+      <div className="flex min-w-0 items-center justify-end" style={{ paddingRight: EDGE_PAD, gap: ICON_GAP }}>
+        <Dots n={row.choice2} />
+        <IconSlot>{onLeft ? null : logo}</IconSlot>
       </div>
     </div>
   );
@@ -133,6 +140,16 @@ function Squares({ keys, first, t, end }: { keys: readonly string[]; first: numb
 function PhysicianRow({ t }: { t: number }) {
   const { left, right, total } = openingRows.physicians;
   const enter = physicianRowEnter(t);
+  const onLeft = iconOnLeft(left.length, right.length);
+  const badge = (
+    <span
+      aria-hidden
+      className="inline-flex shrink-0 select-none items-center justify-center rounded-full border border-neutral-200 bg-white font-semibold"
+      style={{ width: 36, height: 36, fontSize: 13, color: NEUTRAL.inkMuted, opacity: enter }}
+    >
+      MD
+    </span>
+  );
   return (
     <>
       <div
@@ -146,21 +163,12 @@ function PhysicianRow({ t }: { t: number }) {
         style={{ minHeight: ROW_HEIGHT, columnGap: COLUMN_GAP, visibility: enter === 0 ? "hidden" : undefined }}
       >
         <div className="flex min-w-0 items-center" style={{ paddingLeft: EDGE_PAD, gap: ICON_GAP }}>
-          <span style={{ opacity: enter }}>
-            <IconSlot>
-              <span
-                aria-hidden
-                className="inline-flex shrink-0 select-none items-center justify-center rounded-full border border-neutral-200 bg-white font-semibold"
-                style={{ width: 36, height: 36, fontSize: 13, color: NEUTRAL.inkMuted }}
-              >
-                MD
-              </span>
-            </IconSlot>
-          </span>
+          <IconSlot>{onLeft ? badge : null}</IconSlot>
           <Squares keys={left} first={0} t={t} end={false} />
         </div>
-        <div className="flex min-w-0 items-center" style={{ paddingRight: EDGE_PAD }}>
+        <div className="flex min-w-0 items-center justify-end" style={{ paddingRight: EDGE_PAD, gap: ICON_GAP }}>
           <Squares keys={right} first={left.length} t={t} end />
+          <IconSlot>{onLeft ? null : badge}</IconSlot>
         </div>
       </div>
       <p

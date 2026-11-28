@@ -1,11 +1,11 @@
 import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import ProviderIcon from "../../components/ProviderIcon";
 import { getResponseProgress, type ModelResponseTiming } from "../../components/ModelResponse";
-import { FADE_MS, NEUTRAL } from "../../design";
+import { NEUTRAL } from "../../design";
 import { CHARCOAL } from "./charcoal";
 import { openingRows } from "./openingRows";
-import { COLUMN_GAP, DOT_GAP, DOT_SIZE, EDGE_PAD, ICON_GAP } from "./rowMetrics";
-import { RUN_DOTS, markSpinDeg } from "./timeline";
+import { COLUMN_GAP, DOT_GAP, DOT_SIZE, EDGE_PAD, ICON_GAP, iconOnLeft } from "./rowMetrics";
+import { gptDecisionsEnter, markSpinDeg } from "./timeline";
 
 const clamp01 = (n: number): number => Math.min(Math.max(n, 0), 1);
 const ramp = (t: number, start: number, end: number): number =>
@@ -69,6 +69,23 @@ function layoutResponse(text: string, span: string, wordsPerGroup: number): Layo
   return layout;
 }
 
+/** One dot per query on this side. They share one fade, with the other model rows. */
+function decisionDots(count: number, enter: number) {
+  return Array.from({ length: count }, (_, i) => (
+    <span
+      key={i}
+      aria-hidden
+      className="block shrink-0 rounded-full"
+      style={{
+        width: DOT_SIZE,
+        height: DOT_SIZE,
+        backgroundColor: CHARCOAL,
+        opacity: enter,
+      }}
+    />
+  ));
+}
+
 /** How many characters are on screen. 0 before typing starts; the first character appears as typing begins. */
 function typedCount(elapsed: number, start: number, end: number, length: number): number {
   if (length === 0 || elapsed < start) return 0;
@@ -99,12 +116,11 @@ const HALF_ROW = "1.125em";
 
 /**
  * The model's response for the opening, below the options. The round provider
- * icon sits on the panel's top-left edge and spins while the panel reads
- * "thinking…"; then the answer types out and its recommendation is picked out.
- * The panel then shrinks away and a dot lands beside the icon, on the side of
- * the choice that query made. Nine land with the icon; one lands on the other
- * side. The icon turns again for each repeated query. Highlight timing matches
- * `ModelResponse`. Everything is in `em`, so it scales with the scene.
+ * icon sits on the panel's top edge, on the side of the majority vote, and
+ * spins while the panel reads "Thinking…"; then the answer types out and its
+ * recommendation is picked out. The panel then shrinks away. The decision dots
+ * arrive later, with the other model rows, once the case has tucked. Highlight
+ * timing matches `ModelResponse`. Everything is in `em`, so it scales with the scene.
  */
 export default function OpeningResponse({
   text,
@@ -142,8 +158,9 @@ export default function OpeningResponse({
     ro.observe(node);
     return () => ro.disconnect();
   }, []);
-  const arrived = (choice: 0 | 1) =>
-    RUN_DOTS.filter((d) => d.choice === choice && progress.elapsedMs >= d.startMs).length;
+  const gpt = openingRows.models[0];
+  const markOnLeft = iconOnLeft(gpt.choice1, gpt.choice2);
+  const decisions = gptDecisionsEnter(progress.elapsedMs);
   const c = clamp01(collapse);
   const settled = c <= 0 || panelH === 0;
   const panelFade = 1 - ramp(c, 0, 0.6);
@@ -183,57 +200,55 @@ export default function OpeningResponse({
   return (
     <div className="relative w-full" data-response-panel>
       {/* Mark and dots. The panel's top edge runs through the middle of this row.
-          The two columns match the option cards: choice 1 with the mark, choice 2 on the other side. */}
+          The two columns match the option cards. The mark sits on the majority side. */}
       <div
         role="img"
-        aria-label={`${openingRows.models[0].name} chose Choice 1 in ${arrived(0)} of ${RUN_DOTS.length} queries`}
+        aria-label={`${gpt.name} chose Choice 1 in ${gpt.choice1} of ${gpt.trials} queries`}
         className="relative z-10 grid w-full grid-cols-2 items-center"
         style={{ height: ROW, gap: COLUMN_GAP }}
       >
-        {([0, 1] as const).map((choice) => (
-          <div
-            key={choice}
-            className={`flex min-w-0 items-center ${choice === 1 ? "justify-end" : ""}`}
-            style={choice === 0 ? { paddingLeft: EDGE_PAD, gap: ICON_GAP } : { paddingRight: EDGE_PAD }}
-          >
-            {choice === 0 && (
-              // Sized with calc, not `zoom`: the stage measures this box to place its own copy of the icon.
-              <span
-                data-anchor={hideIcon ? "icon-response" : undefined}
-                className="inline-flex shrink-0 items-center justify-center"
-                style={{
-                  width: "calc(36px * var(--z))",
-                  height: "calc(36px * var(--z))",
-                  visibility: hideIcon ? "hidden" : undefined,
-                }}
-              >
-                <span className="inline-flex" style={{ zoom: "var(--z)", transform: `rotate(${spin}deg)` }}>
-                  <ProviderIcon src={iconSrc} alt={iconLabel} size={36} />
-                </span>
+        {([0, 1] as const).map((choice) => {
+          const count = choice === 0 ? gpt.choice1 : gpt.choice2;
+          const showMark = (choice === 0) === markOnLeft;
+          // Sized with calc, not `zoom`: the stage measures the filled slot to place its own copy of the icon.
+          const slot = showMark ? (
+            <span
+              data-anchor={hideIcon ? "icon-response" : undefined}
+              className="inline-flex shrink-0 items-center justify-center"
+              style={{
+                width: "calc(36px * var(--z))",
+                height: "calc(36px * var(--z))",
+                visibility: hideIcon ? "hidden" : undefined,
+              }}
+            >
+              <span className="inline-flex" style={{ zoom: "var(--z)", transform: `rotate(${spin}deg)` }}>
+                <ProviderIcon src={iconSrc} alt={iconLabel} size={36} />
               </span>
-            )}
-            <span className="flex items-center" style={{ gap: DOT_GAP }}>
-              {RUN_DOTS.map((dot, i) => {
-                if (dot.choice !== choice) return null;
-                const p = ramp(progress.elapsedMs, dot.startMs, dot.startMs + FADE_MS);
-                return (
-                  <span
-                    key={i}
-                    aria-hidden
-                    className="block shrink-0 rounded-full"
-                    style={{
-                      width: DOT_SIZE,
-                      height: DOT_SIZE,
-                      backgroundColor: CHARCOAL,
-                      opacity: p,
-                      transform: `scale(${0.5 + 0.5 * p})`,
-                    }}
-                  />
-                );
-              })}
             </span>
-          </div>
-        ))}
+          ) : (
+            <span
+              aria-hidden
+              className="inline-flex shrink-0"
+              style={{ width: "calc(36px * var(--z))", height: "calc(36px * var(--z))" }}
+            />
+          );
+          const dots = (
+            <span className="flex items-center" style={{ gap: DOT_GAP }}>
+              {decisionDots(count, decisions)}
+            </span>
+          );
+          return (
+            <div
+              key={choice}
+              className={`flex min-w-0 items-center ${choice === 1 ? "justify-end" : ""}`}
+              style={choice === 0 ? { paddingLeft: EDGE_PAD, gap: ICON_GAP } : { paddingRight: EDGE_PAD, gap: ICON_GAP }}
+            >
+              {choice === 1 && dots}
+              {slot}
+              {choice === 0 && dots}
+            </div>
+          );
+        })}
       </div>
 
       <div
@@ -275,7 +290,7 @@ export default function OpeningResponse({
           <p className="relative mt-[0.2em] leading-snug">
             {thinking && (
               <span className="absolute left-0 top-0" style={{ color: NEUTRAL.inkMuted }}>
-                thinking{dots}
+                Thinking{dots}
               </span>
             )}
             <span aria-hidden={thinking} style={{ opacity: thinking ? 0 : 1 }}>

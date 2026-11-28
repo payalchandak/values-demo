@@ -1,5 +1,5 @@
 import { beatStart, type Beat } from "../../types";
-import { FADE_MS, MOVE_MS, VALUE_ORDER } from "../../design";
+import { FADE_MS, VALUE_ORDER } from "../../design";
 import type { Value } from "../../study/types";
 import { openingCase } from "./openingCase";
 import { openingRows } from "./openingRows";
@@ -53,7 +53,7 @@ const dilemma = [
   { name: "end", startMs: OPTIONS_AT + DECIDE_HOLD_MS },
 ] as const satisfies readonly Beat[];
 
-/** Two full turns of the provider mark, with "thinking…" in the panel. */
+/** Two full turns of the provider mark, with "Thinking…" in the panel. */
 const SPIN_MS = 1600;
 /** How fast the answer types, once the icon has stopped. */
 const TYPE_MS_PER_CHAR = 16;
@@ -63,61 +63,26 @@ const REVEALED_AT = REVEAL_AT + openingCase.response.text.length * TYPE_MS_PER_C
 const HIGHLIGHT_AT = REVEALED_AT + 1000;
 const EXTRACT_AT = HIGHLIGHT_AT + 1000;
 const EXTRACTED_AT = EXTRACT_AT + 1000;
-/** The answer text shrinks away and the first dot lands next to the mark. */
+/** The answer text shrinks away, leaving the mark. The decisions arrive with the other models. */
 export const COLLAPSE_MS = 300;
 const COLLAPSE_AT = EXTRACTED_AT;
-const FIRST_DOT_AT = COLLAPSE_AT + COLLAPSE_MS;
 /**
- * Choice each repeated query shows, in run order. 0 = choice 1, 1 = choice 2.
- * Straight from the recorded runs (opening.json), so GPT's dots match its row
- * in the model rows and decisions.json.
+ * Choice each recorded query made, in run order. 0 = choice 1, 1 = choice 2.
+ * Straight from the recorded runs (opening.json), so GPT's row matches
+ * decisions.json. The dots are the counts: they arrive together.
  */
 const SHOWN_CHOICES: readonly (0 | 1)[] = openingCase.decisions;
 const shownChoice1 = SHOWN_CHOICES.filter((c) => c === 0).length;
 if (SHOWN_CHOICES.length !== openingRows.models[0].trials || shownChoice1 !== openingRows.models[0].choice1) {
   throw new Error("timeline: GPT's recorded queries and decisions.json disagree");
 }
-/** Each repeat query: the mark turns once, then its dot lands. */
-const RUN_COUNT = SHOWN_CHOICES.length;
-const RERUNS_AT = FIRST_DOT_AT + 500;
-/** The second decision takes its time; decisions 3 to 10 run much faster. */
-const SLOW_RERUN = { spinMs: 450, gapMs: 120 } as const;
-const FAST_RERUN = { spinMs: 200, gapMs: 40 } as const;
 
-/** Turn windows of the mark for decisions 2 to N (index 0 is decision 2), in chapter-local ms. */
-const RERUNS: readonly { startMs: number; endMs: number }[] = (() => {
-  const out: { startMs: number; endMs: number }[] = [];
-  let at = RERUNS_AT;
-  for (let i = 0; i < RUN_COUNT - 1; i++) {
-    const { spinMs, gapMs } = i === 0 ? SLOW_RERUN : FAST_RERUN;
-    out.push({ startMs: at, endMs: at + spinMs });
-    at += spinMs + gapMs;
-  }
-  return out;
-})();
-const RERUNS_DONE_AT = RERUNS.length > 0 ? RERUNS[RERUNS.length - 1].endMs + FAST_RERUN.gapMs : RERUNS_AT;
-
-/** Turns of the provider mark before the first answer types: two full turns. */
+/** Turns of the provider mark before the answer types: two full turns. */
 const FIRST_SPIN_DEG = 720;
 
-/**
- * One dot per repeated query, in chapter-local ms. Choice 1 dots sit with the
- * mark; the choice 2 dot sits on the other side. The first lands as the answer
- * collapses. Each later one lands as a turn of the mark ends.
- */
-export const RUN_DOTS: readonly { startMs: number; choice: 0 | 1 }[] = SHOWN_CHOICES.map((choice, i) => ({
-  startMs: i === 0 ? FIRST_DOT_AT - MOVE_MS : RERUNS[i - 1].endMs,
-  choice,
-}));
-
-/** Rotation of the provider mark in degrees at chapter-local time `e`. Cumulative, so every turn ends upright. */
+/** Rotation of the provider mark in degrees at chapter-local time `e`. The thinking turn ends upright. */
 export function markSpinDeg(e: number): number {
-  let deg = ramp(e, THINK_AT, REVEAL_AT) * FIRST_SPIN_DEG;
-  for (const turn of RERUNS) {
-    const p = ramp(e, turn.startMs, turn.endMs);
-    deg += p * p * (3 - 2 * p) * 360;
-  }
-  return deg;
+  return ramp(e, THINK_AT, REVEAL_AT) * FIRST_SPIN_DEG;
 }
 
 /**
@@ -147,12 +112,13 @@ export function modelHandoff(elapsedMs: number): {
 }
 
 /**
- * After the repeat queries the case tucks away, the other eleven models arrive
- * as dot rows under GPT's, then the physicians arrive as one row of squares.
- * These are local to this feature: design/motion.ts is deliberately too short
- * for them. Chapter-local ms. TODO: tune after visual review (every value here).
+ * After the answer collapses the case tucks away. GPT's decisions and the
+ * other eleven models arrive together as dot rows, then the physicians arrive
+ * as one row of squares. These durations are local to this feature:
+ * design/motion.ts is deliberately too short for them. Chapter-local ms.
+ * TODO: tune after visual review (every value here).
  */
-/** Rest after the last dot before the case tucks. TODO: tune after visual review */
+/** Rest after the answer collapses, before the case tucks. TODO: tune after visual review */
 export const TUCK_DELAY_MS = 500;
 /** The case card shrinks to its one-line header. TODO: tune after visual review */
 export const TUCK_MS = 450;
@@ -173,7 +139,7 @@ export const FULL_PICTURE_HOLD_MS = 3500;
 const ARRIVING_ROWS = openingRows.models.length - 1;
 const PHYSICIAN_COUNT = openingRows.physicians.total;
 
-const TUCK_AT = RERUNS_DONE_AT + TUCK_DELAY_MS;
+const TUCK_AT = COLLAPSE_AT + COLLAPSE_MS + TUCK_DELAY_MS;
 const MODELS_AT = TUCK_AT + TUCK_MS;
 const MODELS_HOLD_AT = MODELS_AT + (ARRIVING_ROWS - 1) * MODEL_ROW_STAGGER_MS + MODEL_ROW_IN_MS;
 const PHYSICIANS_AT = MODELS_HOLD_AT + MODELS_HOLD_MS;
@@ -187,11 +153,9 @@ const model = [
   { name: "highlight", startMs: HIGHLIGHT_AT }, // recommendation sentence sweeps
   { name: "extract", startMs: EXTRACT_AT }, // its choice is outlined
   { name: "extracted", startMs: EXTRACTED_AT },
-  { name: "collapse", startMs: COLLAPSE_AT }, // answer shrinks away, first dot lands
-  { name: "reruns", startMs: RERUNS_AT }, // the mark turns again for each repeat query
-  { name: "rerunsDone", startMs: RERUNS_DONE_AT },
+  { name: "collapse", startMs: COLLAPSE_AT }, // answer shrinks away; the mark stays
   { name: "tuck", startMs: TUCK_AT }, // the case collapses to its one-line header; room opens for the rows
-  { name: "models", startMs: MODELS_AT }, // the other models arrive, one row at a time
+  { name: "models", startMs: MODELS_AT }, // GPT's decisions and the other models arrive together
   { name: "modelsHold", startMs: MODELS_HOLD_AT }, // all twelve rows visible, held for reading
   { name: "physicians", startMs: PHYSICIANS_AT }, // the physician row arrives, one square at a time
   { name: "hold", startMs: FULL_AT }, // the full picture, held
@@ -287,12 +251,21 @@ export const visibility = (
 ): number => ramp(t, inStart, inEnd) * (1 - ramp(t, outStart, outEnd));
 
 /**
- * Model rows 2 to 12 (index 0 is the first arriving row, GPT's is already
+ * Model rows 2 to 12 (index 0 is the first arriving row, GPT's mark is already
  * there). 0 before it arrives, 1 once it has settled. Opening time `t`.
  */
 export function modelRowEnter(t: number, index: number): number {
   const start = at("model", "models") + index * MODEL_ROW_STAGGER_MS;
   return ramp(t, start, start + MODEL_ROW_IN_MS);
+}
+
+/**
+ * GPT's decision dots, 0..1. They fade in with the first of the other model
+ * rows, once the case has tucked. Chapter-local ms.
+ */
+export function gptDecisionsEnter(elapsedMs: number): number {
+  const start = beatStart(OPENING_BEATS.model, "models");
+  return ramp(elapsedMs, start, start + MODEL_ROW_IN_MS);
 }
 
 /** Physician square `index` (left side first, then right), 0..1. Opening time `t`. */

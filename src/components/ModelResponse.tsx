@@ -18,7 +18,7 @@ const LABEL_FADE_MS = FADE_MS;
  * Built from the chapter's beats (see `demoChapters.tsx`), not stored in data.
  */
 export interface ModelResponseTiming {
-  /** Icon appears and spins, with "thinking…", until the answer starts. */
+  /** Icon appears and spins, with "Thinking…", until the answer starts. */
   thinkStartMs: number;
   /** First character of the answer. Phrase-group fades also start here. */
   revealStartMs: number;

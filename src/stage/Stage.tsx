@@ -202,7 +202,7 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
       mo.disconnect();
     };
   });
-  // Two turns while the model thinks, then one more per repeated query. Every turn ends upright.
+  // Two turns while the model thinks. The turn ends upright.
   const spinDeg = segment === "opening-model" ? markSpinDeg(e) : 0;
 
   return (

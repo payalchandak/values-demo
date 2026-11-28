@@ -16,6 +16,9 @@ export const COLUMN_GAP = "0.6em";
 export const EDGE_PAD = "0.9em";
 /** Icon slot to first dot. */
 export const ICON_GAP = "0.7em";
+
+/** The mark sits beside the larger share of votes. A tie stays on the left, with choice 1. */
+export const iconOnLeft = (leftVotes: number, rightVotes: number): boolean => leftVotes >= rightVotes;
 /** The icon slot's width, in em. */
 const ICON_EM = 2.25;
 /** The widest the pitch (one dot's width plus the gap after it) ever gets, in em. */
@@ -28,9 +31,10 @@ const COLUMN = `((min(46em, 100cqw) - ${COLUMN_GAP}) / 2)`;
 
 /**
  * The pitch is as wide as it can be (the same as the opening's dots always were),
- * but never wider than lets the fullest row fit: edge, icon, gap, then every dot.
- * It reads the scene's width, so a narrow screen tightens the dots instead of
- * pushing them into the other column.
+ * but never wider than lets the fullest row fit: edge, one icon slot, gap, then
+ * every dot. Both sides keep a slot so the dots line up; the mark fills the slot
+ * on the side of the majority. It reads the scene's width, so a narrow screen
+ * tightens the dots instead of pushing them into the other column.
  */
 const PITCH = `min(${PITCH_MAX_EM}em, (${COLUMN} - ${0.9 + ICON_EM + 0.7}em) / ${openingRows.maxDotsPerSide})`;
 
