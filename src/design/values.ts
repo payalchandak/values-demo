@@ -21,25 +21,25 @@ export const VALUES: Readonly<Record<Value, ValueMeta>> = {
   A: {
     letter: "A",
     name: "Autonomy",
-    definition: "Respects the patient\u2019s wishes.",
+    definition: "Respect the patient\u2019s wishes.",
     color: VALUE_COLORS.A,
   },
   B: {
     letter: "B",
     name: "Beneficence",
-    definition: "Acts in the patient\u2019s best interest.",
+    definition: "Act in the patient\u2019s best interest.",
     color: VALUE_COLORS.B,
   },
   N: {
     letter: "N",
     name: "Nonmaleficence",
-    definition: "Avoids foreseeable harm.",
+    definition: "Avoid foreseeable harm.",
     color: VALUE_COLORS.N,
   },
   J: {
     letter: "J",
     name: "Justice",
-    definition: "Balances individual and public good fairly.",
+    definition: "Balance individual and public good fairly.",
     color: VALUE_COLORS.J,
   },
 };
