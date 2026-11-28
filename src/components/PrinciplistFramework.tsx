@@ -24,10 +24,10 @@ const DEFAULT_HEADING = "Four principles of medical ethics";
  * Static scene introducing the four principles of biomedical ethics as
  * equal-weight cards, always in A, B, N, J order:
  *
- * - Autonomy: respect the patient's wishes.
- * - Beneficence: act in the patient's best interest.
- * - Nonmaleficence: avoid foreseeable harm.
- * - Justice: balance individual and public good fairly.
+ * - Autonomy: respecting the patient's wishes.
+ * - Beneficence: acting in the patient's best interest.
+ * - Nonmaleficence: avoiding foreseeable harm.
+ * - Justice: balancing individual and public good fairly.
  *
  * Names, definitions, and colors come from `src/design`. Identity only (no
  * +1/-1 tags). No motion or timers: the parent owns scene timing.

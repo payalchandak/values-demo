@@ -34,7 +34,7 @@ import { CASE_SHRINK_MS, COLLAPSE_MS, OPENING_BEATS, HEADING_SWAP_MS, OFFSETS, P
 /** Storyboard copy, verbatim. */
 const HEADLINES = [
   { text: "Do Language Models Share Your Doctor's Priorities?", size: "2.6em" }, // ch1
-  { text: "Physicians disagree on the decision", size: "1.7em" }, // ch2
+  { text: "Doctors disagree on this decision", size: "1.7em" }, // ch2
   { text: "Doctors disagree because they prioritize different values.", size: "1.6em" }, // ch3, replaces the ch2 heading in the same slot
 ] as const;
 
@@ -358,12 +358,12 @@ function NameChip({ v }: { v: Value }) {
   );
 }
 
-/** Chip, then definition. Wraps to a second line when the width is tight. */
+/** Chip, then definition, always one line. */
 function ValueLine({ v }: { v: Value }) {
   return (
-    <span className="flex w-full flex-wrap items-center justify-center gap-x-[0.6em] gap-y-[0.2em] text-center [text-wrap:wrap]">
+    <span className="flex w-full flex-nowrap items-center justify-center gap-x-[0.6em] whitespace-nowrap">
       <NameChip v={v} />
-      <span className="max-w-full font-normal leading-[1.12] @max-md:basis-full" style={{ color: NEUTRAL.inkMuted }}>
+      <span className="font-normal leading-[1.12]" style={{ color: NEUTRAL.inkMuted }}>
         {VALUES[v].definition}
       </span>
     </span>
@@ -385,8 +385,7 @@ function frameworkHeadingHold(t: number, name: ReturnType<typeof valueSteps>["na
  * The framework heading and the value lines share one box above the case.
  * Once the framework heading is in, every line stays in that grid, so the
  * box is the taller of the heading and the tallest value line and the case
- * does not move as values change. A narrow width wraps the chip and the
- * definition onto two lines, and that height is part of the same box.
+ * does not move as values change. The chip and its definition stay on one line.
  * Each value reuses the name enter and leave motion: one lifts out as the
  * next rises, and two are never up together.
  */
