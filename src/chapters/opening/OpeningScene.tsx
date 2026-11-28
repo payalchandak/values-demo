@@ -24,6 +24,7 @@ import { CARD_CLASS, CARD_SURFACE } from "./cardClass";
 import { CHARCOAL, CHARCOAL_FAINT } from "./charcoal";
 import { ROW_VARS } from "./rowMetrics";
 import { valueSteps } from "./valueSteps";
+import { triggerWords } from "./valueTriggers";
 import { CASE_SHRINK_MS, COLLAPSE_MS, OPENING_BEATS, HEADING_SWAP_MS, OFFSETS, PILL_ENTER_MS, at, caseCharsAt, modelHandoff, ramp, stripProgress, visibility, voteEnter } from "./timeline";
 
 /* -------------------------------------------------------------------------- */
@@ -200,7 +201,7 @@ const PROBE_TIMES: readonly number[] = [
   at("dilemma", "end") - 1,
   at("model", "extracted"),
   at("model", "end") - 1, // the case still full, GPT's decision row on screen
-  ...VALUE_ORDER.map((v) => at("framework", `${v}Highlight`) + 400),
+  ...VALUE_ORDER.filter((v) => triggerWords(v) > 0).map((v) => at("framework", `${v}Highlight`) + 400),
   ...VALUE_ORDER.map((v) => at("framework", `${v}Chip2`) + PILL_ENTER_MS),
   at("framework", "all") + 800,
 ];

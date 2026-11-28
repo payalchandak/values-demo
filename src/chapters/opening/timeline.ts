@@ -239,11 +239,13 @@ const framework = (() => {
   let cursor = 1800; // the grouped models have left; hold the slide, then the values
   for (const v of VALUE_ORDER) {
     const highlight = cursor + NAME_MS;
-    const chip1 = highlight + round100(HIGHLIGHT_BASE_MS + HIGHLIGHT_PER_WORD_MS * triggerWords(v));
+    // A value with no span has no highlight beat and no still hold: its labels follow its name.
+    const words = triggerWords(v);
+    const chip1 = words > 0 ? highlight + round100(HIGHLIGHT_BASE_MS + HIGHLIGHT_PER_WORD_MS * words) : highlight;
     const chip2 = chip1 + CHIP_GAP_MS;
     beats.push(
       { name: v, startMs: cursor },
-      { name: `${v}Highlight`, startMs: highlight },
+      ...(words > 0 ? [{ name: `${v}Highlight`, startMs: highlight }] : []),
       { name: `${v}Chip1`, startMs: chip1 },
       { name: `${v}Chip2`, startMs: chip2 },
     );

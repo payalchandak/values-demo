@@ -66,10 +66,16 @@ function TriggerText({
   );
 }
 
+/** A value's one sweep runs across its spans in order; this is the share that falls on this span. */
+function localSweep(seg: VignetteSegment, sweep: number): number {
+  const n = seg.text.trim().split(/\s+/).length;
+  return clamp01((sweep * seg.wordsTotal - seg.wordsBefore) / n);
+}
+
 function Segment({ seg, s }: { seg: VignetteSegment; s: ValueSteps }) {
   if (seg.value === null) return <span style={{ opacity: 1 - DIM_OF_REST * s.dim }}>{seg.text}</span>;
   const v = seg.value;
-  return <TriggerText text={seg.text} presence={s.highlight[v]} sweep={s.sweep[v]} dim={s.dim} />;
+  return <TriggerText text={seg.text} presence={s.highlight[v]} sweep={localSweep(seg, s.sweep[v])} dim={s.dim} />;
 }
 
 /**
@@ -125,14 +131,14 @@ function FocusedText({ s }: { s: ValueSteps }) {
     const gapAfter = i === lastTrigger && i < VIGNETTE_SEGMENTS.length - 1;
     parts.push(
       <p
-        key={v}
+        key={i}
         data-vignette-text
         data-value={v}
         className="leading-[1.45]"
         style={{ fontSize: `${1 + FOCUS_GROW * h}em` }}
       >
         {gapBefore && mark}
-        <TriggerText text={seg.text} presence={h} sweep={s.sweep[v]} dim={s.dim} />
+        <TriggerText text={seg.text} presence={h} sweep={localSweep(seg, s.sweep[v])} dim={s.dim} />
         {gapAfter && (
           <span aria-hidden="true" style={{ color: NEUTRAL.inkFaint, opacity: 1 - DIM_OF_REST * s.dim }}>
             {" ..."}

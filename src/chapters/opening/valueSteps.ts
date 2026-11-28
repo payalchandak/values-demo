@@ -1,5 +1,6 @@
 import { FADE_MS, VALUE_ORDER } from "../../design";
 import type { Value } from "../../study/types";
+import { triggerWords } from "./valueTriggers";
 import { PILL_ENTER_MS, VALUE_ENTER_MS, at, highlightSweepMs, ramp } from "./timeline";
 
 /**
@@ -10,9 +11,9 @@ import { PILL_ENTER_MS, VALUE_ENTER_MS, at, highlightSweepMs, ramp } from "./tim
  *  - name[v]       the value's full name and definition. One at a time.
  *  - nameShift[v]  vertical offset of that line, in em. Positive sits below
  *                  its rest position (arriving); negative sits above (leaving).
- *  - highlight[v]  its trigger sentence keeps a tint once the sweep starts.
+ *  - highlight[v]  its trigger span(s) (always 0 for a value with none) keeps a tint once the sweep starts.
  *  - active[v]     this sentence is the one being introduced now.
- *  - sweep[v]      how far the tint has traveled across that sentence, 0..1.
+ *  - sweep[v]      how far the tint has traveled across all its spans in reading order, 0..1.
  *  - dim           how far the unmarked vignette has receded.
  *  - chip1[v]      linear 0..1 progress of the label under Choice 1.
  *  - chip2[v]      linear 0..1 progress of the label under Choice 2.
@@ -62,9 +63,10 @@ export function valueSteps(t: number): ValueSteps {
   // The tint stays. `active` is only the sentence being introduced, for the
   // focused layout's enlargement; it ends when the next value begins. That
   // handoff stays short so two sentences are never enlarged together.
-  const highlight = record((v) => rampAt(`${v}Highlight`));
+  const highlight = record((v) => (triggerWords(v) > 0 ? rampAt(`${v}Highlight`) : 0));
   const active = record((v) => highlight[v] * clear(v));
   const sweep = record((v) => {
+    if (triggerWords(v) === 0) return 0;
     const start = at("framework", `${v}Highlight`);
     return ramp(t, start, start + highlightSweepMs(v));
   });
