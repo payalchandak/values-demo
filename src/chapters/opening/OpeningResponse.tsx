@@ -4,7 +4,7 @@ import { getResponseProgress, type ModelResponseTiming } from "../../components/
 import { NEUTRAL } from "../../design";
 import { CHARCOAL } from "./charcoal";
 import { openingRows } from "./openingRows";
-import { COLUMN_GAP, DOT_GAP, DOT_SIZE, EDGE_PAD, ICON_GAP, iconOnLeft } from "./rowMetrics";
+import { COLUMN_GAP, DOT_GAP, DOT_SIZE, EDGE_PAD, ICON_GAP } from "./rowMetrics";
 import { gptDecisionsEnter, markSpinDeg } from "./timeline";
 
 const clamp01 = (n: number): number => Math.min(Math.max(n, 0), 1);
@@ -116,11 +116,11 @@ const HALF_ROW = "1.125em";
 
 /**
  * The model's response for the opening, below the options. The round provider
- * icon sits on the panel's top edge, on the side of the majority vote, and
- * spins while the panel reads "Thinking…"; then the answer types out and its
- * recommendation is picked out. The panel then shrinks away. The decision dots
- * arrive later, with the other model rows, once the case has tucked. Highlight
- * timing matches `ModelResponse`. Everything is in `em`, so it scales with the scene.
+ * icon sits on the panel's top-left edge and spins while the panel reads
+ * "Thinking…"; then the answer types out and its recommendation is picked out.
+ * The panel then shrinks away. The decision dots arrive later, with the other
+ * model rows, once the case has tucked. Highlight timing matches `ModelResponse`.
+ * Everything is in `em`, so it scales with the scene.
  */
 export default function OpeningResponse({
   text,
@@ -159,7 +159,6 @@ export default function OpeningResponse({
     return () => ro.disconnect();
   }, []);
   const gpt = openingRows.models[0];
-  const markOnLeft = iconOnLeft(gpt.choice1, gpt.choice2);
   const decisions = gptDecisionsEnter(progress.elapsedMs);
   const c = clamp01(collapse);
   const settled = c <= 0 || panelH === 0;
@@ -200,55 +199,37 @@ export default function OpeningResponse({
   return (
     <div className="relative w-full" data-response-panel>
       {/* Mark and dots. The panel's top edge runs through the middle of this row.
-          The two columns match the option cards. The mark sits on the majority side. */}
+          The two columns match the option cards: choice 1 with the mark, choice 2 on the other side. */}
       <div
         role="img"
         aria-label={`${gpt.name} chose Choice 1 in ${gpt.choice1} of ${gpt.trials} queries`}
         className="relative z-10 grid w-full grid-cols-2 items-center"
         style={{ height: ROW, gap: COLUMN_GAP }}
       >
-        {([0, 1] as const).map((choice) => {
-          const count = choice === 0 ? gpt.choice1 : gpt.choice2;
-          const showMark = (choice === 0) === markOnLeft;
-          // Sized with calc, not `zoom`: the stage measures the filled slot to place its own copy of the icon.
-          const slot = showMark ? (
-            <span
-              data-anchor={hideIcon ? "icon-response" : undefined}
-              className="inline-flex shrink-0 items-center justify-center"
-              style={{
-                width: "calc(36px * var(--z))",
-                height: "calc(36px * var(--z))",
-                visibility: hideIcon ? "hidden" : undefined,
-              }}
-            >
-              <span className="inline-flex" style={{ zoom: "var(--z)", transform: `rotate(${spin}deg)` }}>
-                <ProviderIcon src={iconSrc} alt={iconLabel} size={36} />
-              </span>
+        <div className="flex min-w-0 items-center" style={{ paddingLeft: EDGE_PAD, gap: ICON_GAP }}>
+          {/* Sized with calc, not `zoom`: the stage measures this box to place its own copy of the icon. */}
+          <span
+            data-anchor={hideIcon ? "icon-response" : undefined}
+            className="inline-flex shrink-0 items-center justify-center"
+            style={{
+              width: "calc(36px * var(--z))",
+              height: "calc(36px * var(--z))",
+              visibility: hideIcon ? "hidden" : undefined,
+            }}
+          >
+            <span className="inline-flex" style={{ zoom: "var(--z)", transform: `rotate(${spin}deg)` }}>
+              <ProviderIcon src={iconSrc} alt={iconLabel} size={36} />
             </span>
-          ) : (
-            <span
-              aria-hidden
-              className="inline-flex shrink-0"
-              style={{ width: "calc(36px * var(--z))", height: "calc(36px * var(--z))" }}
-            />
-          );
-          const dots = (
-            <span className="flex items-center" style={{ gap: DOT_GAP }}>
-              {decisionDots(count, decisions)}
-            </span>
-          );
-          return (
-            <div
-              key={choice}
-              className={`flex min-w-0 items-center ${choice === 1 ? "justify-end" : ""}`}
-              style={choice === 0 ? { paddingLeft: EDGE_PAD, gap: ICON_GAP } : { paddingRight: EDGE_PAD, gap: ICON_GAP }}
-            >
-              {choice === 1 && dots}
-              {slot}
-              {choice === 0 && dots}
-            </div>
-          );
-        })}
+          </span>
+          <span className="flex items-center" style={{ gap: DOT_GAP }}>
+            {decisionDots(gpt.choice1, decisions)}
+          </span>
+        </div>
+        <div className="flex min-w-0 items-center justify-end" style={{ paddingRight: EDGE_PAD, gap: DOT_GAP }}>
+          <span className="flex items-center" style={{ gap: DOT_GAP }}>
+            {decisionDots(gpt.choice2, decisions)}
+          </span>
+        </div>
       </div>
 
       <div
