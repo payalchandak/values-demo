@@ -453,8 +453,10 @@ export default function CasesScene({ elapsedMs }: { elapsedMs: number }) {
     if (arrival(elapsedMs, i) >= 0.5) topIndex = i;
   });
 
+  // No side inset on the first frame: the opening's last frame is the full stage width.
+  // The inset eases in with the card, so a narrow stage still keeps a margin once the card has narrowed.
   const shell: CSSProperties = {
-    width: `min(100%, ${lerp(OPEN_EM, CARD_EM, boxP)}em)`,
+    width: `min(calc(100% - ${SIDE * 2 * boxP}px), ${lerp(OPEN_EM, CARD_EM, boxP)}em)`,
     fontSize: fontPx,
     ["--z" as string]: String(fontPx / 16),
   };
@@ -470,10 +472,7 @@ export default function CasesScene({ elapsedMs }: { elapsedMs: number }) {
         <OpeningScene t={HELD_T} sharedIcon={false} />
       </div>
 
-      <div
-        className="absolute inset-0 flex items-center justify-center"
-        style={{ padding: SIDE }}
-      >
+      <div className="absolute inset-0 flex items-center justify-center">
         <div data-pile className="@container relative box-border grid" style={shell}>
           {CARDS.map((card, i) => {
             if (i > 0 && elapsedMs < startOf(i)) return null;
