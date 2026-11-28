@@ -1059,10 +1059,12 @@ function CaseOverlay({ t, full, target }: { t: number; full: Rect | null; target
       <p className="w-full min-w-0 leading-[1.5]" style={{ textWrap: "pretty" }}>
         {text.slice(0, typed)}
         {typed < text.length && (
-          <span aria-hidden className="relative inline">
+          // A zero-size inline-block sits on the baseline. An empty inline does not,
+          // and the bar then drops through the line gap onto the next line.
+          <span aria-hidden className="relative inline-block align-baseline" style={{ width: 0, height: 0 }}>
             <span
               className="absolute bg-current"
-              style={{ left: "0.05em", width: "0.07em", height: "1.05em", top: "-0.85em" }}
+              style={{ left: "0.05em", width: "0.07em", height: "1.05em", bottom: "-0.12em" }}
             />
           </span>
         )}
