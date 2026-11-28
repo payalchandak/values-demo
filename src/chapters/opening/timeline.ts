@@ -22,7 +22,7 @@ import { PHYSICIAN_VOTE_COUNT } from "./DoctorSplit";
  */
 const CASE_TYPE_CPS = 68;
 /** Settled case on screen after the last character, before the chapter ends. */
-const CASE_HOLD_MS = 3200;
+const CASE_HOLD_MS = 800;
 
 /** Logo and title open together, hold, then both fade out completely before the case types. */
 const LOGO_IN_MS = 560;

@@ -290,33 +290,6 @@ function useBox() {
   return [setNode, box] as const;
 }
 
-/**
- * Opens a slot with `enter` while the content fades in at full size, unclipped.
- * At rest the slot is the content's own height, with no transform left on the type.
- */
-function FadeSlot({ enter, children }: { enter: number; children: ReactNode }) {
-  const [ref, measured] = useBoxHeight();
-  const p = Math.min(1, Math.max(0, enter));
-  const settled = p >= 1;
-  return (
-    <div className="relative w-full" style={{ height: settled || measured === 0 ? (settled ? "auto" : 0) : measured * p }}>
-      <div
-        ref={ref}
-        className="w-full"
-        style={{
-          opacity: p,
-          position: settled ? undefined : "absolute",
-          top: settled ? undefined : 0,
-          left: settled ? undefined : 0,
-          width: "100%",
-        }}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
 /** Grows a block up from nothing so a new panel eases into the column. */
 function GrowIn({ enter, children }: { enter: number; children: ReactNode }) {
   const [ref, measured] = useBoxHeight();
@@ -1149,15 +1122,16 @@ const SceneBody = memo(function SceneBody({
   const tuck = ease(ramp(t, ask, ask + MODEL_HANDOFF_MS * 0.7));
   const showTuck = t >= ask && !cleared;
 
-  const showOptions = t >= at("dilemma", "options") && !cleared;
-  const optionsEnter =
-    ease(ramp(t, at("dilemma", "options"), at("dilemma", "options") + OPTIONS_IN_MS)) * (1 - clearP);
-  const optionsMoving = showOptions && optionsEnter > 0 && optionsEnter < 1;
+  const optionsAt = at("dilemma", "options");
+  // The choices occupy their slot from the shrink on, invisible until they fade in.
+  // Reserving that height is what keeps the case from minimizing at the bottom and then riding up.
+  const reserveOptions = t >= dilemmaStart && !cleared;
+  const optionsEnter = ease(ramp(t, optionsAt, optionsAt + OPTIONS_IN_MS)) * (1 - clearP);
   const selectedIndex = t >= at("model", "extract") && t < at("model", "collapse") ? openingCase.response.chosen : null;
   const showChips = t >= FRAMEWORK_AT;
   // Space is held from the options on, so the icons arrive without moving anything. They leave in the framework chapter.
   const out = votesOut(t);
-  const votes = showOptions && out.close < 1 ? t : null;
+  const votes = reserveOptions && out.close < 1 ? t : null;
   const votesMoving = out.close > 0 && out.close < 1;
   const steps = valueSteps(t);
   // While a label is opening, its height already follows the clock. A layout
@@ -1173,7 +1147,7 @@ const SceneBody = memo(function SceneBody({
   const handoffMoving = (questionExit > 0 && questionExit < 1) || (responseEnter > 0 && responseEnter < 1);
   const tuckMoving = t >= ask && tuck < 1;
   const headingMoving = handoffMoving;
-  const sceneStill = !headingMoving && !optionsMoving && !stripping && !chipsMoving && !votesMoving && !tuckMoving;
+  const sceneStill = !headingMoving && !stripping && !chipsMoving && !votesMoving && !tuckMoving;
 
   return (
     <div
@@ -1194,7 +1168,7 @@ const SceneBody = memo(function SceneBody({
       )}
 
       {showSummary && (
-        <Block probe={probe} className="w-full" layout={sceneStill}>
+        <Block probe={probe} className="w-full" layout={sceneStill && !caseOverlay}>
           <div style={{ opacity: summaryOpacity }} aria-hidden={summaryOpacity === 0 || hidePatient || caseOverlay}>
             <div data-case-slot style={{ visibility: hidePatient || caseOverlay ? "hidden" : undefined }}>
               <PatientCard shared={sharedCard} />
@@ -1223,14 +1197,14 @@ const SceneBody = memo(function SceneBody({
         </Block>
       )}
 
-      {showOptions && (
+      {reserveOptions && (
         <Block probe={probe} className="w-full" layout={sceneStill}>
-          <FadeSlot enter={optionsEnter}>
+          <div style={{ opacity: optionsEnter }} aria-hidden={optionsEnter < 0.5}>
             <ul className="grid w-full grid-cols-1 gap-y-[0.7em] @md:grid-cols-2 @md:grid-rows-[auto_auto] @md:gap-x-[0.6em] @md:gap-y-[0.45em]">
               <OptionCard index={0} t={t} selected={selectedIndex === 0} showChips={showChips} votes={votes} />
               <OptionCard index={1} t={t} selected={selectedIndex === 1} showChips={showChips} votes={votes} />
             </ul>
-          </FadeSlot>
+          </div>
         </Block>
       )}
 
@@ -1427,11 +1401,14 @@ export default function OpeningScene({
     box.style.transform = next === 1 ? "" : `scale(${next})`;
     // The type stops at the stage's edge. Whatever height is left goes into
     // the gaps, so the heading, the case and the choices reach the stage.
+    // Before the choices are in the column, that leftover would pin the case
+    // to the bottom of the stage. The shrink lands in the slot it keeps.
     const room = !locked && next > 0 ? availH / next - liveH : 0;
+    const choicesIn = t >= at("dilemma", "question");
     if (body && room > 8) {
       box.style.height = `${liveH + room}px`;
       body.style.height = "100%";
-      body.style.justifyContent = "space-between";
+      if (choicesIn) body.style.justifyContent = "space-between";
     }
   });
 
