@@ -118,6 +118,21 @@ export function textAt(
  */
 export const COMPRESS_CAPTION = "Which priorities best explain these choices?";
 
+/** Tally timing, inside `tallyMs`: the three table rows vote one by one, then the rest stream in. */
+export const TALLY_TIMING = {
+  /** Between one shown row's vote and the next. */
+  rowMs: 900,
+  /** A vote's flight from its row down to its column. */
+  flyMs: 650,
+  /** Every other case lands over this long, after the shown rows. */
+  restMs: 2200,
+  /** A vote eases into its bar over this long. */
+  landMs: 300,
+} as const;
+
+/** Line under the tally while it runs. */
+export const TALLY_CAPTION = (n: number, cases: number) => `Each choice counts for the values it favored. ${n} of ${cases}`;
+
 /** Plain-language line under the priorities row. `cases` is how many cases the table summarises. */
 export const PRIORITIES_CAPTION = (cases: number) => `One set of priorities best explains all ${cases} cases.`;
 
@@ -133,8 +148,10 @@ export const COMPRESS_TIMING = {
   emphasisMs: 700,
   /** The rows dim, the case count and question fade, the summary row's label arrives. */
   ghostMs: 500,
-  /** A bar grows under each value column. */
-  growMs: 800,
+  /** Each case adds its vote to the value columns: three rows one at a time, then the rest stream in. */
+  tallyMs: 5200,
+  /** The tally settles into the four priorities. */
+  growMs: 1200,
   /** Table above, one priority bar under each of its columns, on one page. */
   togetherMs: 1800,
   /** The table fades while the bars and the header words flow into the bar list. */
@@ -146,18 +163,12 @@ export const GHOST_LEVEL = 0.4;
 /** Share of the grow after which the percent numbers fade in, once the bars have settled. */
 export const NUMBERS_AT = 0.75;
 
-/**
- * When true, the bars start at an equal 25% each and ease to their fitted
- * lengths during the grow. No percent numbers show until they have settled.
- * Off by default.
- */
-export const TILT_FROM_EQUAL = false;
-
 /** Kept for existing imports: how long the question holds. */
 export const CAPTION_HOLD_MS = COMPRESS_TIMING.captionHoldMs;
 
 const ghostAt = COMPRESS_TIMING.captionHoldMs;
-const growAt = ghostAt + COMPRESS_TIMING.ghostMs;
+const tallyAt = ghostAt + COMPRESS_TIMING.ghostMs;
+const growAt = tallyAt + COMPRESS_TIMING.tallyMs;
 const togetherAt = growAt + COMPRESS_TIMING.growMs;
 const travelAt = togetherAt + COMPRESS_TIMING.togetherMs;
 const compressEnd = travelAt + COMPRESS_TIMING.travelMs;
@@ -166,7 +177,8 @@ const compressEnd = travelAt + COMPRESS_TIMING.travelMs;
  * Autoplay between the stack table and the bars-to-ring morph.
  *   caption   the table holds under one question; the four headers get emphasis
  *   ghost     the table steps back, headers stay at full strength
- *   grow      a bar grows under each value column; the profile headline takes over
+ *   tally     each case votes: its choice adds to the values it favored and takes from those it went against
+ *   grow      the tally settles into the four priorities; the profile headline takes over
  *   together  the table and its four priorities, on one page
  *   travel    the table fades; the bars and the header words flow into the bar list
  *   end       chapter end marker
@@ -174,6 +186,7 @@ const compressEnd = travelAt + COMPRESS_TIMING.travelMs;
 export const compressBeats = [
   { name: "caption", startMs: 0 },
   { name: "ghost", startMs: ghostAt },
+  { name: "tally", startMs: tallyAt },
   { name: "grow", startMs: growAt },
   { name: "together", startMs: togetherAt },
   { name: "travel", startMs: travelAt },

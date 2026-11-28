@@ -5,7 +5,7 @@ import { VALUE_ORDER } from "../../design";
 import { stackCases } from "../../stage/data";
 import Morph from "../../stage/Morph";
 import { MORPH_HANDOFF_MS } from "../../stage/morphBeats";
-import type { Profile, Value } from "../../study/types";
+import type { Profile, StudyCase, Value } from "../../study/types";
 import { beatStart, chapterDuration } from "../../types";
 import { easeInOut } from "../ending/shared";
 import StackStage, { type TableHandoff } from "../stack/StackStage";
@@ -16,19 +16,22 @@ import {
   GHOST_LEVEL,
   NUMBERS_AT,
   PRIORITIES_CAPTION,
-  TILT_FROM_EQUAL,
+  TALLY_CAPTION,
+  TALLY_TIMING,
   compressBeats,
-  easeOut,
 } from "./beats";
 
 const STACK_END = chapterDuration({ beats: stackBeats });
 const GHOST_AT = beatStart(compressBeats, "ghost");
+const TALLY_AT = beatStart(compressBeats, "tally");
 const GROW_AT = beatStart(compressBeats, "grow");
 const TRAVEL_AT = beatStart(compressBeats, "travel");
 const END_AT = chapterDuration({ beats: compressBeats });
 
-/** Bars start at this share each when TILT_FROM_EQUAL is on. */
-const EQUAL_SHARE = 0.25;
+/** Table rows that vote one at a time; the rest stream in from the ellipsis. */
+const SHOWN_ROWS = 3;
+/** A vote in flight, in table units. */
+const VOTE_PX = 9;
 /**
  * Summary row geometry, in the table's own units (multiplied by the measured
  * stage scale), measured from the row where the table keeps its case count.
@@ -80,6 +83,8 @@ interface SummaryRow {
   label: { left: number; width: number };
   rowLeft: number;
   rowRight: number;
+  /** Vertical centres of the rows that vote one at a time. */
+  rowCy: number[];
 }
 
 interface Anchors {
@@ -156,7 +161,12 @@ function measure(root: HTMLElement, table: HTMLElement | null, probe: HTMLElemen
   const count = table?.querySelector<HTMLElement>("[data-stack-footer]");
   const caseHead = table?.querySelector<HTMLElement>('[data-anchor="hdr-case"]');
   const firstRow = table?.querySelector<HTMLElement>('[data-anchor="row-0"]');
-  if (count && caseHead && firstRow && centers.length === VALUE_ORDER.length) {
+  const rowCy: number[] = [];
+  for (let i = 0; i < SHOWN_ROWS; i++) {
+    const r = table?.querySelector<HTMLElement>(`[data-anchor="row-${i}"]`);
+    if (r) rowCy.push(rel(r.getBoundingClientRect()).cy);
+  }
+  if (count && caseHead && firstRow && centers.length === VALUE_ORDER.length && rowCy.length === SHOWN_ROWS) {
     const c = rel(count.getBoundingClientRect());
     const h = rel(caseHead.getBoundingClientRect());
     const row = firstRow.getBoundingClientRect();
@@ -167,12 +177,39 @@ function measure(root: HTMLElement, table: HTMLElement | null, probe: HTMLElemen
       label: { left: h.left, width: h.w },
       rowLeft: round(row.left - box.left),
       rowRight: round(row.right - box.left),
+      rowCy,
     };
   }
   return { words, bars, summary };
 }
 
 const same = (a: Anchors, b: Anchors) => JSON.stringify(a) === JSON.stringify(b);
+
+/* -------------------------------------------------------------------------- */
+/*  The tally: each case's vote                                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * One case's vote for each value: how much more Choice 1 favors the value than
+ * Choice 2 (tags run -1..1), times how far the model leaned to Choice 1 (k of 10,
+ * centred). Summed over cases, it ranks the values much as the regression does.
+ */
+function votesOf(cases: readonly StudyCase[], key: string): Record<Value, number>[] {
+  return cases.map((c) => {
+    const lean = (c.modelChoice1Counts[key] ?? 5) / 10 - 0.5;
+    const out = {} as Record<Value, number>;
+    for (const v of VALUE_ORDER) out[v] = (c.tags[0][v] - c.tags[1][v]) * lean;
+    return out;
+  });
+}
+
+/** When case `i`'s vote lands in the bars. */
+function landAt(i: number, n: number): number {
+  const T = TALLY_TIMING;
+  if (i < SHOWN_ROWS) return TALLY_AT + i * T.rowMs + T.flyMs;
+  const rest = Math.max(1, n - SHOWN_ROWS);
+  return TALLY_AT + SHOWN_ROWS * T.rowMs + ((i - SHOWN_ROWS + 1) / rest) * T.restMs;
+}
 
 /* -------------------------------------------------------------------------- */
 /*  The four header words, in flight                                           */
@@ -262,8 +299,7 @@ export function CompressBridge({ elapsedMs, profile }: { elapsedMs: number; prof
   const growP = ramp(t, GROW_AT, GROW_AT + T.growMs);
   const travel = ramp(t, TRAVEL_AT, END_AT);
   const clear = easeInOut(ramp(travel, 0, 0.55));
-  const barGrow = easeOut(growP);
-  const tilt = TILT_FROM_EQUAL ? 1 - easeInOut(growP) : 0;
+  const settle = easeInOut(growP);
   const numbersIn = smooth(ramp(growP, NUMBERS_AT, 1));
   const footNumbers = numbersIn * (1 - smooth(ramp(travel, 0, 0.3)));
   const landed = t >= END_AT;
@@ -311,6 +347,19 @@ export function CompressBridge({ elapsedMs, profile }: { elapsedMs: number; prof
   const p = profile.priorities;
   const biggest = Math.max(...VALUE_ORDER.map((v) => p[v]));
 
+  // The running tally, and the tally once every case is in.
+  const votes = votesOf(stackCases, profile.key);
+  const arrived = votes.map((_, i) => smooth(ramp(t, landAt(i, cases) - TALLY_TIMING.landMs, landAt(i, cases))));
+  const running = {} as Record<Value, number>;
+  const total = {} as Record<Value, number>;
+  for (const v of VALUE_ORDER) {
+    running[v] = votes.reduce((sum, c, i) => sum + c[v] * arrived[i], 0);
+    total[v] = votes.reduce((sum, c) => sum + c[v], 0);
+  }
+  const tallyMax = Math.max(1e-6, ...VALUE_ORDER.map((v) => Math.abs(total[v])));
+  const counted = arrived.filter((x) => x >= 0.5).length;
+  const tallyShow = smooth(ramp(t, TALLY_AT, TALLY_AT + 400)) * (1 - smooth(ramp(growP, 0, 0.4)));
+
   // The summary row: a label, a bar under each value column, its number, and one plain line.
   let summaryRow = null;
   if (ready && !landed && t >= GHOST_AT) {
@@ -354,9 +403,12 @@ export function CompressBridge({ elapsedMs, profile }: { elapsedMs: number; prof
         {words.map((w) => {
           const target = anchors.bars[w.value]!;
           const centre = w.from.left + w.from.width / 2;
-          const share = lerp(p[w.value], EQUAL_SHARE, tilt);
-          const h = (share / biggest) * BAR_MAX * S * barGrow;
-          const from: Bar = { left: centre - barW / 2, top: baseline - h, w: barW, h };
+          // Signed height: the tally can take a value below the line. It settles into the priority.
+          const tallyH = (running[w.value] / tallyMax) * BAR_MAX * S;
+          const signed = lerp(tallyH, (p[w.value] / biggest) * BAR_MAX * S, settle);
+          const h = Math.abs(signed);
+          const below = signed < 0;
+          const from: Bar = { left: centre - barW / 2, top: below ? baseline : baseline - h, w: barW, h };
           const bar = {
             left: lerp(from.left, target.left, e),
             top: lerp(from.top, target.top, e),
@@ -374,8 +426,8 @@ export function CompressBridge({ elapsedMs, profile }: { elapsedMs: number; prof
                     width: bar.w,
                     height: bar.h,
                     borderRadius: Math.min(target.radius, bar.w / 2, bar.h / 2),
-                    background: DONUT_INK,
-                    opacity: target.opacity,
+                    background: below ? DONUT_MUTED : DONUT_INK,
+                    opacity: below ? 0.45 : target.opacity,
                   }}
                 />
               )}
@@ -397,6 +449,54 @@ export function CompressBridge({ elapsedMs, profile }: { elapsedMs: number; prof
             </div>
           );
         })}
+        {votes.slice(0, SHOWN_ROWS).flatMap((c, i) => {
+          const leave = TALLY_AT + i * TALLY_TIMING.rowMs;
+          const fly = ramp(t, leave, leave + TALLY_TIMING.flyMs);
+          if (fly <= 0 || fly >= 1) return [];
+          return words.flatMap((w) => {
+            const vote = c[w.value];
+            if (Math.abs(vote) < 1e-6) return [];
+            const e2 = easeInOut(fly);
+            const x = w.from.left + w.from.width / 2;
+            const y = lerp(summary.rowCy[i], baseline, e2);
+            const size = VOTE_PX * S;
+            const fade = smooth(ramp(fly, 0, 0.15)) * (1 - smooth(ramp(fly, 0.8, 1)));
+            return [
+              <div
+                key={`${i}-${w.value}`}
+                style={{
+                  position: "absolute",
+                  left: x - size / 2,
+                  top: y - size / 2,
+                  width: size,
+                  height: size,
+                  borderRadius: size,
+                  boxSizing: "border-box",
+                  background: vote > 0 ? DONUT_INK : "#fff",
+                  border: `${Math.max(1, 1.5 * S)}px solid ${DONUT_INK}`,
+                  opacity: fade,
+                }}
+              />,
+            ];
+          });
+        })}
+        <div
+          style={{
+            position: "absolute",
+            left: summary.rowLeft,
+            width: summary.rowRight - summary.rowLeft,
+            top: summary.cy + (CAPTION_DROP + 12) * S,
+            boxSizing: "border-box",
+            padding: `0 ${16 * S}px`,
+            textAlign: "center",
+            color: "#4b5563",
+            fontSize: 16 * S,
+            lineHeight: 1.35,
+            opacity: tallyShow * (1 - clear),
+          }}
+        >
+          {TALLY_CAPTION(counted, cases)}
+        </div>
         <div
           style={{
             position: "absolute",
