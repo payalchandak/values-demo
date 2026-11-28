@@ -30,7 +30,6 @@ import {
 const ICON_SIZE = 40;
 /** Hand-off cross-fade: the previous chapter's last frame fades out over the start of the next. */
 const GHOST_MS = FADE_MS;
-const DOCK_SIZE = 32;
 
 const ramp = (t: number, a: number, b: number) => (b <= a ? (t >= b ? 1 : 0) : clamp01((t - a) / (b - a)));
 
@@ -50,8 +49,7 @@ interface IconPlan {
 
 /**
  * Where the icon is, as a pure function of the chapter and its clock. Anchors
- * are real elements the scenes leave behind (`data-anchor`); "dock" is a fixed
- * spot under the stage. One element, one image, never remounted.
+ * are real elements the scenes leave behind (`data-anchor`); One element, one image, never remounted.
  */
 function iconPlan(segment: SegmentId, e: number): IconPlan {
   switch (segment) {
@@ -61,16 +59,17 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
     case "opening-model":
       return { from: "icon-response", mix: 0, opacity: modelHandoff(e).responseEnter };
     case "opening-framework": {
-      // The icon stays with the other models until the band leaves, then flies to the dock.
+      // The icon stays with the other models until the band leaves, then fades out with it.
       const end = at("framework", "end") - at("framework", "framework");
-      return { from: "icon-response", to: "dock", mix: easeInOut(ramp(e, end - ICON_DOCK_MS, end)), opacity: 1 };
+      return { from: "icon-response", mix: 0, opacity: 1 - easeInOut(ramp(e, end - ICON_DOCK_MS, end)) };
     }
     case "stack":
     case "regression":
-      return { from: "dock", mix: 0, opacity: 1 };
+      return { from: null, mix: 0, opacity: 0 };
     case "morph": {
+      // The icon fades in at the donut hole when the labels arrive.
       const r = beatStart(morphBeats, "labels");
-      return { from: "dock", to: "icon-label", mix: easeInOut(ramp(e, r, r + MORPH_TIMING.labelsMs)), opacity: 1, clipToScene: true };
+      return { from: "icon-label", mix: 0, opacity: easeInOut(ramp(e, r, r + MORPH_TIMING.labelsMs)), clipToScene: true };
     }
     case "individual-models":
       // The icon sits in the donut hole and cross-fades with the next model's icon.
@@ -93,7 +92,6 @@ function placeIcon(root: HTMLElement, icon: HTMLElement, plan: IconPlan) {
   const box = root.getBoundingClientRect();
   const rectOf = (name: string | null | undefined) => {
     if (!name) return null;
-    if (name === "dock") return { left: box.left, top: box.bottom + 32, width: DOCK_SIZE, height: DOCK_SIZE };
     return findAnchor(root, name)?.getBoundingClientRect() ?? null;
   };
   const a = rectOf(plan.from);
