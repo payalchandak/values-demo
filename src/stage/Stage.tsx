@@ -64,8 +64,8 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
     case "opening-model":
       return { from: "icon-response", mix: 0, opacity: modelHandoff(e).responseEnter };
     case "cases":
-      // The one card keeps this icon on its anchor for all five cases.
-      return { from: "icon-response", mix: 0, opacity: 1 };
+      // Every card draws its own icon, so the pile fades it with the card.
+      return { from: null, mix: 0, opacity: 0 };
     case "stack":
     case "regression":
       return { from: null, mix: 0, opacity: 0 };

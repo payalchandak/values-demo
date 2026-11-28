@@ -169,7 +169,7 @@ interface Metrics {
  * The opening's last frame condensed into one card, then five cases flashing
  * through it. Every weight is the chapter clock plus the measured stage size.
  */
-export default function CasesScene({ elapsedMs, ownIcons = false }: { elapsedMs: number; ownIcons?: boolean }) {
+export default function CasesScene({ elapsedMs }: { elapsedMs: number; ownIcons?: boolean }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const probeRef = useRef<HTMLDivElement>(null);
   const [metrics, setMetrics] = useState<Metrics>({ openingPx: 16, stageW: 0 });
@@ -235,7 +235,7 @@ export default function CasesScene({ elapsedMs, ownIcons = false }: { elapsedMs:
                 card={card}
                 index={i}
                 t={elapsedMs}
-                sharedIcon={!ownIcons}
+                sharedIcon={false}
                 top={i === topIndex}
                 boxP={boxP}
               />

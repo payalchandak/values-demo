@@ -65,11 +65,12 @@ function toCard(raw: StudyCase, labels?: readonly [string, string]): DilemmaCard
 /** The opening's case is card 1 and is built by the scene. */
 const OPENING_PREFIX = "0b5a2bcb";
 const FIRST = "4b731f8c";
-const LAST_TWO = ["7bd46c3e", "7129cbd9"] as const;
+const SECOND = "7bd46c3e";
+const LAST = "7129cbd9";
 
-/** Cards 2 to 50: chemotherapy, every other case as is, then weight counseling and embryo transfer. */
+/** Cards 2 to 50: chemotherapy, embryo transfer, every other case, then the amputation. */
 export const addedCases: readonly DilemmaCard[] = (() => {
-  const named = new Set<string>([OPENING_PREFIX, FIRST, ...LAST_TWO]);
+  const named = new Set<string>([OPENING_PREFIX, FIRST, SECOND, LAST]);
   const middle = allCases.filter((c) => ![...named].some((p) => c.id.startsWith(p)));
   const labelled = (prefix: string) => {
     const l = labelOf(prefix);
@@ -77,11 +78,12 @@ export const addedCases: readonly DilemmaCard[] = (() => {
   };
   const out = [
     labelled(FIRST),
+    labelled(SECOND),
     ...middle.map((c) => {
       const l = CASE_CHOICE_LABELS.find((x) => c.id.startsWith(x.prefix));
       return toCard(c, l?.labels);
     }),
-    ...LAST_TWO.map(labelled),
+    labelled(LAST),
   ];
   return out;
 })();
