@@ -1366,9 +1366,10 @@ export default function OpeningScene({
 
   // The shared font fits the tallest frame, so the dilemma column sits in leftover
   // space. Scale that column up until it meets the stage, and hold the scale
-  // through the framework so the case does not jump. Once the model answer
-  // arrives the column is already as tall as the stage, and it stays at the
-  // shared size so the handoff to the next chapter matches.
+  // through the framework so the case does not jump. The model answer is already
+  // as tall as the stage, so it stays at the shared size. Once that answer
+  // collapses into the decision dots, the column is short again: scale it back
+  // up so the case, the choices and the dots use the full stage.
   useLayoutEffect(() => {
     const root = rootRef.current;
     const box = scaleRef.current;
@@ -1388,22 +1389,35 @@ export default function OpeningScene({
     const liveH = body?.offsetHeight ?? 0;
     const availW = root.clientWidth;
     const availH = root.clientHeight;
+    // The answer fills the stage on its own, so the column stays at the shared
+    // size while it is on screen. The fill eases back once that panel has faded,
+    // over the rest of the collapse: scaling any sooner would carry the fading
+    // reply off the bottom of the stage.
+    const answerFrom = at("model", "ask") + MODEL_HANDOFF_MS;
+    const panelGone = at("model", "collapse") + COLLAPSE_MS * 0.6;
+    const GROW_MS = 480;
+    const answerLocked = t >= answerFrom && t < panelGone;
+    const grow = ease(ramp(t, panelGone, panelGone + GROW_MS));
     let scale = 1;
     if (colW > 1 && settledH > 1 && liveH > 1 && availW > 1 && availH > 1) {
       const byW = availW / colW;
       const dilemmaFill = Math.min(byW, availH / settledH);
       const liveFit = Math.min(byW, availH / liveH);
       const fill = Math.max(1, Math.min(dilemmaFill, liveFit));
-      scale = t >= at("model", "ask") + MODEL_HANDOFF_MS ? 1 : fill;
+      if (t < answerFrom) scale = fill;
+      else if (answerLocked) scale = 1;
+      else scale = 1 + (fill - 1) * grow;
     }
     const next = Math.round(scale * 1000) / 1000;
-    const locked = t >= at("model", "ask") + MODEL_HANDOFF_MS;
     box.style.transform = next === 1 ? "" : `scale(${next})`;
     // The type stops at the stage's edge. Whatever height is left goes into
     // the gaps, so the heading, the case and the choices reach the stage.
     // Before the choices are in the column, that leftover would pin the case
     // to the bottom of the stage. The shrink lands in the slot it keeps.
-    const room = !locked && next > 0 ? availH / next - liveH : 0;
+    // While the dots are easing up, the column grows into that height instead of jumping.
+    const growing = t >= panelGone && grow < 1;
+    const visualH = growing ? liveH * next + (availH - liveH * next) * grow : availH;
+    const room = !answerLocked && next > 0 ? visualH / next - liveH : 0;
     const choicesIn = t >= at("dilemma", "question");
     if (body && room > 8) {
       box.style.height = `${liveH + room}px`;

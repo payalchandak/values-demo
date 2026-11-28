@@ -267,6 +267,7 @@ function CaseContent({
   const won = cue ? winnerSide(card) : null;
   return (
     <div
+      data-case-column
       className="relative isolate col-start-1 row-start-1 flex min-w-0 flex-col"
       style={{
         gap: STACK_GAP,
@@ -288,7 +289,9 @@ function CaseContent({
           borderRadius: 18,
           // Only the top card casts the soft shadow; under it, a stack of shadows turns into a grey smear.
           boxShadow: up < EDGE_EM / 2 ? CARD_SHADOW : "none",
-          opacity: index === 0 ? boxP : 1,
+          // The surface is in place while the group is still settling, so the
+          // card is what shrinks instead of arriving after the content has.
+          opacity: index === 0 ? Math.min(1, boxP / 0.45) : 1,
         }}
       />
       {blank ? (
@@ -342,7 +345,7 @@ function CaseContent({
             ))}
           </ul>
           {mix ? (
-            <div className="mt-auto grid">
+            <div className="mt-auto grid" data-dot-row>
               <div className="col-start-1 row-start-1">
                 <GptDotRow
                   left={0}
@@ -375,7 +378,7 @@ function CaseContent({
               ))}
             </div>
           ) : (
-            <div className="mt-auto">
+            <div className="mt-auto" data-dot-row>
               <GptDotRow
                 left={card.gptChoice1}
                 right={GPT_TRIALS - card.gptChoice1}
@@ -403,6 +406,15 @@ interface Metrics {
   stageW: number;
 }
 
+/** Scale from a CSS transform matrix, or 1 when the element is unscaled. */
+function cssScale(el: HTMLElement | null): number {
+  if (!el) return 1;
+  const tr = getComputedStyle(el).transform;
+  if (!tr || tr === "none") return 1;
+  const n = parseFloat(tr.slice(tr.indexOf("(") + 1));
+  return Number.isFinite(n) && n > 0 ? n : 1;
+}
+
 /**
  * The opening's last frame condensed into one card, then five cases flashing
  * through it. Every weight is the chapter clock plus the measured stage size.
@@ -410,6 +422,7 @@ interface Metrics {
 export default function CasesScene({ elapsedMs }: { elapsedMs: number }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const probeRef = useRef<HTMLDivElement>(null);
+  const pileRef = useRef<HTMLDivElement>(null);
   const [metrics, setMetrics] = useState<Metrics>({ openingPx: 16, stageW: 0 });
 
   useLayoutEffect(() => {
@@ -441,7 +454,48 @@ export default function CasesScene({ elapsedMs }: { elapsedMs: number }) {
   }, []);
 
   const boxAt = beatStart(casesBeats, "box");
-  const boxP = ease(ramp(elapsedMs, boxAt, boxAt + BOX_MS));
+  // Gentler than the cubic: the middle of that curve was steep enough to read as a snap.
+  const boxP = smooth(ramp(elapsedMs, boxAt, boxAt + BOX_MS));
+
+  // The opening's last frame is scaled up to fill the stage. The column width
+  // is already easing from that column to the card, so the scale only takes
+  // off the fill — it must not shrink a second time on top of the width.
+  // On-screen size therefore moves once, from the filled frame to the card.
+  // Layout only: once the ease is done, no transform is left for the vote scene to measure.
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    const pile = pileRef.current;
+    const probe = probeRef.current;
+    const card = pile?.querySelector<HTMLElement>("[data-case-column]");
+    const dotRow = card?.querySelector<HTMLElement>("[data-dot-row]");
+    if (!root || !pile || !card) return;
+    pile.style.height = "";
+    pile.style.transform = "";
+    card.style.height = "";
+    card.style.justifyContent = "";
+    if (dotRow) dotRow.style.marginTop = "";
+    const fill = cssScale(probe?.querySelector<HTMLElement>("[data-scale-box]") ?? null);
+    if (fill <= 1.001 || boxP >= 0.999) return;
+    const packed = card.offsetHeight;
+    const layoutW = pile.offsetWidth;
+    const font = parseFloat(getComputedStyle(pile).fontSize) || 16;
+    const openW = Math.min(root.clientWidth, OPEN_EM * font);
+    const cardW = Math.min(Math.max(0, root.clientWidth - SIDE * 2), CARD_EM * font);
+    const visualW = lerp(openW * fill, cardW, boxP);
+    const scale = layoutW > 1 ? visualW / layoutW : 1;
+    const visualH = lerp(root.clientHeight, packed, boxP);
+    const layoutH = scale > 0.05 ? visualH / scale : packed;
+    if (scale > 1.001) {
+      pile.style.transform = `scale(${scale})`;
+      pile.style.transformOrigin = "center";
+    }
+    if (layoutH > packed + 1) {
+      pile.style.height = `${layoutH}px`;
+      card.style.height = "100%";
+      card.style.justifyContent = "space-between";
+      if (dotRow) dotRow.style.marginTop = "0";
+    }
+  });
 
   // Type stays at the opening's size, or less when two columns of labels would not fit the stage.
   const fitPx = Math.max(8, (metrics.stageW - SIDE * 2) / FIT_EM);
@@ -453,7 +507,7 @@ export default function CasesScene({ elapsedMs }: { elapsedMs: number }) {
     if (arrival(elapsedMs, i) >= 0.5) topIndex = i;
   });
 
-  // No side inset on the first frame: the opening's last frame is the full stage width.
+  // No side inset on the first frame: the opening's last frame fills the stage.
   // The inset eases in with the card, so a narrow stage still keeps a margin once the card has narrowed.
   const shell: CSSProperties = {
     width: `min(calc(100% - ${SIDE * 2 * boxP}px), ${lerp(OPEN_EM, CARD_EM, boxP)}em)`,
@@ -473,7 +527,7 @@ export default function CasesScene({ elapsedMs }: { elapsedMs: number }) {
       </div>
 
       <div className="absolute inset-0 flex items-center justify-center">
-        <div data-pile className="@container relative box-border grid" style={shell}>
+        <div ref={pileRef} data-pile className="@container relative box-border grid origin-center" style={shell}>
           {CARDS.map((card, i) => {
             if (i > 0 && elapsedMs < startOf(i)) return null;
             return (
