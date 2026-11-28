@@ -3,7 +3,6 @@ import ProviderIcon from "../../components/ProviderIcon";
 import { NEUTRAL } from "../../design";
 import { IconSlot, MdBadge } from "./ModelRows";
 import ModelRows from "./ModelRows";
-import { openingCase } from "./openingCase";
 import { decisionSummary, openingRows, type Camp } from "./openingRows";
 import { COLUMN_GAP, DOT_GAP, DOT_SIZE, EDGE_PAD, ICON_GAP, ROW_HEIGHT } from "./rowMetrics";
 import { CHARCOAL } from "./charcoal";
@@ -25,7 +24,7 @@ import {
  *
  * Three phases, all a function of the opening clock plus measurement:
  *   rows      one dot row per model, physicians as squares
- *   gather    the dots fold in and the marks gather into choice 1, the split, and choice 2
+ *   gather    the dots fold in and the marks gather into three loose clouds: choice 1, the split, choice 2
  *   dock      those groups move to the bottom and stay while the next slide arrives
  *
  * Physicians are not sorted onto a choice. A near-even vote is the middle, so the
@@ -47,91 +46,117 @@ interface Box {
 interface Layout {
   icons: Map<string, Point>;
   md: Point;
-  captions: Partial<Record<"choice1" | "split" | "choice2" | "physicians", Box>>;
-  /** Height of the model groups and their labels. */
+  captions: Partial<Record<"physicians", Box>>;
+  /** Height of the three model clouds. */
   modelH: number;
   /** Height of the MD mark and its line, below the models. */
   mdBlockH: number;
 }
 
-const GROUP_PAD = 12;
+/**
+ * Which edge of the board each cloud hugs. The two choices sit at the far left and
+ * far right, as far apart as they can be, so a clear decision looks like a clear split.
+ */
+const CLUSTER_EDGE: Record<Camp, "left" | "center" | "right"> = { choice1: "left", middle: "center", choice2: "right" };
+const CLUSTER_WALL: Record<Camp, -1 | 0 | 1> = { choice1: -1, middle: 0, choice2: 1 };
+/** Each cloud starts its spiral at a different angle, so the three do not look alike. */
+const CLUSTER_SEED: Record<Camp, number> = { choice1: 0.4, middle: 2.1, choice2: 4.3 };
 
-function chunk<T>(items: readonly T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
-  return out;
+/** Repeatable noise in -1..1, so a cloud looks scattered but never changes between frames. */
+const noise = (n: number) => {
+  const x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+  return (x - Math.floor(x)) * 2 - 1;
+};
+
+/**
+ * A tight cloud of `n` marks: a sunflower spiral, nudged off its pattern, then
+ * pulled toward its edge of the board and pushed apart until only a sliver of
+ * overlap is left. `wall` is -1 for a pile against the left edge, 1 for the
+ * right, 0 for a cloud that just gathers on its middle. Returns mark centres,
+ * with the wall (if any) at x = 0.
+ */
+function cloud(n: number, size: number, seed: number, wall: -1 | 0 | 1): Point[] {
+  const golden = 2.399963;
+  const step = size * 0.5;
+  const minDist = size * 0.94;
+  const pts: Point[] = Array.from({ length: n }, (_, i) => {
+    const r = step * Math.sqrt(i + 0.7) + noise(seed * 7 + i) * size * 0.08;
+    const a = seed + i * golden + noise(seed * 3 + i * 5) * 0.25;
+    const x = Math.cos(a) * r;
+    return { x: wall === 0 ? x : -wall * (size / 2 + Math.abs(x)), y: Math.sin(a) * r * 1.05 };
+  });
+  for (let iter = 0; iter < 60; iter++) {
+    for (const p of pts) {
+      // Everything leans toward its edge (or the middle), and may not pass it.
+      p.x = wall === 0 ? p.x * 0.97 : p.x + wall * size * 0.04;
+      p.y *= 0.99;
+    }
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        const dx = pts[j].x - pts[i].x;
+        const dy = pts[j].y - pts[i].y;
+        const d = Math.hypot(dx, dy) || 0.01;
+        if (d >= minDist) continue;
+        const push = (minDist - d) / 2;
+        const ux = dx / d;
+        const uy = dy / d;
+        pts[i] = { x: pts[i].x - ux * push, y: pts[i].y - uy * push };
+        pts[j] = { x: pts[j].x + ux * push, y: pts[j].y + uy * push };
+      }
+    }
+    // The wall: marks rest against it, never past it. A left wall has the cloud on +x, a right wall on -x.
+    if (wall !== 0) for (const p of pts) p.x = wall === -1 ? Math.max(p.x, size / 2) : Math.min(p.x, -size / 2);
+  }
+  return pts;
 }
 
-/** Where the marks sit once the rows have gathered. Coordinates are inside the board. */
+/**
+ * Where the marks sit once the rows have gathered: three loose clouds, one per
+ * camp: choice 1 packed against the left edge, choice 2 against the right, the
+ * split in the middle. On a board too narrow for that they stack, one above the
+ * other, keeping the same edges. Coordinates are inside the board.
+ */
 function layoutSummary(width: number, size: number, fontPx: number): Layout {
   const gap = Math.max(4, size * 0.16);
-  const rowGap = Math.max(6, fontPx * 0.35);
   const labelGap = fontPx * 0.2;
   const captionH = fontPx * 1.35;
-  const lineW = (n: number) => n * size + Math.max(0, n - 1) * gap;
-  const perLine = (n: number, maxW: number) => Math.max(1, Math.min(n, Math.floor((maxW + gap) / (size + gap)) || 1));
+  const stackGap = Math.max(8, fontPx * 0.65);
 
-  const place = (camp: Camp, left: number, maxW: number, y: number) => {
-    const items = openingRows.camps[camp];
-    const lines = chunk(items, perLine(items.length, maxW));
-    const slots = new Map<string, Point>();
-    lines.forEach((line, li) => {
-      const w = lineW(line.length);
-      const x0 = left + Math.max(0, (maxW - w) / 2);
-      line.forEach((m, i) => slots.set(m.key, { x: x0 + i * (size + gap), y: y + li * (size + rowGap) }));
+  const clouds = (Object.keys(CLUSTER_EDGE) as Camp[])
+    .map((camp) => {
+      const items = openingRows.camps[camp];
+      const pts = cloud(items.length, size, CLUSTER_SEED[camp], CLUSTER_WALL[camp]);
+      const xs = pts.map((p) => p.x);
+      const ys = pts.map((p) => p.y);
+      const minX = Math.min(...xs) - size / 2;
+      const maxX = Math.max(...xs) + size / 2;
+      const minY = Math.min(...ys) - size / 2;
+      const maxY = Math.max(...ys) + size / 2;
+      return { camp, items, pts, w: maxX - minX, h: maxY - minY, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
+    })
+    .filter((c) => c.items.length > 0);
+
+  // Side by side only if the three clouds fit on one line with room between them.
+  const sideBySide = clouds.reduce((sum, c) => sum + c.w, 0) + gap * 4 <= width;
+  const tallest = Math.max(0, ...clouds.map((c) => c.h));
+
+  const icons = new Map<string, Point>();
+  let stackY = 0;
+  for (const c of clouds) {
+    const edge = CLUSTER_EDGE[c.camp];
+    const centreX = edge === "left" ? c.w / 2 : edge === "right" ? width - c.w / 2 : width / 2;
+    const centreY = sideBySide ? tallest / 2 : stackY + c.h / 2;
+    c.items.forEach((m, i) => {
+      icons.set(m.key, { x: centreX + c.pts[i].x - c.cx - size / 2, y: centreY + c.pts[i].y - c.cy - size / 2 });
     });
-    const bottom = lines.length === 0 ? y : y + lines.length * size + (lines.length - 1) * rowGap;
-    return { slots, bottom };
-  };
-
-  const half = width / 2;
-  const left = place("choice1", 0, half, 0);
-  const right = place("choice2", half, half, 0);
-  const icons = new Map<string, Point>([...left.slots, ...right.slots]);
-
-  const middle = openingRows.camps.middle;
-  const sideBottom = Math.max(left.bottom, right.bottom);
-  if (middle.length > 0) {
-    const midW = lineW(middle.length);
-    const leftEdge = left.slots.size === 0 ? 0 : Math.max(...[...left.slots.values()].map((p) => p.x + size));
-    const rightEdge = right.slots.size === 0 ? width : Math.min(...[...right.slots.values()].map((p) => p.x));
-    const room = rightEdge - leftEdge;
-    const inGap = leftEdge + (room - midW) / 2;
-    const share = room > midW + GROUP_PAD * 2 && inGap >= 0 && inGap + midW <= width;
-    const x0 = share ? inGap : Math.max(0, (width - midW) / 2);
-    const y = share ? 0 : sideBottom + rowGap;
-    middle.forEach((m, i) => icons.set(m.key, { x: x0 + i * (size + gap), y }));
+    stackY += c.h + stackGap;
   }
 
-  let iconBottom = sideBottom;
-  let midLeft = width;
-  let midRight = 0;
-  for (const m of middle) {
-    const p = icons.get(m.key);
-    if (!p) continue;
-    iconBottom = Math.max(iconBottom, p.y + size);
-    midLeft = Math.min(midLeft, p.x);
-    midRight = Math.max(midRight, p.x + size);
-  }
-
-  const captionY = iconBottom + labelGap;
-  const midW = Math.min(width * 0.28, fontPx * 7);
-  const sideW = (width - midW) / 2;
-  const captions: Layout["captions"] = {
-    choice1: { x: 0, y: captionY, w: sideW },
-    split: middle.length > 0 ? { x: sideW, y: captionY, w: midW } : undefined,
-    choice2: { x: sideW + midW, y: captionY, w: sideW },
-  };
-  const modelH = captionY + captionH;
-
+  const modelH = sideBySide ? tallest : Math.max(0, stackY - stackGap);
   const mdGap = fontPx * 0.45;
   const md = { x: (width - size) / 2, y: modelH + mdGap };
-  captions.physicians = { x: 0, y: md.y + size + labelGap, w: width };
+  const captions: Layout["captions"] = { physicians: { x: 0, y: md.y + size + labelGap, w: width } };
   const mdBlockH = mdGap + size + labelGap + captionH;
-  // midLeft/midRight are only used to keep the split label honest if the group is off-center.
-  if (captions.split && midRight > midLeft) {
-    captions.split = { x: sideW, y: captionY, w: midW };
-  }
   return { icons, md, captions, modelH, mdBlockH };
 }
 
@@ -246,7 +271,7 @@ export default function DecisionBoard({ t, sharedIcon }: { t: number; sharedIcon
 
       for (const el of board.querySelectorAll<HTMLElement>("[data-caption]")) {
         const name = el.dataset.caption;
-        if (name !== "choice1" && name !== "split" && name !== "choice2" && name !== "physicians") continue;
+        if (name !== "physicians") continue;
         const box = layout.captions[name];
         if (!box) continue;
         el.style.left = `${box.x}px`;
@@ -304,15 +329,6 @@ export default function DecisionBoard({ t, sharedIcon }: { t: number; sharedIcon
           </IconSlot>
         </div>
 
-        <span data-caption="choice1" className={captionClass} style={{ fontSize: "0.72em", lineHeight: 1.35, color: NEUTRAL.inkMuted, opacity: g }}>
-          {openingCase.choices[0]}
-        </span>
-        <span data-caption="split" className={captionClass} style={{ fontSize: "0.72em", lineHeight: 1.35, color: NEUTRAL.inkMuted, opacity: g }}>
-          Split
-        </span>
-        <span data-caption="choice2" className={captionClass} style={{ fontSize: "0.72em", lineHeight: 1.35, color: NEUTRAL.inkMuted, opacity: g }}>
-          {openingCase.choices[1]}
-        </span>
         <span
           data-caption="physicians"
           className={captionClass}
