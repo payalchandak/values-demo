@@ -27,9 +27,9 @@ export function votingValues(card: DilemmaCard): Value[] {
 }
 
 /**
- * Share of the bar track that one watched case adds when its promote or its
- * violate lands. The signed vote alone is a few pixels against fifty cases,
- * and a violate is negative, so on an empty bar it shows as nothing.
+ * How far one watched case moves its bar, as a share of the track. A promote
+ * adds this and a violate subtracts it. The signed vote alone is only a few
+ * pixels against fifty cases.
  */
 export const SHOWN_BAR = 0.1;
 

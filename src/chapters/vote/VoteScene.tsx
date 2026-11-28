@@ -54,6 +54,10 @@ const TOTAL = Object.fromEntries(
   VALUE_ORDER.map((v) => [v, VOTES.reduce((sum, c) => sum + c[v], 0)]),
 ) as Record<Value, number>;
 const TOP_TOTAL = Math.max(1e-6, ...VALUE_ORDER.map((v) => TOTAL[v]));
+/** Where every bar rests before a vote moves it, as a share of the track. */
+const BAR_REST = 0.25;
+/** How far the signed tally of all fifty cases may pull a bar off that rest, as a share of the track. */
+const REGRESSION_ROOM = 0.15;
 
 interface Box {
   left: number;
@@ -299,11 +303,17 @@ export default function VoteScene({ elapsedMs, profile }: { elapsedMs: number; p
     return () => ro.disconnect();
   }, []);
 
-  // The running tally. Bars show what is above zero, scaled so the leader ends at its own priority.
-  // Watched cases (the first three and the last) also add a fixed step for each
-  // promote and each violate, so the landing itself is visible before the settle.
+  const shrink = easeInOut(ramp(t, SHRINK_AT, SHRINK_AT + SHRINK_MS));
+  const namesIn = smooth(ramp(t, SHRINK_AT + SHRINK_MS * 0.6, SHRINK_AT + SHRINK_MS + 200));
+  const numbersIn = smooth(ramp(t, SETTLE_AT + SETTLE_MS * 0.6, SETTLE_AT + SETTLE_MS));
+  const leave = smooth(ramp(t, SETTLE_AT, SETTLE_AT + SETTLE_MS * 0.4));
+  // Beside the card, the bars wait for it to clear before they move to the centre.
+  const regroup = easeInOut(ramp(t, SETTLE_AT + SETTLE_MS * 0.25, SETTLE_AT + SETTLE_MS));
+
+  // Bars rest at a quarter, so a promote can lengthen one and a violate can shorten it.
+  // Watched cases take a full step; the signed tally of every case tugs more gently,
+  // and the settle eases from there into the fitted priorities.
   const p = profile.priorities;
-  const lead = Math.max(...VALUE_ORDER.map((v) => p[v]));
   const settle = easeInOut(ramp(t, SETTLE_AT, SETTLE_AT + SETTLE_MS));
   const running = Object.fromEntries(VALUE_ORDER.map((v) => [v, 0])) as Record<Value, number>;
   const shown = Object.fromEntries(VALUE_ORDER.map((v) => [v, 0])) as Record<Value, number>;
@@ -313,22 +323,15 @@ export default function VoteScene({ elapsedMs, profile }: { elapsedMs: number; p
       const begin = isFast(i) ? voteAt(i) : arrive - LAND_MS;
       const w = smooth(ramp(t, begin, arrive));
       running[v] += VOTES[i][v] * w;
-      if (!isFast(i) && castsVote(card, v)) shown[v] += SHOWN_BAR * w;
+      if (!isFast(i) && castsVote(card, v)) shown[v] += Math.sign(VOTES[i][v]) * SHOWN_BAR * w;
     });
   });
   const shares = Object.fromEntries(
-    VALUE_ORDER.map((v) => [
-      v,
-      lerp(Math.min(1, (Math.max(0, running[v]) / TOP_TOTAL) * lead + shown[v]), p[v], settle),
-    ]),
+    VALUE_ORDER.map((v) => {
+      const fromRest = BAR_REST * namesIn + shown[v] + (running[v] / TOP_TOTAL) * REGRESSION_ROOM;
+      return [v, lerp(clamp01(fromRest), p[v], settle)];
+    }),
   ) as Record<Value, number>;
-
-  const shrink = easeInOut(ramp(t, SHRINK_AT, SHRINK_AT + SHRINK_MS));
-  const namesIn = smooth(ramp(t, SHRINK_AT + SHRINK_MS * 0.6, SHRINK_AT + SHRINK_MS + 200));
-  const numbersIn = smooth(ramp(t, SETTLE_AT + SETTLE_MS * 0.6, SETTLE_AT + SETTLE_MS));
-  const leave = smooth(ramp(t, SETTLE_AT, SETTLE_AT + SETTLE_MS * 0.4));
-  // Beside the card, the bars wait for it to clear before they move to the centre.
-  const regroup = easeInOut(ramp(t, SETTLE_AT + SETTLE_MS * 0.25, SETTLE_AT + SETTLE_MS));
 
   const placement = layout && place(layout);
   const side = placement?.side ?? false;
