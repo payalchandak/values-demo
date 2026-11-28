@@ -10,6 +10,7 @@ import {
   OFFSETS,
   bandLeaveProgress,
   easeInOut,
+  FIRST_DOT_CHOICE,
   gatherProgress,
   gptDecisionsEnter,
   modelRowEnter,
@@ -174,7 +175,19 @@ function Dot({ opacity }: { opacity: number }) {
 function GptFlowRow({ t }: { t: number }) {
   const gpt = openingRows.models[0];
   const enter = gptDecisionsEnter(t - OFFSETS.model);
-  const dots = (n: number) => Array.from({ length: n }, (_, i) => <Dot key={i} opacity={enter} />);
+  // The excerpt's dot is already beside the mark. Only the rest fade in here.
+  const dots = (side: 0 | 1, n: number) => {
+    const lead = side === FIRST_DOT_CHOICE && n > 0;
+    const rest = lead ? n - 1 : n;
+    return (
+      <>
+        {lead && <Dot key="lead" opacity={1} />}
+        {Array.from({ length: rest }, (_, i) => (
+          <Dot key={i} opacity={enter} />
+        ))}
+      </>
+    );
+  };
   return (
     <div
       role="img"
@@ -185,11 +198,11 @@ function GptFlowRow({ t }: { t: number }) {
       <div className="flex min-w-0 items-center" style={{ paddingLeft: EDGE_PAD, gap: ICON_GAP }}>
         <IconSlot slot="gpt" />
         <span className="flex items-center" style={{ gap: DOT_GAP }}>
-          {dots(gpt.choice1)}
+          {dots(0, gpt.choice1)}
         </span>
       </div>
       <div className="flex min-w-0 items-center justify-end" style={{ paddingRight: EDGE_PAD, gap: DOT_GAP }}>
-        {dots(gpt.choice2)}
+        {dots(1, gpt.choice2)}
       </div>
     </div>
   );

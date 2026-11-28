@@ -5,7 +5,7 @@ import { NEUTRAL } from "../../design";
 import { CHARCOAL } from "./charcoal";
 import { openingRows } from "./openingRows";
 import { COLUMN_GAP, DOT_GAP, DOT_SIZE, EDGE_PAD, ICON_GAP } from "./rowMetrics";
-import { gptDecisionsEnter, markSpinDeg } from "./timeline";
+import { FIRST_DOT_CHOICE, firstDotEnter, gptDecisionsEnter, markSpinDeg } from "./timeline";
 
 const clamp01 = (n: number): number => Math.min(Math.max(n, 0), 1);
 const ramp = (t: number, start: number, end: number): number =>
@@ -69,21 +69,42 @@ function layoutResponse(text: string, span: string, wordsPerGroup: number): Layo
   return layout;
 }
 
-/** One dot per query on this side. They share one fade, with the other model rows. */
-function decisionDots(count: number, enter: number) {
-  return Array.from({ length: count }, (_, i) => (
+/** One query. The later dots share one fade, with the other model rows. */
+function QueryDot({ enter }: { enter: number }) {
+  return (
     <span
-      key={i}
+      aria-hidden
+      className="block shrink-0 rounded-full"
+      style={{ width: DOT_SIZE, height: DOT_SIZE, backgroundColor: CHARCOAL, opacity: enter }}
+    />
+  );
+}
+
+/**
+ * The excerpted query. It rises into its slot beside the mark, then the answer
+ * shrinks away and leaves it there.
+ */
+function RisingDot({ enter }: { enter: number }) {
+  const p = clamp01(enter);
+  const settled = p >= 1;
+  return (
+    <span
       aria-hidden
       className="block shrink-0 rounded-full"
       style={{
         width: DOT_SIZE,
         height: DOT_SIZE,
         backgroundColor: CHARCOAL,
-        opacity: enter,
+        opacity: settled ? 1 : p,
+        transform: settled ? undefined : `translateY(${(1 - p) * 0.7}em) scale(${0.25 + 0.75 * p})`,
+        transformOrigin: "center bottom",
       }}
     />
-  ));
+  );
+}
+
+function decisionDots(count: number, enter: number) {
+  return Array.from({ length: count }, (_, i) => <QueryDot key={i} enter={enter} />);
 }
 
 /** How many characters are on screen. 0 before typing starts; the first character appears as typing begins. */
@@ -118,8 +139,9 @@ const HALF_ROW = "1.125em";
  * The model's response for the opening, below the options. The round provider
  * icon sits on the panel's top-left edge and spins while the panel reads
  * "Thinking…"; then the answer types out and its recommendation is picked out.
- * The panel then shrinks away. The decision dots arrive later, with the other
- * model rows, once the case has tucked. Highlight timing matches `ModelResponse`.
+ * The first decision dot rises beside the mark, and the panel then shrinks
+ * away, leaving that dot. The rest arrive later, with the other model rows,
+ * once the case has tucked. Highlight timing matches `ModelResponse`.
  * Everything is in `em`, so it scales with the scene.
  */
 export default function OpeningResponse({
@@ -160,6 +182,16 @@ export default function OpeningResponse({
   }, []);
   const gpt = openingRows.models[0];
   const decisions = gptDecisionsEnter(progress.elapsedMs);
+  const firstDot = firstDotEnter(progress.elapsedMs);
+  const sideDots = (side: 0 | 1, count: number) => {
+    const lead = side === FIRST_DOT_CHOICE && count > 0;
+    return (
+      <>
+        {lead && <RisingDot enter={firstDot} />}
+        {decisionDots(count - (lead ? 1 : 0), decisions)}
+      </>
+    );
+  };
   const c = clamp01(collapse);
   const settled = c <= 0 || panelH === 0;
   const panelFade = 1 - ramp(c, 0, 0.6);
@@ -222,12 +254,12 @@ export default function OpeningResponse({
             </span>
           </span>
           <span className="flex items-center" style={{ gap: DOT_GAP }}>
-            {decisionDots(gpt.choice1, decisions)}
+            {sideDots(0, gpt.choice1)}
           </span>
         </div>
         <div className="flex min-w-0 items-center justify-end" style={{ paddingRight: EDGE_PAD, gap: DOT_GAP }}>
           <span className="flex items-center" style={{ gap: DOT_GAP }}>
-            {decisionDots(gpt.choice2, decisions)}
+            {sideDots(1, gpt.choice2)}
           </span>
         </div>
       </div>

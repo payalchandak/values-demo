@@ -63,19 +63,30 @@ const REVEALED_AT = REVEAL_AT + openingCase.response.text.length * TYPE_MS_PER_C
 const HIGHLIGHT_AT = REVEALED_AT + 1000;
 const EXTRACT_AT = HIGHLIGHT_AT + 1000;
 const EXTRACTED_AT = EXTRACT_AT + 1000;
-/** The answer text shrinks away, leaving the mark. The decisions arrive with the other models. */
+/**
+ * The excerpted query's dot rises beside the mark, holds, and then the answer
+ * shrinks away. The other nine arrive later, with the model rows.
+ */
+const FIRST_DOT_MS = 400;
+const FIRST_DOT_HOLD_MS = 240;
+const FIRST_DOT_AT = EXTRACTED_AT;
+/** The answer text shrinks away once the first dot has landed. */
 export const COLLAPSE_MS = 300;
-const COLLAPSE_AT = EXTRACTED_AT;
+const COLLAPSE_AT = FIRST_DOT_AT + FIRST_DOT_MS + FIRST_DOT_HOLD_MS;
 /**
  * Choice each recorded query made, in run order. 0 = choice 1, 1 = choice 2.
  * Straight from the recorded runs (opening.json), so GPT's row matches
- * decisions.json. The dots are the counts: they arrive together.
+ * decisions.json. The first dot is that first query; the rest arrive together.
  */
 const SHOWN_CHOICES: readonly (0 | 1)[] = openingCase.decisions;
 const shownChoice1 = SHOWN_CHOICES.filter((c) => c === 0).length;
 if (SHOWN_CHOICES.length !== openingRows.models[0].trials || shownChoice1 !== openingRows.models[0].choice1) {
   throw new Error("timeline: GPT's recorded queries and decisions.json disagree");
 }
+const firstChoice = SHOWN_CHOICES[0];
+if (firstChoice !== 0 && firstChoice !== 1) throw new Error("timeline: the opening has no recorded GPT query");
+/** Side the excerpted query lands on. 0 = choice 1, beside the mark. */
+export const FIRST_DOT_CHOICE: 0 | 1 = firstChoice;
 
 /** Turns of the provider mark before the answer types: two full turns. */
 const FIRST_SPIN_DEG = 720;
@@ -112,8 +123,9 @@ export function modelHandoff(elapsedMs: number): {
 }
 
 /**
- * After the answer collapses the case tucks away. GPT's decisions and the
- * other eleven models arrive together as dot rows, then the physicians arrive
+ * After the first dot lands and the answer collapses, the case tucks away.
+ * GPT's other decisions and the other eleven models arrive together as dot
+ * rows, then the physicians arrive
  * as one row of squares. These durations are local to this feature:
  * design/motion.ts is deliberately too short for them. Chapter-local ms.
  * TODO: tune after visual review (every value here).
@@ -166,7 +178,8 @@ const model = [
   { name: "highlight", startMs: HIGHLIGHT_AT }, // recommendation sentence sweeps
   { name: "extract", startMs: EXTRACT_AT }, // its choice is outlined
   { name: "extracted", startMs: EXTRACTED_AT },
-  { name: "collapse", startMs: COLLAPSE_AT }, // answer shrinks away; the mark stays
+  { name: "firstDot", startMs: FIRST_DOT_AT }, // the excerpt's dot rises beside the mark
+  { name: "collapse", startMs: COLLAPSE_AT }, // answer shrinks away; the first dot stays
   { name: "tuck", startMs: TUCK_AT }, // the case collapses to its one-line header; room opens for the rows
   { name: "models", startMs: MODELS_AT }, // GPT's decisions and the other models arrive together
   { name: "modelsHold", startMs: MODELS_HOLD_AT }, // all twelve rows visible, held for reading
@@ -286,8 +299,17 @@ export function modelRowEnter(t: number, index: number): number {
 }
 
 /**
- * GPT's decision dots, 0..1. They fade in with the first of the other model
- * rows, once the case has tucked. Chapter-local ms.
+ * The excerpted query's dot, 0..1. It rises beside the mark once the decision
+ * is identified, and it is fully up before the answer shrinks. Chapter-local ms.
+ */
+export function firstDotEnter(elapsedMs: number): number {
+  const start = beatStart(OPENING_BEATS.model, "firstDot");
+  return easeInOut(ramp(elapsedMs, start, start + FIRST_DOT_MS));
+}
+
+/**
+ * GPT's remaining decision dots, 0..1. The first has already landed. These fade
+ * in with the other model rows, once the case has tucked. Chapter-local ms.
  */
 export function gptDecisionsEnter(elapsedMs: number): number {
   const start = beatStart(OPENING_BEATS.model, "models");
