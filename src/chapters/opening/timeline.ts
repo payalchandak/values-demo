@@ -165,10 +165,10 @@ const round100 = (ms: number): number => Math.round(ms / 100) * 100;
  *   <v>Highlight  the tint starts across its trigger sentence; the rest dims
  *   <v>Chip1      its label lands under Choice 1
  *   <v>Chip2      its label lands under Choice 2
- * The tint travels one word at a time for the per-word allowance, then holds
- * still until the first label. The next value begins once the second label
- * has landed. That beat clears the highlight and starts over. Labels already
- * added stay under the choices.
+ * The tint travels one word at a time for the per-word allowance, then holds.
+ * It stays when the next value begins. The next value begins once the second
+ * label has landed: its name replaces the previous name, and its own tint is
+ * added. Labels already added stay under the choices.
  */
 const NAME_MS = 1500; // name and definition on a plain vignette
 const HIGHLIGHT_BASE_MS = 900; // still hold of the fully tinted sentence, before the first label
@@ -195,7 +195,7 @@ const framework = (() => {
     );
     cursor = chip2 + FADE_MS;
   }
-  beats.push({ name: "all", startMs: cursor }); // highlight cleared, plain vignette, four labels on each choice
+  beats.push({ name: "all", startMs: cursor }); // names cleared; four tints remain, four labels on each choice
   beats.push({ name: "end", startMs: cursor + 5000 });
   return beats as readonly Beat[];
 })();

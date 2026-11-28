@@ -76,7 +76,8 @@ function Segment({ seg, s }: { seg: VignetteSegment; s: ValueSteps }) {
  * The full case vignette, verbatim. It arrives plain with the framework
  * chapter, then one trigger sentence at a time takes a charcoal tint that
  * travels across the words (never an underline, never the whole sentence at
- * once) while the rest recedes, and returns to plain between values.
+ * once) while the rest recedes. Each tint stays, so the next sentence is
+ * added beside the ones already marked.
  *
  * `focused` is the narrow-screen layout: only the trigger sentences are shown
  * (the rest of the vignette collapses to an ellipsis), and the sentence being
@@ -119,7 +120,7 @@ function FocusedText({ s }: { s: ValueSteps }) {
   VIGNETTE_SEGMENTS.forEach((seg, i) => {
     if (seg.value === null) return;
     const v = seg.value;
-    const h = s.highlight[v];
+    const h = s.active[v];
     const gapBefore = i > 0;
     const gapAfter = i === lastTrigger && i < VIGNETTE_SEGMENTS.length - 1;
     parts.push(
