@@ -8,7 +8,7 @@ import type { Beat } from "../../types";
  * (or passing your own list to `createStackChapter`). Nothing in the
  * animation code knows a duration.
  *
- *   card       the opening's card, already on its single-column tag side, holding while its dots arrive
+ *   card       the opening's card, already on its tag-chip side with its dots in, holding
  *   turn       (empty: the card arrives already turned)
  *   values     (empty: the tag side already held in the opening)
  *   shrink     the card flips back and shrinks into the middle of the grid, becoming a
@@ -17,11 +17,11 @@ import type { Beat } from "../../types";
  *   grid       every card is on screen and holds, so the titles can be read
  *   flip       every card flips to its tag-chip back, one after another (the structure)
  *   settle     all the tag backs sit so the trade-offs can be read
- *   markers    the red and dark decision dots come in along the other cards' edges, beside the tags
+ *   markers    the red and dark decision dots come in along the card edges, beside the tags
  *   observed   the dots are all in and hold
- *   gather     the grid becomes the table, one case at a time: the first card cross-fades into
- *              row 1; then card 2 and card 3 send their title, tags and decision dots to the
- *              Case, value and decision columns, one item after another; then every other
+ *   gather     the grid becomes the table, one case at a time: the first card widens into row 1
+ *              and its title, tags and decision dots travel to the Case, value and decision
+ *              columns, one item after another; then card 2, then card 3; then every other
  *              card sweeps its contents into the ellipsis
  *   morph      the table holds, complete, for a beat
  *   highlight  the first row takes its highlight
