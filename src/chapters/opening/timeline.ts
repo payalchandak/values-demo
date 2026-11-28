@@ -216,7 +216,7 @@ const round100 = (ms: number): number => Math.round(ms / 100) * 100;
  * The framework chapter walks the four values one at a time. It starts from the
  * dilemma's last frame with no reset: the heading changes, the physician icons
  * fade out, and the case and options stay where they are. Inside each value's window:
- *   <v>           its full name and definition appear; the vignette is plain
+ *   <v>           its name and definition replace the heading; the vignette is plain
  *   <v>Highlight  the tint starts across its trigger sentence; the rest dims
  *   <v>Chip1      its label lands under Choice 1
  *   <v>Chip2      its label lands under Choice 2
@@ -225,7 +225,7 @@ const round100 = (ms: number): number => Math.round(ms / 100) * 100;
  * label has landed: its name replaces the previous name, and its own tint is
  * added. Labels already added stay under the choices.
  */
-const NAME_MS = 1500; // name and definition on a plain vignette
+const NAME_MS = 1500; // name and definition in the heading, vignette still plain
 const HIGHLIGHT_BASE_MS = 900; // still hold of the fully tinted sentence, before the first label
 const HIGHLIGHT_PER_WORD_MS = 180; // the tint crosses one word in this long
 const CHIP_GAP_MS = 700; // Choice 1 label, then Choice 2 label
@@ -264,7 +264,7 @@ const framework = (() => {
     );
     cursor = chip2 + PILL_ENTER_MS;
   }
-  beats.push({ name: "all", startMs: cursor }); // names cleared; four tints remain, four labels on each choice
+  beats.push({ name: "all", startMs: cursor }); // heading returns; four tints remain, four labels on each choice
   beats.push({ name: "end", startMs: cursor + 2500 }); // hold the tinted case and labels, then the model answers
   return beats as readonly Beat[];
 })();

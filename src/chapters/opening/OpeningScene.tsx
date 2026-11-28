@@ -13,11 +13,10 @@ import {
   VALUES,
   VALUE_ORDER,
 } from "../../design";
-import type { Tag } from "../../study/types";
+import type { Tag, Value } from "../../study/types";
 import { openingCase } from "./openingCase";
 import DecisionBoard from "./DecisionBoard";
 import OpeningResponse from "./OpeningResponse";
-import ValueStrip from "./ValueStrip";
 import TuckedCase from "./TuckedCase";
 import Vignette, { VignetteText } from "./Vignette";
 import { PhysicianVotes } from "./DoctorSplit";
@@ -200,7 +199,7 @@ const PROBE_TIMES: readonly number[] = [
   at("dilemma", "end") - 1, // the case, the options and the physician icons
   ...VALUE_ORDER.filter((v) => triggerWords(v) > 0).map((v) => at("framework", `${v}Highlight`) + 400),
   ...VALUE_ORDER.map((v) => at("framework", `${v}Chip2`) + PILL_ENTER_MS),
-  at("framework", "all") + 800, // tinted case, labels under both choices, names cleared
+  at("framework", "all") + 800, // tinted case, labels under both choices, heading restored
   at("model", "ask") + MODEL_HANDOFF_MS / 2, // the case tucking while the response arrives
   at("model", "extracted"), // the case tucked, the labels and the whole answer on screen
   at("model", "end") - 1, // the case tucked, the labels and GPT's decision row on screen
@@ -244,6 +243,27 @@ function useBoxHeight() {
   useLayoutEffect(() => {
     if (!node) return;
     const measure = () => setHeight(node.offsetHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(node);
+    return () => ro.disconnect();
+  }, [node]);
+  return [setNode, height] as const;
+}
+
+/** Tallest child. Used to reserve one header height while value lines trade places. */
+function useMaxChildHeight() {
+  const [node, setNode] = useState<HTMLElement | null>(null);
+  const [height, setHeight] = useState(0);
+  useLayoutEffect(() => {
+    if (!node) return;
+    const measure = () => {
+      let max = 0;
+      for (const child of node.children) {
+        if (child instanceof HTMLElement) max = Math.max(max, child.offsetHeight);
+      }
+      setHeight((prev) => (Math.abs(prev - max) < 0.5 ? prev : max));
+    };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(node);
@@ -323,6 +343,108 @@ function GrowIn({ enter, children }: { enter: number; children: ReactNode }) {
 const HEADING_CLASS =
   "mx-auto w-full max-w-[30em] text-balance text-center font-semibold leading-[1.12] tracking-tight";
 
+/** Framework heading size, relative to the question heading it sits inside. */
+const FRAMEWORK_FONT = `${parseFloat(HEADLINES[2].size) / parseFloat(HEADLINES[1].size)}em`;
+
+/** The value's full name, in a charcoal chip. Never a letter. */
+function NameChip({ v }: { v: Value }) {
+  return (
+    <span
+      className="inline-flex shrink-0 items-center rounded-full px-[0.75em] py-[0.15em] font-semibold leading-none text-white"
+      style={{ backgroundColor: CHARCOAL }}
+    >
+      {VALUES[v].name}
+    </span>
+  );
+}
+
+/** Chip, then definition. Wraps to a second line when the width is tight. */
+function ValueLine({ v }: { v: Value }) {
+  return (
+    <span className="flex w-full flex-wrap items-center justify-center gap-x-[0.6em] gap-y-[0.2em] text-center [text-wrap:wrap]">
+      <NameChip v={v} />
+      <span className="max-w-full font-normal leading-[1.12] @max-md:basis-full" style={{ color: NEUTRAL.inkMuted }}>
+        {VALUES[v].definition}
+      </span>
+    </span>
+  );
+}
+
+/**
+ * 1 while the framework heading shows, 0 while a value occupies the header.
+ * The first value's enter fades the heading out. It stays out while values
+ * trade places, then the last value's leave (the "all" beat) fades it back.
+ */
+function frameworkHeadingHold(t: number, name: ReturnType<typeof valueSteps>["name"]): number {
+  if (t < at("framework", VALUE_ORDER[1])) return 1 - name[VALUE_ORDER[0]];
+  if (t < at("framework", "all")) return 0;
+  return 1 - name[VALUE_ORDER[VALUE_ORDER.length - 1]];
+}
+
+/**
+ * The framework heading and the value lines share one box above the case.
+ * Once the framework heading is in, every line stays in that grid, so the
+ * box is the taller of the heading and the tallest value line and the case
+ * does not move as values change. A narrow width wraps the chip and the
+ * definition onto two lines, and that height is part of the same box.
+ * Each value reuses the name enter and leave motion: one lifts out as the
+ * next rises, and two are never up together.
+ */
+function FrameworkHeading({ t, swap }: { t: number; swap: number }) {
+  const steps = valueSteps(t);
+  const hold = frameworkHeadingHold(t, steps.name);
+  const [textRef, textH] = useBoxHeight();
+  const [linesRef, linesH] = useMaxChildHeight();
+  const reserve = Math.max(textH, linesH);
+  const p = Math.min(1, Math.max(0, swap));
+  // Settled height is the grid's own content, so a font change updates it
+  // immediately. The short grow while the framework heading arrives is the
+  // only place a measured pixel height is used.
+  const settled = p >= 1;
+  const growing = !settled && p > 0 && textH > 0 && reserve > 0;
+  const height = growing ? textH + (reserve - textH) * p : undefined;
+  return (
+    <span
+      className="relative grid w-full items-center"
+      style={{ gridArea: "1 / 1", opacity: p, fontSize: FRAMEWORK_FONT, height }}
+      aria-hidden={p < 0.5}
+    >
+      <span
+        ref={textRef}
+        className="block"
+        style={{ gridArea: "1 / 1", opacity: hold }}
+        aria-hidden={hold < 0.5}
+      >
+        {HEADLINES[2].text}
+      </span>
+      <span ref={linesRef} aria-hidden className="pointer-events-none invisible absolute inset-x-0 top-0">
+        {VALUE_ORDER.map((v) => (
+          <ValueLine key={v} v={v} />
+        ))}
+      </span>
+      {VALUE_ORDER.map((v) => {
+        const opacity = steps.name[v];
+        const shift = steps.nameShift[v];
+        const motion = shift === 0 ? undefined : `translateY(${shift}em)`;
+        return (
+          <span
+            key={v}
+            className={settled ? "block w-full" : "absolute inset-x-0 top-1/2 block w-full"}
+            style={{
+              gridArea: "1 / 1",
+              opacity,
+              transform: settled ? motion : `translateY(calc(-50% + ${shift}em))`,
+            }}
+            aria-hidden={opacity < 0.5}
+          >
+            <ValueLine v={v} />
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
 /**
  * The paper title and the question occupy one heading. The box eases from the
  * title's height to the question's, so the case card moves up instead of
@@ -339,6 +461,7 @@ function HeadlineReplace({
   questionOpacity,
   titleSize,
   swapClinical = 0,
+  t,
 }: {
   /** 0 = the paper title's box, 1 = the question's box. */
   mix: number;
@@ -352,6 +475,8 @@ function HeadlineReplace({
   titleSize?: string;
   /** 0..1 cross-fade from the ch2 heading to the framework heading. */
   swapClinical?: number;
+  /** Opening clock. The framework heading follows it into each value and back. */
+  t: number;
 }) {
   const [titleRef, titleH] = useBoxHeight();
   const [questionRef, questionH] = useBoxHeight();
@@ -424,12 +549,7 @@ function HeadlineReplace({
             <span style={{ gridArea: "1 / 1", opacity: 1 - swapClinical }} aria-hidden={swapClinical > 0.5}>
               {HEADLINES[1].text}
             </span>
-            <span
-              style={{ gridArea: "1 / 1", opacity: swapClinical, fontSize: `${parseFloat(HEADLINES[2].size) / parseFloat(HEADLINES[1].size)}em` }}
-              aria-hidden={swapClinical < 0.5}
-            >
-              {HEADLINES[2].text}
-            </span>
+            <FrameworkHeading t={t} swap={swapClinical} />
           </span>
         </h1>
       </div>
@@ -885,8 +1005,8 @@ const SceneBody = memo(function SceneBody({
   const clearP = recallPatient ? ramp(t, recall, recall + FADE_MS) : 0;
   const cleared = recallPatient && t >= recall + FADE_MS;
 
-  // The heading slot holds the question, the physicians heading and the framework heading in turn.
-  // The model chapter clears it.
+  // The heading slot holds the question, then the framework heading. A value's name
+  // and definition take that same slot, then the heading returns. The model chapter clears it.
   const inHook = t < dilemmaStart;
   // The question fades in as the full-scene case card shrinks into its place.
   // It starts once the card has cleared its slot, and lands with it.
@@ -940,8 +1060,6 @@ const SceneBody = memo(function SceneBody({
       return (a > 0 && a < 1) || (b > 0 && b < 1);
     });
 
-  const valuesAt = at("framework", VALUE_ORDER[0]);
-  const showStrip = t >= valuesAt && !cleared && questionExit < 1;
   const handoffMoving = (questionExit > 0 && questionExit < 1) || (responseEnter > 0 && responseEnter < 1);
   const tuckMoving = t >= ask && tuck < 1;
   const headingMoving = handoffMoving;
@@ -957,6 +1075,7 @@ const SceneBody = memo(function SceneBody({
     >
       {showHeading && (
         <HeadlineReplace
+          t={t}
           mix={1}
           exit={inHook ? 0 : questionExit}
           swapClinical={headingClinical}
@@ -993,16 +1112,6 @@ const SceneBody = memo(function SceneBody({
       {showTuck && (
         <Block probe={probe} className="w-full" layout={sceneStill}>
           <TuckedCase tuck={tuck} shared={sharedCard && !hidePatient} body={<VignetteText t={t} focused={focused} />} />
-        </Block>
-      )}
-
-      {showStrip && (
-        <Block probe={probe} className="w-full" layout={false}>
-          <FadeSlot enter={ease(ramp(t, valuesAt, valuesAt + 420)) * (1 - questionExit)}>
-            <div style={{ opacity: 1 - clearP }}>
-              <ValueStrip t={t} introAt={valuesAt - 1000} />
-            </div>
-          </FadeSlot>
         </Block>
       )}
 
