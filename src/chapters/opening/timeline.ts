@@ -79,10 +79,10 @@ const dilemma = [
 const SPIN_MS = 1600;
 /**
  * How long the answer takes to stream, once the icon has stopped.
- * Long enough that a full reply still reads as typing, and capped so the
- * parse is not stuck behind a page of text.
+ * Fast enough to read as a quick generation, still slow enough that the
+ * words arrive rather than appear at once.
  */
-const REVEAL_MS = Math.min(11000, Math.max(2400, openingCase.response.text.length * 8));
+const REVEAL_MS = Math.min(3200, Math.max(1400, openingCase.response.text.length * 3));
 const THINK_AT = 500;
 const REVEAL_AT = THINK_AT + SPIN_MS;
 const REVEALED_AT = REVEAL_AT + REVEAL_MS;
