@@ -16,7 +16,6 @@ import {
 import type { Tag } from "../../study/types";
 import { openingCase } from "./openingCase";
 import DecisionBoard from "./DecisionBoard";
-import ModelRows from "./ModelRows";
 import OpeningResponse from "./OpeningResponse";
 import ValueStrip from "./ValueStrip";
 import TuckedCase from "./TuckedCase";
@@ -62,7 +61,7 @@ const RESPONSE_TIMING: ModelResponseTiming = {
 };
 
 /**
- * The framework chapter's first beat. The grouped models leave while the
+ * The framework chapter's first beat. GPT's row leaves while the
  * plain vignette and the new headline arrive; the value walk follows.
  */
 const FRAMEWORK_AT = at("framework", "framework");
@@ -205,7 +204,7 @@ const PROBE_TIMES: readonly number[] = [
   at("hook", "end") - HEADING_SWAP_MS - 1,
   at("dilemma", "end") - 1,
   at("model", "extracted"),
-  at("model", "hold"), // the case tucked, all twelve model rows and the physician row on screen
+  at("model", "end") - 1, // the case tucked, GPT's decision row on screen
   ...VALUE_ORDER.map((v) => at("framework", `${v}Highlight`) + 400),
   ...VALUE_ORDER.map((v) => at("framework", `${v}Chip2`) + PILL_ENTER_MS),
   at("framework", "all") + 800,
@@ -820,7 +819,7 @@ const SceneBody = memo(function SceneBody({
 
   // The verbatim case stays up through the model chapter; the response sits below it.
   // With the stack handoff, it returns once the framework has cleared, in time for the last beat.
-  // The case collapses to its one-line header, then the model rows and the physician row take its room.
+  // The case collapses to its one-line header, then GPT's decision row arrives.
   const tuckAt = at("model", "tuck");
   const modelsAt = at("model", "models");
   const frameworkEnd = at("framework", "end");
@@ -834,12 +833,12 @@ const SceneBody = memo(function SceneBody({
       ? ramp(t, recall + FADE_MS, recall + FADE_MS * 2)
       : visibility(t, at("hook", "patient"), at("hook", "patient") + FADE_MS, FRAMEWORK_AT - FADE_MS, FRAMEWORK_AT);
   const responseEnter = handoff.responseEnter;
-  // The dot rows take over from the answer the moment they arrive, and stay through the framework chapter.
+  // GPT's dot row takes over from the answer the moment it arrives, and stay through the framework chapter.
   const showResponse = t >= ask && responseEnter > 0 && t < modelsAt;
   const showBoard = t >= modelsAt && t < frameworkEnd;
   const collapse = ramp(t, at("model", "collapse"), at("model", "collapse") + COLLAPSE_MS);
 
-  // The one-line case grows into the vignette as the grouped models leave.
+  // The one-line case grows into the vignette as GPT's row leaves.
   const stripLinear = stripProgress(t);
   const stripP = ease(stripLinear);
   const stripping = t >= FRAMEWORK_AT && stripLinear < 1;
@@ -949,7 +948,7 @@ const SceneBody = memo(function SceneBody({
           <FadeSlot enter={optionsEnter}>
             <ul
               className={`grid w-full grid-cols-1 gap-y-[0.7em] @md:grid-cols-2 @md:grid-rows-[auto_auto] @md:gap-x-[0.6em] @md:gap-y-[0.45em] ${
-                // The rows, and then the grouped marks, sit under these two buttons.
+                // GPT's dot row sits under these two buttons.
                 tucked || showBoard ? "@max-md:grid-cols-2 @max-md:gap-x-[0.6em] @max-md:gap-y-0" : ""
               }`}
             >
@@ -981,7 +980,6 @@ const SceneBody = memo(function SceneBody({
               collapse={collapse}
               hideIcon={sharedIcon}
             />
-            {tucked && <ModelRows t={t} grow={tuck} />}
           </GrowIn>
         </Block>
       )}

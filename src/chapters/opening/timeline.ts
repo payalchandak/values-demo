@@ -93,7 +93,9 @@ const FIRST_SPIN_DEG = 720;
 
 /** Rotation of the provider mark in degrees at chapter-local time `e`. The thinking turn ends upright. */
 export function markSpinDeg(e: number): number {
-  return ramp(e, THINK_AT, REVEAL_AT) * FIRST_SPIN_DEG;
+  let deg = ramp(e, THINK_AT, REVEAL_AT) * FIRST_SPIN_DEG;
+  for (const spin of REPEAT_SPINS) deg += ramp(e, spin.start, spin.end) * 360;
+  return deg;
 }
 
 /**
@@ -124,9 +126,7 @@ export function modelHandoff(elapsedMs: number): {
 
 /**
  * After the first dot lands and the answer collapses, the case tucks away.
- * GPT's other decisions and the other eleven models arrive together as dot
- * rows, then the physicians arrive
- * as one row of squares. These durations are local to this feature:
+ * GPT's other decisions then arrive. These durations are local to this feature:
  * design/motion.ts is deliberately too short for them. Chapter-local ms.
  * TODO: tune after visual review (every value here).
  */
@@ -134,38 +134,37 @@ export function modelHandoff(elapsedMs: number): {
 export const TUCK_DELAY_MS = 500;
 /** The case card shrinks to its one-line header. TODO: tune after visual review */
 export const TUCK_MS = 450;
-/** Gap between one model row arriving and the next. TODO: tune after visual review */
-export const MODEL_ROW_STAGGER_MS = 120;
-/** One model row fading and settling in. TODO: tune after visual review */
-export const MODEL_ROW_IN_MS = 240;
-/** All twelve rows on screen, held for reading. TODO: tune after visual review */
-export const MODELS_HOLD_MS = 2500;
-/** Gap between one physician square arriving and the next. TODO: tune after visual review */
-export const PHYSICIAN_STAGGER_MS = 40;
-/** One physician square fading in; also the MD badge and the separator. TODO: tune after visual review */
-export const PHYSICIAN_IN_MS = 160;
-/** The full picture held, then the rows gather into choice 1 / split / choice 2. TODO: tune after visual review */
-export const FULL_PICTURE_HOLD_MS = 2400;
-/** Icons leave their rows and settle into the three groups. TODO: tune after visual review */
-export const GATHER_MS = 1100;
-/** The three groups held under the choices, before the next slide. TODO: tune after visual review */
-export const SUMMARY_HOLD_MS = 2000;
+/** One dot fading in as its spin ends. TODO: tune after visual review */
+export const MODEL_ROW_IN_MS = 160;
+/** Each remaining query is one full turn of the mark. The first few are slower, the rest quick. TODO: tune after visual review */
+const REPEAT_SLOW_SPINS = 3;
+const REPEAT_SLOW_MS = 650;
+const REPEAT_FAST_MS = 380;
+const REPEAT_GAP_MS = 60;
+/** GPT's ten decisions held for reading. TODO: tune after visual review */
+export const DECISIONS_HOLD_MS = 2400;
 /**
- * The values slide arrives over this span: the vignette opens and the grouped
- * icons fade out. They do not stay on that slide.
+ * The values slide arrives over this span: the vignette opens and GPT's
+ * decision row fades out. It does not stay on that slide.
  * TODO: tune after visual review
  */
 export const STRIP_MS = 1000;
 
-/** GPT's row is already there, so only the rest arrive. */
-const ARRIVING_ROWS = openingRows.models.length - 1;
-const PHYSICIAN_COUNT = openingRows.physicians.total;
-
 const TUCK_AT = COLLAPSE_AT + COLLAPSE_MS + TUCK_DELAY_MS;
 const MODELS_AT = TUCK_AT + TUCK_MS;
-const MODELS_HOLD_AT = MODELS_AT + (ARRIVING_ROWS - 1) * MODEL_ROW_STAGGER_MS + MODEL_ROW_IN_MS;
-const PHYSICIANS_AT = MODELS_HOLD_AT + MODELS_HOLD_MS;
-const FULL_AT = PHYSICIANS_AT + (PHYSICIAN_COUNT - 1) * PHYSICIAN_STAGGER_MS + PHYSICIAN_IN_MS;
+
+/** Chapter-local start and end of the spin behind query `n` (1 = the second query). */
+const REPEAT_SPINS: readonly { start: number; end: number }[] = (() => {
+  const out: { start: number; end: number }[] = [];
+  let at = MODELS_AT;
+  for (let n = 1; n < SHOWN_CHOICES.length; n++) {
+    const dur = n <= REPEAT_SLOW_SPINS ? REPEAT_SLOW_MS : REPEAT_FAST_MS;
+    out.push({ start: at, end: at + dur });
+    at += dur + REPEAT_GAP_MS;
+  }
+  return out;
+})();
+const LAST_DOT_AT = REPEAT_SPINS[REPEAT_SPINS.length - 1].end + MODEL_ROW_IN_MS;
 
 const model = [
   { name: "ask", startMs: 0 }, // "What would you recommend?" starts leaving; the response eases in with it
@@ -177,14 +176,9 @@ const model = [
   { name: "extracted", startMs: EXTRACTED_AT },
   { name: "firstDot", startMs: FIRST_DOT_AT }, // the excerpt's dot rises beside the mark
   { name: "collapse", startMs: COLLAPSE_AT }, // answer shrinks away; the first dot stays
-  { name: "tuck", startMs: TUCK_AT }, // the case collapses to its one-line header; room opens for the rows
-  { name: "models", startMs: MODELS_AT }, // GPT's decisions and the other models arrive together
-  { name: "modelsHold", startMs: MODELS_HOLD_AT }, // all twelve rows visible, held for reading
-  { name: "physicians", startMs: PHYSICIANS_AT }, // the physician row arrives, one square at a time
-  { name: "hold", startMs: FULL_AT }, // the full picture, held
-  { name: "summarize", startMs: FULL_AT + FULL_PICTURE_HOLD_MS }, // dots fold in; icons gather into the three groups
-  { name: "summarized", startMs: FULL_AT + FULL_PICTURE_HOLD_MS + GATHER_MS },
-  { name: "end", startMs: FULL_AT + FULL_PICTURE_HOLD_MS + GATHER_MS + SUMMARY_HOLD_MS },
+  { name: "tuck", startMs: TUCK_AT }, // the case collapses to its one-line header
+  { name: "models", startMs: MODELS_AT }, // the mark spins once per remaining query; each spin ends in a dot
+  { name: "end", startMs: LAST_DOT_AT + DECISIONS_HOLD_MS },
 ] as const satisfies readonly Beat[];
 
 const round100 = (ms: number): number => Math.round(ms / 100) * 100;
@@ -287,15 +281,6 @@ export const visibility = (
 ): number => ramp(t, inStart, inEnd) * (1 - ramp(t, outStart, outEnd));
 
 /**
- * Model rows 2 to 12 (index 0 is the first arriving row, GPT's mark is already
- * there). 0 before it arrives, 1 once it has settled. Opening time `t`.
- */
-export function modelRowEnter(t: number, index: number): number {
-  const start = at("model", "models") + index * MODEL_ROW_STAGGER_MS;
-  return ramp(t, start, start + MODEL_ROW_IN_MS);
-}
-
-/**
  * The excerpted query's dot, 0..1. It rises beside the mark once the decision
  * is identified, and it is fully up before the answer shrinks. Chapter-local ms.
  */
@@ -304,44 +289,15 @@ export function firstDotEnter(elapsedMs: number): number {
   return easeInOut(ramp(elapsedMs, start, start + FIRST_DOT_MS));
 }
 
-/**
- * GPT's remaining decision dots, 0..1. The first has already landed. These fade
- * in with the other model rows, once the case has tucked. Chapter-local ms.
- */
-export function gptDecisionsEnter(elapsedMs: number): number {
-  const start = beatStart(OPENING_BEATS.model, "models");
-  return ramp(elapsedMs, start, start + MODEL_ROW_IN_MS);
+/** Dot for query `index` (1 = the second), 0..1. It lands as that query's spin ends. Chapter-local ms. */
+export function decisionDotEnter(elapsedMs: number, index: number): number {
+  const spin = REPEAT_SPINS[index - 1];
+  return spin ? ramp(elapsedMs, spin.end - MODEL_ROW_IN_MS, spin.end) : 1;
 }
 
-/** Physician square `index` (left side first, then right), 0..1. Opening time `t`. */
-export function physicianEnter(t: number, index: number): number {
-  const start = at("model", "physicians") + index * PHYSICIAN_STAGGER_MS;
-  return ramp(t, start, start + PHYSICIAN_IN_MS);
-}
-
-/** The MD badge, the hairline and the caption arrive together at the physicians beat. */
-export function physicianRowEnter(t: number): number {
-  const start = at("model", "physicians");
-  return ramp(t, start, start + PHYSICIAN_IN_MS);
-}
-
-/**
- * 0 while the rows are still the picture, 1 once the icons have gathered into
- * choice 1, the split, and choice 2. Opening time `t`.
- */
-export function gatherProgress(t: number): number {
-  const start = at("model", "summarize");
-  return ramp(t, start, start + GATHER_MS);
-}
-
-/** 0 at the values slide's start, 1 once the grouped icons have faded out. */
+/** 0 at the values slide's start, 1 once the decision row has faded out. */
 export function stripProgress(t: number): number {
   const start = at("framework", "framework");
   return ramp(t, start, start + STRIP_MS);
 }
 
-/** The physician mark leaves with the clouds, a little ahead of the models. */
-export function physicianSummaryOpacity(t: number): number {
-  const start = at("framework", "framework");
-  return 1 - ramp(t, start, start + STRIP_MS * 0.45);
-}

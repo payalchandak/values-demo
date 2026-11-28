@@ -5,7 +5,7 @@ import { NEUTRAL } from "../../design";
 import { CHARCOAL } from "./charcoal";
 import { openingRows } from "./openingRows";
 import { COLUMN_GAP, DOT_GAP, DOT_SIZE, EDGE_PAD, ICON_GAP } from "./rowMetrics";
-import { FIRST_DOT_CHOICE, firstDotEnter, gptDecisionsEnter, markSpinDeg } from "./timeline";
+import { FIRST_DOT_CHOICE, firstDotEnter, markSpinDeg } from "./timeline";
 
 const clamp01 = (n: number): number => Math.min(Math.max(n, 0), 1);
 const ramp = (t: number, start: number, end: number): number =>
@@ -69,17 +69,6 @@ function layoutResponse(text: string, span: string, wordsPerGroup: number): Layo
   return layout;
 }
 
-/** One query. The later dots share one fade, with the other model rows. */
-function QueryDot({ enter }: { enter: number }) {
-  return (
-    <span
-      aria-hidden
-      className="block shrink-0 rounded-full"
-      style={{ width: DOT_SIZE, height: DOT_SIZE, backgroundColor: CHARCOAL, opacity: enter }}
-    />
-  );
-}
-
 /**
  * The excerpted query. It rises into its slot beside the mark, then the answer
  * shrinks away and leaves it there.
@@ -101,10 +90,6 @@ function RisingDot({ enter }: { enter: number }) {
       }}
     />
   );
-}
-
-function decisionDots(count: number, enter: number) {
-  return Array.from({ length: count }, (_, i) => <QueryDot key={i} enter={enter} />);
 }
 
 /** How many characters are on screen. 0 before typing starts; the first character appears as typing begins. */
@@ -181,16 +166,10 @@ export default function OpeningResponse({
     return () => ro.disconnect();
   }, []);
   const gpt = openingRows.models[0];
-  const decisions = gptDecisionsEnter(progress.elapsedMs);
   const firstDot = firstDotEnter(progress.elapsedMs);
   const sideDots = (side: 0 | 1, count: number) => {
-    const lead = side === FIRST_DOT_CHOICE && count > 0;
-    return (
-      <>
-        {lead && <RisingDot enter={firstDot} />}
-        {decisionDots(count - (lead ? 1 : 0), decisions)}
-      </>
-    );
+    // Only the excerpt's dot is here. The rest land with their own spins on the board.
+    return side === FIRST_DOT_CHOICE && count > 0 ? <RisingDot enter={firstDot} /> : null;
   };
   const c = clamp01(collapse);
   const settled = c <= 0 || panelH === 0;
