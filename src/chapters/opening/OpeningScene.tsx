@@ -636,10 +636,10 @@ export interface LabelRowCue {
 }
 
 /**
- * One label under a choice. The row's height follows the clock, so labels
- * already on screen stay put and the list opens instead of jumping. The name
- * leads; the pill resolves just after it. `rowHeight` is the settled line,
- * measured once outside the clip.
+ * One label under a choice. The name leads; the pill resolves just after it.
+ * `rowHeight` is the settled line, measured once outside the clip. With
+ * `reserve`, the row is already open and only the words arrive, so a new
+ * value does not change the height of the list.
  */
 function ChipRow({
   first,
@@ -649,6 +649,7 @@ function ChipRow({
   value,
   tag,
   cue,
+  reserve = false,
 }: {
   first: boolean;
   /** Linear 0..1 over the landing. */
@@ -658,21 +659,24 @@ function ChipRow({
   value: Value;
   tag: Tag;
   cue?: LabelRowCue;
+  /** The row already has its settled height. Progress only fades the words in. */
+  reserve?: boolean;
 }) {
   const p = Math.min(1, Math.max(0, progress));
   // A finished row is fully open even before the line has been measured, so a
   // static grid (every weight already 1) does not paint at zero height.
   const settled = p >= 1;
-  const grow = easeOut(p);
+  const laidOut = reserve || settled;
+  const grow = laidOut ? 1 : easeOut(p);
   // The name is readable first. The pill fades in across the rest of the open.
   const nameIn = easeOut(Math.min(1, p / 0.7));
   const pillIn = easeOut(Math.min(1, Math.max(0, (p - 0.22) / 0.78)));
-  const rise = settled ? 0 : (1 - grow) * 0.45;
+  const rise = settled ? 0 : (1 - easeOut(p)) * 0.45;
   const clip = {
-    maxHeight: settled ? undefined : rowHeight * grow,
-    marginTop: `calc(${CHIP_ROW_GAP} * ${first ? 0 : settled ? 1 : grow})`,
+    maxHeight: laidOut ? undefined : rowHeight * grow,
+    marginTop: `calc(${CHIP_ROW_GAP} * ${first ? 0 : laidOut ? 1 : grow})`,
     minHeight: 0,
-    overflow: settled ? ("visible" as const) : ("hidden" as const),
+    overflow: laidOut ? ("visible" as const) : ("hidden" as const),
   };
   const hot = cue?.hot ?? 0;
   const dim = cue?.dim ?? 0;
@@ -724,9 +728,10 @@ function ChipRow({
  * The labels of one decision, outside the choice button. Each value's name
  * sits beside a pill that says promotes, violates, or neutral. Names share
  * one column and the pills share the next, so the judgments line up.
- * Every value is in the grid from the first label, at zero height until its
- * own landing, so a longer name does not shove the rows already on screen.
- * Choice 1's label lands first, then Choice 2's.
+ * Every value is in the grid from the first label. Until `reserve`, a row
+ * stays at zero height until its own landing, so a longer name does not shove
+ * the rows already on screen. With `reserve`, every row is open already and
+ * the words fade into place. Choice 1's label lands first, then Choice 2's.
  */
 const FULL_WEIGHT: Record<Value, number> = { A: 1, B: 1, N: 1, J: 1 };
 
@@ -740,6 +745,7 @@ export function ChoiceLabels({
   weight = FULL_WEIGHT,
   fluid = false,
   rows,
+  reserve = false,
 }: {
   tags: Record<Value, Tag>;
   weight?: Record<Value, number>;
@@ -747,11 +753,13 @@ export function ChoiceLabels({
   fluid?: boolean;
   /** Per-value lighting while this choice's values vote. Omit it and every row is at rest. */
   rows?: Partial<Record<Value, LabelRowCue>>;
+  /** Every row keeps its settled height, including values that have not landed. */
+  reserve?: boolean;
 }) {
   const [setName, nameBox] = useBox();
   const [setPill, pillBox] = useBox();
   const [setLine, lineBox] = useBox();
-  if (VALUE_ORDER.every((v) => weight[v] <= 0)) return null;
+  if (!reserve && VALUE_ORDER.every((v) => weight[v] <= 0)) return null;
   const measuredLine = Math.max(nameBox.h, lineBox.h);
   // The live row is a couple of pixels taller than the offscreen measure (grid
   // line box). Extra room keeps the pill from clipping, then popping, as it lands.
@@ -785,6 +793,7 @@ export function ChoiceLabels({
             value={v}
             tag={tags[v]}
             cue={rows?.[v]}
+            reserve={reserve}
           />
         ))}
       </div>
@@ -792,25 +801,48 @@ export function ChoiceLabels({
   );
 }
 
-function Chips({ index, t }: { index: 0 | 1; t: number }) {
+function Chips({ index, t, reserve = false }: { index: 0 | 1; t: number; reserve?: boolean }) {
   const steps = valueSteps(t);
   const weight = index === 0 ? steps.chip1 : steps.chip2;
-  return <ChoiceLabels tags={openingCase.tags[index]} weight={weight} />;
+  return <ChoiceLabels tags={openingCase.tags[index]} weight={weight} reserve={reserve} />;
 }
 
 /**
- * The physician icons on their way out: they fade first, then the slot they held closes,
- * so the labels that follow open into the same place. Gone once closed.
+ * Icons and value labels share the room under a choice. The icons fade, and
+ * the slot eases from their height to the full label stack. It never
+ * collapses, so the heading, the case and the buttons stay put, and each
+ * value fades into a row that is already open.
  */
-function VotesLeave({ t, children }: { t: number; children: ReactNode }) {
-  const [ref, measured] = useBoxHeight();
+function ReservedValues({
+  t,
+  index,
+  votes,
+}: {
+  t: number;
+  index: 0 | 1;
+  /** Opening time while the physician icons are on screen, or null once they have left. */
+  votes: number | null;
+}) {
+  const [voteRef, voteH] = useBoxHeight();
+  const [labelRef, labelH] = useBoxHeight();
+  const heldVote = useRef(0);
+  if (voteH > 0) heldVote.current = voteH;
   const { fade, close } = votesOut(t);
-  if (close >= 1) return null;
-  const closing = close > 0 && measured > 0;
+  const showVotes = votes !== null && close < 1;
+  const from = heldVote.current;
+  const to = Math.max(from, labelH);
+  // Ease from the icons to the labels. Once the icons are gone the labels are
+  // in flow, so a subgrid row keeps their height even before this is measured.
+  const slot = from > 0 && to > 0 ? from + (to - from) * close : undefined;
   return (
-    <div style={{ height: closing ? measured * (1 - close) : undefined, overflow: closing ? "hidden" : undefined }}>
-      <div ref={ref} style={{ opacity: 1 - fade }}>
-        {children}
+    <div className="relative w-full" style={{ minHeight: slot }}>
+      {showVotes && (
+        <div ref={voteRef} style={{ opacity: 1 - fade }} aria-hidden={fade >= 1}>
+          <PhysicianVotes index={index} enterOf={(i) => voteEnter(votes, i)} />
+        </div>
+      )}
+      <div ref={labelRef} className={showVotes ? "absolute inset-x-0 top-0 w-full" : undefined}>
+        <Chips index={index} t={t} reserve />
       </div>
     </div>
   );
@@ -888,12 +920,11 @@ function OptionCard({
   return (
     <li className="flex min-w-0 flex-col gap-[0.45em] @md:col-span-1 @md:row-span-2 @md:grid @md:grid-rows-subgrid @md:gap-y-[0.45em]">
       <ChoiceFace label={openingCase.choices[index]} selected={selected} />
-      {votes !== null && (
-        <VotesLeave t={t}>
-          <PhysicianVotes index={index} enterOf={(i) => voteEnter(votes, i)} />
-        </VotesLeave>
+      {showChips ? (
+        <ReservedValues t={t} index={index} votes={votes} />
+      ) : (
+        votes !== null && <PhysicianVotes index={index} enterOf={(i) => voteEnter(votes, i)} />
       )}
-      {showChips && <Chips index={index} t={t} />}
     </li>
   );
 }
@@ -1129,7 +1160,8 @@ const SceneBody = memo(function SceneBody({
   const optionsEnter = ease(ramp(t, optionsAt, optionsAt + OPTIONS_IN_MS)) * (1 - clearP);
   const selectedIndex = t >= at("model", "extract") && t < at("model", "collapse") ? openingCase.response.chosen : null;
   const showChips = t >= FRAMEWORK_AT;
-  // Space is held from the options on, so the icons arrive without moving anything. They leave in the framework chapter.
+  // Space is held from the options on, so the icons arrive without moving anything.
+  // In the framework chapter that same slot becomes the value labels, still without moving the column.
   const out = votesOut(t);
   const votes = reserveOptions && out.close < 1 ? t : null;
   const votesMoving = out.close > 0 && out.close < 1;
@@ -1366,10 +1398,10 @@ export default function OpeningScene({
 
   // The shared font fits the tallest frame, so the dilemma column sits in leftover
   // space. Scale that column up until it meets the stage, and hold the scale
-  // through the framework so the case does not jump. The model answer is already
-  // as tall as the stage, so it stays at the shared size. Once that answer
-  // collapses into the decision dots, the column is short again: scale it back
-  // up so the case, the choices and the dots use the full stage.
+  // through the framework so the case does not jump. Once the model answer
+  // arrives the column is already as tall as the stage, and it stays at the
+  // shared size. Scaling it back up after the answer collapses would spread the
+  // case, the choices and the dots, and the card would have to collapse them.
   useLayoutEffect(() => {
     const root = rootRef.current;
     const box = scaleRef.current;
@@ -1389,24 +1421,15 @@ export default function OpeningScene({
     const liveH = body?.offsetHeight ?? 0;
     const availW = root.clientWidth;
     const availH = root.clientHeight;
-    // The answer fills the stage on its own, so the column stays at the shared
-    // size while it is on screen. The fill eases back once that panel has faded,
-    // over the rest of the collapse: scaling any sooner would carry the fading
-    // reply off the bottom of the stage.
     const answerFrom = at("model", "ask") + MODEL_HANDOFF_MS;
-    const panelGone = at("model", "collapse") + COLLAPSE_MS * 0.6;
-    const GROW_MS = 480;
-    const answerLocked = t >= answerFrom && t < panelGone;
-    const grow = ease(ramp(t, panelGone, panelGone + GROW_MS));
+    const locked = t >= answerFrom;
     let scale = 1;
     if (colW > 1 && settledH > 1 && liveH > 1 && availW > 1 && availH > 1) {
       const byW = availW / colW;
       const dilemmaFill = Math.min(byW, availH / settledH);
       const liveFit = Math.min(byW, availH / liveH);
       const fill = Math.max(1, Math.min(dilemmaFill, liveFit));
-      if (t < answerFrom) scale = fill;
-      else if (answerLocked) scale = 1;
-      else scale = 1 + (fill - 1) * grow;
+      scale = locked ? 1 : fill;
     }
     const next = Math.round(scale * 1000) / 1000;
     box.style.transform = next === 1 ? "" : `scale(${next})`;
@@ -1414,10 +1437,7 @@ export default function OpeningScene({
     // the gaps, so the heading, the case and the choices reach the stage.
     // Before the choices are in the column, that leftover would pin the case
     // to the bottom of the stage. The shrink lands in the slot it keeps.
-    // While the dots are easing up, the column grows into that height instead of jumping.
-    const growing = t >= panelGone && grow < 1;
-    const visualH = growing ? liveH * next + (availH - liveH * next) * grow : availH;
-    const room = !answerLocked && next > 0 ? visualH / next - liveH : 0;
+    const room = !locked && next > 0 ? availH / next - liveH : 0;
     const choicesIn = t >= at("dilemma", "question");
     if (body && room > 8) {
       box.style.height = `${liveH + room}px`;

@@ -209,7 +209,11 @@ const REPEAT_FAST_MS = 380;
 const REPEAT_GAP_MS = 60;
 /** GPT's ten decisions held for reading. TODO: tune after visual review */
 export const DECISIONS_HOLD_MS = 2400;
-/** The physician icons fade out over this span from the framework chapter's start, then their slot closes. */
+/**
+ * Physician icons fade, then the slot they held eases to the value labels.
+ * The slot does not collapse, so the heading, the case and the choices stay
+ * where the dilemma left them.
+ */
 export const VOTES_FADE_MS = 350;
 export const VOTES_CLOSE_MS = 500;
 /**
@@ -375,7 +379,11 @@ export function decisionDotEnter(elapsedMs: number, index: number): number {
   return spin ? ramp(elapsedMs, spin.end - MODEL_ROW_IN_MS, spin.end) : 1;
 }
 
-/** The physician icons leaving, from the framework chapter's start: `fade` is their opacity loss, `close` their slot closing. Both 0..1. */
+/**
+ * Physician icons leaving, from the framework chapter's start. `fade` is their
+ * opacity loss. `close` eases the slot they held to the value-label height.
+ * Both 0..1. The column does not shrink.
+ */
 export function votesOut(t: number): { fade: number; close: number } {
   const start = at("framework", "framework");
   return {
