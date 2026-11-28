@@ -18,7 +18,6 @@ import { openingCase } from "./openingCase";
 import DecisionBoard from "./DecisionBoard";
 import OpeningResponse from "./OpeningResponse";
 import ValueStrip from "./ValueStrip";
-import TuckedCase from "./TuckedCase";
 import Vignette from "./Vignette";
 import { CARD_CLASS, CARD_SURFACE } from "./cardClass";
 import { CHARCOAL, CHARCOAL_FAINT } from "./charcoal";
@@ -197,7 +196,7 @@ const PROBE_TIMES: readonly number[] = [
   at("hook", "end") - 1,
   at("dilemma", "end") - 1,
   at("model", "extracted"),
-  at("model", "end") - 1, // the case tucked, GPT's decision row on screen
+  at("model", "end") - 1, // the case still full, GPT's decision row on screen
   ...VALUE_ORDER.map((v) => at("framework", `${v}Highlight`) + 400),
   ...VALUE_ORDER.map((v) => at("framework", `${v}Chip2`) + PILL_ENTER_MS),
   at("framework", "all") + 800,
@@ -660,7 +659,7 @@ function OptionCard({
 }
 
 /**
- * The tucked one-line case grows back into the full vignette. `settle` is 0..1.
+ * The case card cross-fades into the vignette. `settle` is 0..1.
  * Both cards are measured, so a seek shows the height in between.
  */
 function CaseHandoff({
@@ -681,7 +680,7 @@ function CaseHandoff({
   return (
     <div className="relative w-full overflow-hidden" style={{ height }}>
       <div ref={lineRef} style={{ opacity: 1 - p }} aria-hidden={p > 0.6}>
-        <TuckedCase tuck={1} shared={shared && p < 0.5} />
+        <PatientCard shared={shared && p < 0.5} />
       </div>
       <div ref={fullRef} className="absolute inset-x-0 top-0" style={{ opacity: p }} aria-hidden={p < 0.4}>
         <Vignette t={t} focused={focused} />
@@ -870,19 +869,14 @@ const SceneBody = memo(function SceneBody({
 
   // The verbatim case stays up through the model chapter; the response sits below it.
   // With the stack handoff, it returns once the framework has cleared, in time for the last beat.
-  // The case collapses to its one-line header, then GPT's decision row arrives.
-  const tuckAt = at("model", "tuck");
-  const modelsAt = at("model", "models");
+    const modelsAt = at("model", "models");
   const frameworkEnd = at("framework", "end");
-  const tucked = t >= tuckAt && t < FRAMEWORK_AT;
-  const tuck = ease(ramp(t, tuckAt, modelsAt));
-  const tuckMoving = t >= tuckAt && t < modelsAt;
   const sharedCard = !probe && !ghost;
   const showSummary = (t >= at("hook", "patient") && t < FRAMEWORK_AT) || (recallPatient && t >= recall + FADE_MS);
   const summaryOpacity =
     recallPatient && t >= recall
       ? ramp(t, recall + FADE_MS, recall + FADE_MS * 2)
-      : visibility(t, at("hook", "patient"), at("hook", "patient") + FADE_MS, FRAMEWORK_AT - FADE_MS, FRAMEWORK_AT);
+      : visibility(t, at("hook", "patient"), at("hook", "patient") + FADE_MS);
   const responseEnter = handoff.responseEnter;
   // GPT's dot row takes over from the answer the moment it arrives, and stay through the framework chapter.
   const showResponse = t >= ask && responseEnter > 0 && t < modelsAt;
@@ -918,7 +912,7 @@ const SceneBody = memo(function SceneBody({
   const handoffMoving = (questionExit > 0 && questionExit < 1) || (responseEnter > 0 && responseEnter < 1);
   const headingMoving = handoffMoving;
   const showQuestionHeading = h === 0 || (h === 1 && questionExit < 1);
-  const sceneStill = !headingMoving && !optionsMoving && !tuckMoving && !stripping && !chipsMoving;
+  const sceneStill = !headingMoving && !optionsMoving && !stripping && !chipsMoving;
 
   return (
     <div
@@ -955,11 +949,7 @@ const SceneBody = memo(function SceneBody({
         <Block probe={probe} className="w-full" layout={sceneStill}>
           <div style={{ opacity: summaryOpacity }} aria-hidden={summaryOpacity === 0 || hidePatient || caseOverlay}>
             <div data-case-slot style={{ visibility: hidePatient || caseOverlay ? "hidden" : undefined }}>
-              {tucked ? (
-                <TuckedCase tuck={tuck} shared={sharedCard} />
-              ) : (
-                <PatientCard shared={sharedCard} />
-              )}
+              <PatientCard shared={sharedCard} />
             </div>
           </div>
         </Block>
@@ -995,7 +985,7 @@ const SceneBody = memo(function SceneBody({
             <ul
               className={`grid w-full grid-cols-1 gap-y-[0.7em] @md:grid-cols-2 @md:grid-rows-[auto_auto] @md:gap-x-[0.6em] @md:gap-y-[0.45em] ${
                 // GPT's dot row sits under these two buttons.
-                tucked || showBoard ? "@max-md:grid-cols-2 @max-md:gap-x-[0.6em] @max-md:gap-y-0" : ""
+                showBoard ? "@max-md:grid-cols-2 @max-md:gap-x-[0.6em] @max-md:gap-y-0" : ""
               }`}
             >
               <OptionCard index={0} t={t} selected={selectedIndex === 0} showChips={showChips} />
@@ -1009,7 +999,7 @@ const SceneBody = memo(function SceneBody({
         <Block
           probe={probe}
           className="w-full"
-          layout={!headingMoving && !tuckMoving}
+          layout={!headingMoving}
           style={responseEnter < 1 ? { marginTop: `calc(${STACK_GAP} * ${responseEnter - 1})` } : undefined}
         >
           <GrowIn enter={responseEnter}>

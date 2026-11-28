@@ -8,7 +8,7 @@ import { decisionDotEnter, easeInOut, OFFSETS, stripProgress } from "./timeline"
 
 /**
  * GPT's ten decisions as one dot row under the choices. The first dot is
- * already beside the mark; the other nine fade in once the case has tucked.
+ * already beside the mark; the other nine land one per spin.
  * The row fades and its slot closes as the values slide arrives.
  */
 

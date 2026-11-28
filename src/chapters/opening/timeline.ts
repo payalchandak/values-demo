@@ -129,15 +129,12 @@ export function modelHandoff(elapsedMs: number): {
 }
 
 /**
- * After the first dot lands and the answer collapses, the case tucks away.
- * GPT's other decisions then arrive. These durations are local to this feature:
+ * After the first dot lands and the answer collapses, GPT's other decisions arrive. These durations are local to this feature:
  * design/motion.ts is deliberately too short for them. Chapter-local ms.
  * TODO: tune after visual review (every value here).
  */
-/** Rest after the answer collapses, before the case tucks. TODO: tune after visual review */
-export const TUCK_DELAY_MS = 500;
-/** The case card shrinks to its one-line header. TODO: tune after visual review */
-export const TUCK_MS = 450;
+/** Rest after the answer collapses, before the spins start. TODO: tune after visual review */
+export const SPINS_DELAY_MS = 500;
 /** One dot fading in as its spin ends. TODO: tune after visual review */
 export const MODEL_ROW_IN_MS = 160;
 /** Each remaining query is one full turn of the mark. The first few are slower, the rest quick. TODO: tune after visual review */
@@ -154,8 +151,7 @@ export const DECISIONS_HOLD_MS = 2400;
  */
 export const STRIP_MS = 1000;
 
-const TUCK_AT = COLLAPSE_AT + COLLAPSE_MS + TUCK_DELAY_MS;
-const MODELS_AT = TUCK_AT + TUCK_MS;
+const MODELS_AT = COLLAPSE_AT + COLLAPSE_MS + SPINS_DELAY_MS;
 
 /** Chapter-local start and end of the spin behind query `n` (1 = the second query). */
 const REPEAT_SPINS: readonly { start: number; end: number }[] = (() => {
@@ -180,7 +176,6 @@ const model = [
   { name: "extracted", startMs: EXTRACTED_AT },
   { name: "firstDot", startMs: FIRST_DOT_AT }, // the excerpt's dot rises beside the mark
   { name: "collapse", startMs: COLLAPSE_AT }, // answer shrinks away; the first dot stays
-  { name: "tuck", startMs: TUCK_AT }, // the case collapses to its one-line header
   { name: "models", startMs: MODELS_AT }, // the mark spins once per remaining query; each spin ends in a dot
   { name: "end", startMs: LAST_DOT_AT + DECISIONS_HOLD_MS },
 ] as const satisfies readonly Beat[];
