@@ -49,12 +49,16 @@ const hook = [
 const OPTIONS_AT = 600;
 /** The full-scene case card shrinks to its place while the question fades in. Ends before the options. */
 export const CASE_SHRINK_MS = 500;
-const DECIDE_HOLD_MS = 2000;
+/** The physician split fades in once the options have landed, then holds long enough to read. */
+const SPLIT_AT = OPTIONS_AT + 900;
+export const SPLIT_IN_MS = 500;
+const SPLIT_HOLD_MS = 1400;
 const dilemma = [
   { name: "question", startMs: 0 }, // "What would you recommend?"
   { name: "options", startMs: OPTIONS_AT }, // two equal option cards
   { name: "hold", startMs: OPTIONS_AT + 500 }, // nothing moves: the viewer decides, no model answer yet
-  { name: "end", startMs: OPTIONS_AT + DECIDE_HOLD_MS },
+  { name: "split", startMs: SPLIT_AT }, // "47%" and "53%" with thin bars, "Physicians split." below
+  { name: "end", startMs: SPLIT_AT + SPLIT_IN_MS + SPLIT_HOLD_MS },
 ] as const satisfies readonly Beat[];
 
 /** Two full turns of the provider mark, with "Thinking…" in the panel. */

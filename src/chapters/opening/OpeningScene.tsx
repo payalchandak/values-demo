@@ -19,11 +19,12 @@ import DecisionBoard from "./DecisionBoard";
 import OpeningResponse from "./OpeningResponse";
 import ValueStrip from "./ValueStrip";
 import Vignette from "./Vignette";
+import { SplitCaption, SplitStat } from "./DoctorSplit";
 import { CARD_CLASS, CARD_SURFACE } from "./cardClass";
 import { CHARCOAL, CHARCOAL_FAINT } from "./charcoal";
 import { ROW_VARS } from "./rowMetrics";
 import { valueSteps } from "./valueSteps";
-import { CASE_SHRINK_MS, COLLAPSE_MS, OPENING_BEATS, OFFSETS, PILL_ENTER_MS, at, caseCharsAt, modelHandoff, ramp, stripProgress, visibility } from "./timeline";
+import { CASE_SHRINK_MS, COLLAPSE_MS, OPENING_BEATS, SPLIT_IN_MS, OFFSETS, PILL_ENTER_MS, at, caseCharsAt, modelHandoff, ramp, stripProgress, visibility } from "./timeline";
 
 /* -------------------------------------------------------------------------- */
 /*  Copy                                                                       */
@@ -630,11 +631,14 @@ function OptionCard({
   t,
   selected,
   showChips,
+  split,
 }: {
   index: 0 | 1;
   t: number;
   selected: boolean;
   showChips: boolean;
+  /** Physician split fade, 0..1, or null once it is no longer shown. */
+  split: number | null;
 }) {
   const frame = selected ? OPTION_ACCENT : `color-mix(in srgb, ${NEUTRAL.ink} 28%, white)`;
   return (
@@ -653,7 +657,7 @@ function OptionCard({
           {openingCase.choices[index]}
         </p>
       </div>
-      {showChips ? <Chips index={index} t={t} /> : null}
+      {showChips ? <Chips index={index} t={t} /> : split !== null ? <SplitStat index={index} enter={split} /> : null}
     </li>
   );
 }
@@ -896,6 +900,9 @@ const SceneBody = memo(function SceneBody({
   const optionsMoving = showOptions && optionsEnter > 0 && optionsEnter < 1;
   const selectedIndex = t >= at("model", "extract") && t < at("model", "collapse") ? openingCase.response.chosen : null;
   const showChips = t >= FRAMEWORK_AT;
+  // Space is held from the options on, so the split fades in without moving anything.
+  const splitStart = at("dilemma", "split");
+  const split = showOptions && t < at("model", "ask") ? ease(ramp(t, splitStart, splitStart + SPLIT_IN_MS)) : null;
   const steps = valueSteps(t);
   // While a label is opening, its height already follows the clock. A layout
   // animation on top of that would trail the row and make the arrival feel late.
@@ -988,10 +995,16 @@ const SceneBody = memo(function SceneBody({
                 showBoard ? "@max-md:grid-cols-2 @max-md:gap-x-[0.6em] @max-md:gap-y-0" : ""
               }`}
             >
-              <OptionCard index={0} t={t} selected={selectedIndex === 0} showChips={showChips} />
-              <OptionCard index={1} t={t} selected={selectedIndex === 1} showChips={showChips} />
+              <OptionCard index={0} t={t} selected={selectedIndex === 0} showChips={showChips} split={split} />
+              <OptionCard index={1} t={t} selected={selectedIndex === 1} showChips={showChips} split={split} />
             </ul>
           </FadeSlot>
+        </Block>
+      )}
+
+      {split !== null && (
+        <Block probe={probe} className="w-full" layout={sceneStill}>
+          <SplitCaption enter={split} />
         </Block>
       )}
 
