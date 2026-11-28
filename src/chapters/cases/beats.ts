@@ -20,11 +20,11 @@ export const CASE_COUNT = 50;
 /** Cards 3 to 48 (index 2 to 47) are skipped through. Everything else is shown at full pace. */
 export const isFast = (i: number) => i >= 2 && i <= CASE_COUNT - 3;
 /** Time between skipped cards. */
-export const FAST_STEP_MS = 130;
+export const FAST_STEP_MS = 210;
 /** A skipped card's slide in. */
-export const FAST_IN_MS = 110;
+export const FAST_IN_MS = 750;
 /** Pause between the skip and the second to last case. */
-export const SKIP_END_MS = 500;
+export const SKIP_END_MS = 900;
 
 const box = FRAME_MS;
 /** The anorexia case is held for a full beat once the box has finished. */

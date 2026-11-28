@@ -107,7 +107,7 @@ function CaseContent({
   // Only the first few cards down the pile show. Deeper ones are gone.
   const shown = Math.min(depth, PILE);
   const fade = 1 - clamp01(depth - PILE);
-  const rise = (1 - arrive) * RISE_EM;
+  const rise = (1 - arrive) * (isFast(index) ? RISE_EM * 0.4 : RISE_EM);
   const buried = depth > 0.001;
   return (
     <div
