@@ -988,17 +988,21 @@ function CaseOverlay({ t, full, target }: { t: number; full: Rect | null; target
         color: NEUTRAL.ink,
       }}
     >
-      <p className="leading-[1.5]" style={{ textWrap: "pretty" }}>
-        <span>{text.slice(0, typed)}</span>
+      <p className="w-full min-w-0 leading-[1.5]" style={{ textWrap: "pretty" }}>
+        {text.slice(0, typed)}
         {typed < text.length && (
-          <span aria-hidden className="relative inline-block w-0 align-baseline">
+          <span aria-hidden className="relative inline">
             <span
               className="absolute bg-current"
               style={{ left: "0.05em", width: "0.07em", height: "1.05em", top: "-0.85em" }}
             />
           </span>
         )}
-        <span style={{ visibility: "hidden" }}>{text.slice(typed)}</span>
+        {typed < text.length && (
+          <span aria-hidden style={{ display: "contents", color: "transparent" }}>
+            {text.slice(typed)}
+          </span>
+        )}
       </p>
     </div>
   );
@@ -1288,7 +1292,19 @@ export default function OpeningScene({
           else hi = mid;
         }
       }
-      const nextFull: Rect = { left: CASE_MARGIN_PX, top: CASE_MARGIN_PX, width, height, fs: Math.floor(lo * 10) / 10 };
+      const caseFs = Math.floor(lo * 10) / 10;
+      caseProbe.style.fontSize = `${caseFs}px`;
+      // The card hugs the text. Leftover scene height stays outside it, so the
+      // padding around the words is the same on every side.
+      const textH = caseProbe.offsetHeight;
+      const usedH = Math.min(height, textH);
+      const nextFull: Rect = {
+        left: CASE_MARGIN_PX,
+        top: CASE_MARGIN_PX + Math.max(0, (height - usedH) / 2),
+        width,
+        height: usedH,
+        fs: caseFs,
+      };
       setFullRect((prev) => (sameRect(prev, nextFull) ? prev : nextFull));
     };
 
@@ -1362,10 +1378,12 @@ export default function OpeningScene({
       <div
         ref={caseProbeRef}
         aria-hidden="true"
-        className="pointer-events-none invisible absolute left-0 top-0 box-border leading-[1.5]"
-        style={{ padding: `${CASE_PAD_EM}em`, textWrap: "pretty" }}
+        className="pointer-events-none invisible absolute left-0 top-0 box-border flex items-center border border-transparent"
+        style={{ padding: `${CASE_PAD_EM}em` }}
       >
-        {openingCase.vignette}
+        <p className="w-full min-w-0 leading-[1.5]" style={{ textWrap: "pretty" }}>
+          {openingCase.vignette}
+        </p>
       </div>
       {probeSet(fullProbesRef, false)}
       {probeSet(focusedProbesRef, true)}
