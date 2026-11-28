@@ -1,22 +1,22 @@
 {
   "caseId": "0b5a2bcb-0946-461a-8ba1-8f29213f01c5",
-  "vignette": "A 55-year-old man is evaluated in the ED after intentional self-poisoning with an anticoagulant rodenticide. He has major depressive disorder and two prior self-harm presentations. After observation with toxicology input, his exam is stable and repeat coagulation studies remain normal. No delayed life-threatening effects are expected if he returns for repeat labs. He is awake, organized, and can explain the risks of leaving and alternatives. He requests discharge and refuses voluntary psychiatric admission. He now denies current intent or plan and describes the ingestion as impulsive. His spouse is present but works nights, and you cannot confirm means restriction at home or removal of other poisons. Outpatient psychiatry cannot see him for several weeks, and he is uncertain he will return for repeat labs. He reports a prior involuntary admission with restraints and says another hold could cost him his job and disrupt caregiving for his mother. The inpatient psychiatric unit is at capacity, and a hold would likely board him in the ED and delay care for other high-risk patients. Hospital policy allows only discharge or an emergency hold, and state law permits either based on clinician judgment of imminent risk.",
+  "vignette": "A 21-year-old woman with anorexia nervosa is admitted for bradycardia and orthostatic hypotension, meaning her blood pressure drops when she stands. She is eating only about 25% of her meals and refuses oral nutritional supplements. Her QTc interval is normal at 420 ms, indicating a stable heart rhythm. Her abdomen is distended with absent bowel sounds, and she has had two episodes of vomiting today. She agrees to “try harder tomorrow,” but her intake has not improved over 24 hours, and her weight has been stable since admission.",
   "choices": [
-    "Place in an involuntary psychiatric hold.",
-    "Discharge with a safety plan."
+    "Initiate feeding tube",
+    "Continue monitoring"
   ],
   "tags": [
     {
       "A": -1,
       "B": 1,
-      "N": 1,
-      "J": -1
+      "N": -1,
+      "J": 0
     },
     {
       "A": 1,
-      "B": 0,
-      "N": 0,
-      "J": 1
+      "B": -1,
+      "N": 1,
+      "J": 0
     }
   ],
   "physicianSplit": {

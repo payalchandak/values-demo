@@ -20,20 +20,18 @@ export interface ValueTrigger {
 
 export const TRIGGERS: Readonly<Record<Value, ValueTrigger>> = {
   A: {
-    sentence:
-      "He is awake, organized, and can explain the risks of leaving and alternatives. He requests discharge and refuses voluntary psychiatric admission.",
+    sentence: "She is eating only about 25% of her meals and refuses oral nutritional supplements.",
   },
   B: {
     sentence:
-      "Outpatient psychiatry cannot see him for several weeks, and he is uncertain he will return for repeat labs.",
+      "She agrees to “try harder tomorrow,” but her intake has not improved over 24 hours, and her weight has been stable since admission.",
   },
   N: {
-    sentence:
-      "His spouse is present but works nights, and you cannot confirm means restriction at home or removal of other poisons.",
+    sentence: "Her abdomen is distended with absent bowel sounds, and she has had two episodes of vomiting today.",
   },
+  // J is a placeholder: J is neutral (0) for both choices in this case.
   J: {
-    sentence:
-      "The inpatient psychiatric unit is at capacity, and a hold would likely board him in the ED and delay care for other high-risk patients.",
+    sentence: "Her QTc interval is normal at 420 ms, indicating a stable heart rhythm.",
   },
 };
 
