@@ -16,6 +16,14 @@ export const DOT_PITCH = 13;
 
 export const FOREGROUND = 3;
 
+/** Extra height, at natural size, the first card gets for its decision row and caption. */
+export const HERO_EXTRA = 46;
+/** The first card's decision dots: the first lands this long into the chapter, then one per step. */
+export const DECISION_START_MS = 250;
+export const DECISION_STEP_MS = 100;
+/** Each dot fades in over this long. */
+export const DECISION_FADE_MS = 80;
+
 /**
  * Everything positional lives in a Layout, in logical stage px. The renderer
  * scales the stage to fit its container and picks `wide` or `tall` from the
@@ -126,7 +134,7 @@ function wideLayout(width: number, height: number, n: number): Layout {
   const gridScale = Math.min(1.25, picked.scale);
   const heroScale = Math.max(
     gridScale,
-    Math.min(2.35, ((width - GRID_EDGE * 2) * 0.7) / CARD_W, ((height - 16) * 0.82) / CARD_H),
+    Math.min(2.35, ((width - GRID_EDGE * 2) * 0.7) / CARD_W, ((height - 16) * 0.82) / (CARD_H + HERO_EXTRA)),
   );
   const rowW = Math.round(Math.min(1120, Math.max(560, width - 48)));
   const compactRows = rowW < 760;
@@ -207,6 +215,11 @@ export interface CardFrame {
   dots: number;
   choice1Count: number;
   markerOpacity: number;
+  /** Natural-size extra height of the face (the first card's decision row), shrinking to 0 with the card. */
+  extraH: number;
+  /** Chapter ms since the first decision dot was due, and the row's opacity (only card 0 shows a row). */
+  decisionMs: number;
+  decisionOpacity: number;
   /** 0..1 fill of the observed-frequency bar. */
   freqFill: number;
   /** 0..1 highlight (only ever non-zero on card 0). */
@@ -324,9 +337,8 @@ export function computeFrame(
 
     // 4. Edge markers accumulate across every card, spreading out from the middle.
     const local = t < times.markers ? 0 : clamp01((markersP - rank * 0.55) / 0.45);
-    //    The hero arrives from the opening with its dots in; they leave as it shrinks and return with the rest.
-    const heroDots = i === 0 && t < times.markers;
-    const dots = heroDots ? TRIALS : Math.round(TRIALS * local);
+    //    The hero carries no edge dots at first (its decisions are a row inside the card); it joins the rest at the markers beat.
+    const dots = Math.round(TRIALS * local);
 
     cards.push({
       index: i,
@@ -350,7 +362,10 @@ export function computeFrame(
       rowOpacity: foreground && arrived ? 1 : 0,
       dots,
       choice1Count: choice1Counts[i],
-      markerOpacity: flyingNow ? 0 : heroDots ? 1 - shrinkP : 1,
+      markerOpacity: flyingNow ? 0 : 1,
+      extraH: i === 0 ? HERO_EXTRA * (1 - shrinkP) : 0,
+      decisionMs: t - DECISION_START_MS,
+      decisionOpacity: i === 0 ? 1 - clamp01(shrinkP / 0.35) : 0,
       freqFill: foreground && arrived ? 1 : 0,
       highlight: i === 0 ? highlightP : 0,
     });

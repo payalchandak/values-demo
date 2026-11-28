@@ -1,6 +1,8 @@
 import { memo, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { StudyCase, Tag, Value } from "../../study/types";
 import type { Beat } from "../../types";
+import ProviderIcon from "../../components/ProviderIcon";
+import openaiLogo from "../../assets/providers/openai.svg";
 import CaseCardFace, { CaseCardMini, caseCardFor, caseFaceStyle } from "./CaseCard";
 import { resolveBeats } from "./beats";
 import {
@@ -16,6 +18,8 @@ import {
   easeInOut,
   DOT_PITCH,
   DOT_SIZE,
+  DECISION_FADE_MS,
+  DECISION_STEP_MS,
   FOREGROUND,
   layoutFor,
   rowGrid,
@@ -174,6 +178,7 @@ export default function StackStage({
               study={cases[card.index]}
               delta={deltas[card.index]}
               layout={L}
+              profileLabel={profileLabel ?? profileKey}
             />
           ),
         )}
@@ -273,11 +278,13 @@ function StackCard({
   study,
   delta,
   layout,
+  profileLabel,
 }: {
   card: CardFrame;
   study: StudyCase;
   delta: ReturnType<typeof deltaOf> | undefined;
   layout: Layout;
+  profileLabel: string;
 }) {
   const showBack = card.flipDeg > 90;
   return (
@@ -355,7 +362,7 @@ function StackCard({
             left: "50%",
             top: "50%",
             width: CARD_W,
-            height: CARD_H,
+            height: CARD_H + card.extraH,
             transform: `translate(-50%, -50%) scale(${card.faceScale})`,
             opacity: card.faceOpacity,
           }}
@@ -363,7 +370,14 @@ function StackCard({
           <div style={{ width: "100%", height: "100%", transform: `perspective(900px) rotateY(${card.flipDeg}deg)` }}>
             {showBack ? (
               <div style={{ width: "100%", height: "100%", transform: "rotateY(180deg)" }}>
-                <CardBack study={study} />
+                <CardBack
+                  study={study}
+                  decisions={
+                    card.decisionOpacity > 0
+                      ? { ms: card.decisionMs, opacity: card.decisionOpacity, choice1: card.choice1Count, label: profileLabel }
+                      : undefined
+                  }
+                />
               </div>
             ) : (
               <CardFront study={study} mini={clamp01((MINI_BELOW + MINI_FADE - card.faceScale) / MINI_FADE)} />
@@ -716,7 +730,76 @@ const TAG_STYLE: Record<Tag, { bg: string; fg: string }> = {
   1: { bg: "#E6F4EC", fg: "#1D7A4D" },
 };
 
-export const CardBack = memo(function CardBack({ study }: { study: StudyCase }) {
+/** The first card's decision row: the model's mark, then one dot per query in the column it chose. */
+interface CardDecisions {
+  /** Ms since the first dot was due. */
+  ms: number;
+  opacity: number;
+  /** Queries (out of TRIALS) that chose choice 1. */
+  choice1: number;
+  label: string;
+}
+
+const DECISION_DOT = 8;
+const DECISION_PITCH = 10.3;
+const DECISION_MARK = 18;
+const DECISION_CHARCOAL = "#2B2F36";
+
+function DecisionRow({ d }: { d: CardDecisions }) {
+  const choice2 = TRIALS - d.choice1;
+  const side = d.choice1 >= choice2 ? 0 : 1;
+  const count = side === 0 ? d.choice1 : choice2;
+  const dotsOf = (col: 0 | 1) =>
+    Array.from({ length: TRIALS }, (_, i) => ({ i, col: (i < d.choice1 ? 0 : 1) as 0 | 1 }))
+      .filter((q) => q.col === col)
+      .map((q) => {
+        const slot = q.col === 0 ? q.i : q.i - d.choice1;
+        const a = clamp01((d.ms - q.i * DECISION_STEP_MS) / DECISION_FADE_MS);
+        return (
+          <span
+            key={q.i}
+            style={{
+              position: "absolute",
+              left: slot * DECISION_PITCH,
+              top: (DECISION_MARK - DECISION_DOT) / 2,
+              width: DECISION_DOT,
+              height: DECISION_DOT,
+              borderRadius: "50%",
+              background: DECISION_CHARCOAL,
+              opacity: a,
+            }}
+          />
+        );
+      });
+  return (
+    <div style={{ marginTop: "auto", opacity: d.opacity }}>
+      <div style={{ position: "relative", height: DECISION_MARK }}>
+        <span style={{ position: "absolute", left: 0, top: 0 }}>
+          <ProviderIcon src={openaiLogo} alt={d.label} size={DECISION_MARK} />
+        </span>
+        {[0, 1].map((col) => (
+          <div
+            key={col}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: col * (BACK_COL_W + BACK.colGap) + DECISION_MARK + 4,
+              height: DECISION_MARK,
+              width: BACK_COL_W - DECISION_MARK - 4,
+            }}
+          >
+            {dotsOf(col as 0 | 1)}
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 4, fontSize: 10, lineHeight: "12px", color: "#6b7280", textAlign: "center" }}>
+        {`${d.label} chose Choice ${side + 1} in ${count} of ${TRIALS} queries.`}
+      </div>
+    </div>
+  );
+}
+
+export const CardBack = memo(function CardBack({ study, decisions }: { study: StudyCase; decisions?: CardDecisions }) {
   const card = caseCardFor(study);
   return (
     <div style={{ ...caseFaceStyle, display: "flex", flexDirection: "column" }}>
@@ -758,6 +841,7 @@ export const CardBack = memo(function CardBack({ study }: { study: StudyCase }) 
           </div>
         ))}
       </div>
+      {decisions && <DecisionRow d={decisions} />}
     </div>
   );
 });
