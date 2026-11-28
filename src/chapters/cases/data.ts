@@ -65,7 +65,7 @@ function toCard(raw: StudyCase, labels?: readonly [string, string]): DilemmaCard
 /** The opening's case is card 1 and is built by the scene. */
 const OPENING_PREFIX = "0b5a2bcb";
 const FIRST = "4b731f8c";
-const LAST_TWO = ["c66799aa", "7bd46c3e"] as const;
+const LAST_TWO = ["7bd46c3e", "7129cbd9"] as const;
 
 /** Cards 2 to 50: chemotherapy, every other case as is, then weight counseling and embryo transfer. */
 export const addedCases: readonly DilemmaCard[] = (() => {

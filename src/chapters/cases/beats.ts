@@ -24,7 +24,7 @@ export const FAST_STEP_MS = 210;
 /** A skipped card's slide in. */
 export const FAST_IN_MS = 750;
 /** Pause between the skip and the second to last case. */
-export const SKIP_END_MS = 900;
+export const SKIP_END_MS = FAST_STEP_MS;
 
 const box = FRAME_MS;
 /** The anorexia case is held for a full beat once the box has finished. */
