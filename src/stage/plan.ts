@@ -1,5 +1,4 @@
 import { casesBeats } from "../chapters/cases/beats";
-import { PRISM_HEADLINES, prismBeats } from "../chapters/prism/beats";
 import { OPENING_BEATS, OFFSETS as OPENING_OFFSETS, type OpeningChapterKey } from "../chapters/opening/timeline";
 import { stackBeats } from "../chapters/stack/beats";
 import { compressBeats, PROFILE_HEADLINE } from "../chapters/regression/beats";
@@ -8,14 +7,13 @@ import { FADE_MS } from "../design/motion";
 import { beatStart, chapterDuration, type Beat } from "../types";
 import { morphBeats } from "./morphBeats";
 
-/** Chapter ids, in play order: opening (4), cases, prism, stack, regression bridge, morph, ending (2). Reorder freely. */
+/** Chapter ids, in play order: opening (4), cases, stack, regression bridge, morph, ending (2). Reorder freely. */
 export const SEGMENTS = [
   "opening-hook",
   "opening-dilemma",
   "opening-framework",
   "opening-model",
   "cases",
-  "prism",
   "stack",
   "regression",
   "morph",
@@ -37,7 +35,6 @@ export const SEGMENT_BEATS: Record<SegmentId, readonly Beat[]> = {
   "opening-framework": OPENING_BEATS.framework,
   "opening-model": OPENING_BEATS.model,
   cases: casesBeats,
-  prism: prismBeats,
   stack: stackBeats,
   regression: compressBeats,
   morph: morphBeats,
@@ -81,13 +78,9 @@ export interface HeadlineEntry {
 }
 
 const stackAt = (name: string) => SEGMENT_OFFSET.stack + beatStart(stackBeats, name);
-const prismAt = (name: string) => SEGMENT_OFFSET.prism + beatStart(prismBeats, name);
 
 /** Whole-demo times at which the headline changes. "" clears it (the closing question takes over). */
 export const HEADLINE_ENTRIES: readonly HeadlineEntry[] = [
-  { at: prismAt("stream"), text: PRISM_HEADLINES.stream },
-  { at: prismAt("split"), text: PRISM_HEADLINES.split },
-  { at: prismAt("settle"), text: PROFILE_HEADLINE },
   { at: stackAt("card"), text: STACK_HEADLINES.start },
   { at: stackAt("flip"), text: STACK_HEADLINES.flip },
   { at: stackAt("markers"), text: STACK_HEADLINES.markers },
