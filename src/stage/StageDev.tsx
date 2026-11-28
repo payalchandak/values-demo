@@ -23,8 +23,8 @@ export default function StageDev() {
       <main
         className={
           segment === "stack"
-            ? "mx-auto h-full w-full px-4 pb-24 pt-8 md:px-6"
-            : "mx-auto h-full w-full max-w-5xl px-6 pb-24 pt-8 md:px-10"
+            ? "mx-auto h-full w-full px-3 pb-24 pt-3 md:px-6 md:pt-8"
+            : "mx-auto h-full w-full max-w-5xl px-3 pb-24 pt-3 md:px-10 md:pt-8"
         }
       >
         <LayoutGroup>

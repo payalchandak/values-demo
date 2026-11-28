@@ -83,6 +83,96 @@ const OPTION_ACCENT = RECOMMENDATION_COLORS.option2;
 const MIN_FONT_PX = 6;
 const MAX_FONT_PX = 22;
 /**
+ * The opening card (logo + paper title) is on screen alone, so it is sized to
+ * the viewport instead of the font that later, denser chapters fit into.
+ * It eases back to that shared size before the case arrives.
+ */
+const HERO_EXIT_MS = 480;
+/** NeurIPS lockup, from the SVG's own width and height. */
+const LOGO_ASPECT = 26.738739 / 59.671822;
+const HERO_TITLE_CAP = 96;
+const HERO_LOGO_CAP = 720;
+/** Same break as the opening card: two lines, never a third. */
+const HERO_TITLE_LINES = ["Do Language Models Share", "Your Doctor's Priorities?"] as const;
+const HERO_LINE_HEIGHT = 1.12;
+if (HERO_TITLE_LINES.join(" ") !== HEADLINES[0].text) {
+  throw new Error("opening title lines drifted from the headline");
+}
+
+interface HeroLockup {
+  logo: number;
+  title: number;
+  gap: number;
+  fs: number;
+  sceneW: number;
+}
+
+const EMPTY_LOCKUP: HeroLockup = { logo: 0, title: 0, gap: 0, fs: 16, sceneW: 0 };
+
+const sameLockup = (a: HeroLockup, b: HeroLockup) =>
+  Math.abs(a.logo - b.logo) < 0.5 &&
+  Math.abs(a.title - b.title) < 0.5 &&
+  Math.abs(a.gap - b.gap) < 0.5 &&
+  Math.abs(a.fs - b.fs) < 0.05 &&
+  Math.abs(a.sceneW - b.sceneW) < 0.5;
+
+/**
+ * Largest logo and two-line title that fill the opening card.
+ * The title keeps its two lines; the size is whatever still fits the width.
+ */
+function measureHero(sceneW: number, sceneH: number, fs: number, lineProbe: HTMLElement): HeroLockup {
+  const maxH = Math.max(0, sceneH * 0.9);
+  const restTitle = 2.6 * fs;
+  const restLogo = Math.min(16 * fs, sceneW * 0.68);
+  const lineBudget = Math.max(0, sceneW * 0.98);
+  const gapFor = (titlePx: number) => Math.max(fs * 0.9, titlePx * 0.32);
+  const titleBlock = (titlePx: number) => titlePx * HERO_LINE_HEIGHT * HERO_TITLE_LINES.length;
+  const linesFit = (titlePx: number) => {
+    lineProbe.style.fontSize = `${titlePx}px`;
+    for (const line of HERO_TITLE_LINES) {
+      lineProbe.textContent = line;
+      if (lineProbe.offsetWidth > lineBudget + 0.5) return false;
+    }
+    return true;
+  };
+  const blockFits = (logoW: number, titlePx: number) =>
+    logoW * LOGO_ASPECT + gapFor(titlePx) + titleBlock(titlePx) <= maxH;
+
+  if (sceneW <= 0 || sceneH <= 0) return { logo: restLogo, title: restTitle, gap: gapFor(restTitle), fs, sceneW };
+
+  let lo = 8;
+  let hi = HERO_TITLE_CAP;
+  for (let i = 0; i < 14; i++) {
+    const mid = (lo + hi) / 2;
+    if (linesFit(mid)) lo = mid;
+    else hi = mid;
+  }
+  let title = linesFit(lo) ? lo : restTitle;
+  let logo = Math.min(sceneW * 0.96, HERO_LOGO_CAP);
+  if (!blockFits(logo, title)) {
+    let a = Math.min(restLogo, sceneW * 0.4);
+    let b = logo;
+    for (let i = 0; i < 12; i++) {
+      const mid = (a + b) / 2;
+      if (blockFits(mid, title)) a = mid;
+      else b = mid;
+    }
+    logo = blockFits(a, title) ? a : restLogo;
+  }
+  if (!blockFits(logo, title)) {
+    let a = 8;
+    let b = title;
+    for (let i = 0; i < 12; i++) {
+      const mid = (a + b) / 2;
+      if (linesFit(mid) && blockFits(logo, mid)) a = mid;
+      else b = mid;
+    }
+    title = a;
+  }
+
+  return { logo, title, gap: gapFor(title), fs, sceneW };
+}
+/**
  * Below this size the full vignette is not comfortable to read, so the scene
  * switches to the focused vignette layout (see Vignette.tsx).
  */
@@ -244,14 +334,23 @@ function OpeningMark({
   lift,
   drift,
   open,
+  hero,
+  lockup,
 }: {
   opacity: number;
   lift: number;
   drift: number;
   open: number;
+  /** 1 = the viewport-sized opening card. 0 = the size the rest of the chapter fits. */
+  hero: number;
+  lockup: HeroLockup;
 }) {
   const [ref, measured] = useBoxHeight();
   const p = Math.min(1, Math.max(0, lift));
+  const h = Math.min(1, Math.max(0, hero));
+  const restLogo = Math.min(16 * lockup.fs, lockup.sceneW * 0.68);
+  const logoW = lockup.logo > 0 ? restLogo * (1 - h) + lockup.logo * h : undefined;
+  const gap = lockup.gap > 0 ? `calc(${STACK_GAP} * ${1 - h} + ${lockup.gap * h}px)` : STACK_GAP;
   return (
     <div
       className="w-full overflow-hidden"
@@ -264,13 +363,15 @@ function OpeningMark({
         <img
           src={neuripsLogo}
           alt="NeurIPS"
-          className="w-[min(16em,68%)]"
+          className={logoW === undefined ? "w-[min(16em,68%)]" : "h-auto max-w-full"}
           style={{
+            width: logoW,
+            aspectRatio: logoW === undefined ? undefined : "59.671822 / 26.738739",
             opacity,
             transform: `translateY(${drift * -0.45}em) scale(${0.94 + 0.06 * open})`,
           }}
         />
-        <div aria-hidden style={{ height: STACK_GAP }} />
+        <div aria-hidden style={{ height: gap }} />
       </div>
     </div>
   );
@@ -290,6 +391,7 @@ function HeadlineReplace({
   drift = 0,
   titleOpacity,
   questionOpacity,
+  titleSize,
 }: {
   /** 0 = the paper title's box, 1 = the question's box. */
   mix: number;
@@ -299,6 +401,8 @@ function HeadlineReplace({
   drift?: number;
   titleOpacity: number;
   questionOpacity: number;
+  /** Override for the opening card. Omit to use the shared headline size. */
+  titleSize?: string;
 }) {
   const [titleRef, titleH] = useBoxHeight();
   const [questionRef, questionH] = useBoxHeight();
@@ -332,7 +436,7 @@ function HeadlineReplace({
           className={HEADING_CLASS}
           style={{
             gridArea: "1 / 1",
-            fontSize: HEADLINES[0].size,
+            fontSize: titleSize ?? HEADLINES[0].size,
             color: NEUTRAL.ink,
             opacity: titleOpacity,
             position: swapping || settledQuestion ? "absolute" : undefined,
@@ -343,7 +447,13 @@ function HeadlineReplace({
           }}
           aria-hidden={titleOpacity < 0.5}
         >
-          {HEADLINES[0].text}
+          {titleSize
+            ? HERO_TITLE_LINES.map((line) => (
+                <span key={line} className="block whitespace-nowrap">
+                  {line}
+                </span>
+              ))
+            : HEADLINES[0].text}
         </h1>
         <h1
           ref={questionRef}
@@ -654,6 +764,7 @@ const SceneBody = memo(function SceneBody({
   sharedIcon,
   hidePatient,
   recallPatient,
+  lockup,
   ghost = false,
 }: {
   t: number;
@@ -662,6 +773,7 @@ const SceneBody = memo(function SceneBody({
   sharedIcon: boolean;
   hidePatient: boolean;
   recallPatient: boolean;
+  lockup: HeroLockup;
   /** An invisible copy that only holds the icon's anchor (see OpeningScene). Never the patient's shared card. */
   ghost?: boolean;
 }) {
@@ -693,6 +805,11 @@ const SceneBody = memo(function SceneBody({
   // Logo and title open on the same curve. The logo then fades as the case starts.
   const logoOpen = ease(ramp(t, at("hook", "logo"), at("hook", "logoHold")));
   const riseT = ramp(t, at("hook", "logoRise"), at("hook", "logoGone"));
+  // The opening card fills the screen, then settles to the shared size before the case is mounted.
+  const logoRise = at("hook", "logoRise");
+  const hero = probe ? 0 : 1 - ease(ramp(t, logoRise - HERO_EXIT_MS, logoRise));
+  const titlePx =
+    hero > 0 && lockup.title > 0 ? 2.6 * lockup.fs * (1 - hero) + lockup.title * hero : undefined;
   // Fade in place first, then close the slot once the mark is gone.
   const logoFade = ease(Math.min(1, riseT / 0.62));
   const logoLift = ease(Math.min(1, Math.max(0, (riseT - 0.5) / 0.5)));
@@ -762,7 +879,7 @@ const SceneBody = memo(function SceneBody({
       style={{ gap: STACK_GAP, ...ROW_VARS }}
     >
       {riseT < 1 && (
-        <OpeningMark opacity={logoOpacity} lift={logoLift} drift={logoFade} open={logoOpen} />
+        <OpeningMark opacity={logoOpacity} lift={logoLift} drift={logoFade} open={logoOpen} hero={hero} lockup={lockup} />
       )}
 
       {showQuestionHeading && (
@@ -772,6 +889,7 @@ const SceneBody = memo(function SceneBody({
           drift={h === 0 ? 0 : handoff.questionFade}
           titleOpacity={h === 0 ? logoOpen * (1 - titleLeave) : 0}
           questionOpacity={h === 0 ? questionIn : 1 - handoff.questionFade}
+          titleSize={h === 0 && titlePx !== undefined ? `${titlePx}px` : undefined}
         />
       )}
 
@@ -894,8 +1012,10 @@ export default function OpeningScene({
   const rootRef = useRef<HTMLDivElement>(null);
   const fullProbesRef = useRef<HTMLDivElement>(null);
   const focusedProbesRef = useRef<HTMLDivElement>(null);
+  const heroProbeRef = useRef<HTMLDivElement>(null);
   // Narrow-screen vignette layout; chosen by the fit below, not by a fixed breakpoint.
   const [focused, setFocused] = useState(false);
+  const [lockup, setLockup] = useState<HeroLockup>(EMPTY_LOCKUP);
 
   // Choose the largest font size at which the fullest state of every chapter
   // fits the box. If the full vignette would need type smaller than
@@ -905,7 +1025,10 @@ export default function OpeningScene({
     const root = rootRef.current;
     const full = fullProbesRef.current;
     const narrow = focusedProbesRef.current;
-    if (!root || !full || !narrow) return;
+    const heroProbe = heroProbeRef.current;
+    if (!root || !full || !narrow || !heroProbe) return;
+    const lineProbe = heroProbe.querySelector<HTMLElement>("[data-hero-word]");
+    if (!lineProbe) return;
 
     const apply = (px: number) => {
       root.style.setProperty("--fs", `${px}px`);
@@ -939,6 +1062,10 @@ export default function OpeningScene({
       }
       root.dataset.fontPx = root.style.getPropertyValue("--fs");
       root.dataset.fullFitPx = String(fullPx);
+      const fs = parseFloat(root.style.getPropertyValue("--fs")) || 16;
+      const scene = root.querySelector<HTMLElement>(":scope > [data-scene-body]");
+      const next = measureHero(scene?.clientWidth || root.clientWidth, root.clientHeight, fs, lineProbe);
+      setLockup((prev) => (sameLockup(prev, next) ? prev : next));
     };
 
     fit();
@@ -952,7 +1079,15 @@ export default function OpeningScene({
     <div ref={ref} data-probe aria-hidden="true" className="pointer-events-none invisible absolute left-0 top-0 w-full">
       {PROBE_TIMES.map((pt) => (
         <div key={pt} className="absolute left-0 top-0 w-full">
-          <SceneBody t={pt} probe focused={isFocused} sharedIcon={false} hidePatient={false} recallPatient={false} />
+          <SceneBody
+            t={pt}
+            probe
+            focused={isFocused}
+            sharedIcon={false}
+            hidePatient={false}
+            recallPatient={false}
+            lockup={EMPTY_LOCKUP}
+          />
         </div>
       ))}
     </div>
@@ -973,7 +1108,13 @@ export default function OpeningScene({
         sharedIcon={sharedIcon}
         hidePatient={hidePatient}
         recallPatient={recallPatient}
+        lockup={lockup}
       />
+      <div ref={heroProbeRef} aria-hidden="true" className="pointer-events-none invisible absolute left-0 top-0">
+        <span data-hero-word className="whitespace-nowrap font-semibold tracking-tight">
+          {HERO_TITLE_LINES[1]}
+        </span>
+      </div>
       {probeSet(fullProbesRef, false)}
       {probeSet(focusedProbesRef, true)}
     </div>
