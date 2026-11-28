@@ -33,6 +33,24 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const BAR_THICK = 16;
 const BAR_PITCH = 40;
 const BAR_TRACK_MAX = 300;
+
+/** How far the priority bars grow with the frame's width. Names, pitch and track all use it. */
+function barFrameScale(width: number): number {
+  return Math.min(Math.max(width / 420, 1), 1.5);
+}
+
+/** Distance between the four priority rows for a frame of this width, before they stack. */
+function barRowPitch(width: number): number {
+  return BAR_PITCH * barFrameScale(width);
+}
+
+/** Y centre of each value row in a frame of this size, before the rows stack. */
+export function restingRowYs(width: number, height: number): number[] {
+  const cy = height / 2;
+  const pitch = barRowPitch(width);
+  return VALUE_ORDER.map((_, i) => cy + (i - 1.5) * pitch);
+}
+
 const NAME_FS = 14;
 const PERCENT_FS = 13;
 const INSET = 8;
@@ -61,6 +79,7 @@ export default function Morph({
   numbers = 1,
   bars: barsOpacity = 1,
   shares,
+  rowYs,
 }: {
   profile: Profile;
   elapsedMs: number;
@@ -73,6 +92,12 @@ export default function Morph({
   bars?: number;
   /** Bar lengths as shares, in place of the profile's own. The vote chapter grows its tally here. */
   shares?: Record<Value, number>;
+  /**
+   * Y centre of each value row, in the frame. Defaults to a tight stack around
+   * the middle. The vote chapter spreads these along the case card, then eases
+   * them back onto the resting rows so the last frame still matches the ring.
+   */
+  rowYs?: readonly number[];
 }) {
   useFontEpoch();
   const t = Math.max(0, elapsedMs);
@@ -103,13 +128,14 @@ export default function Morph({
     const opacityOf = (v: (typeof VALUE_ORDER)[number]) => (v === top ? 1 : LIGHT_OPACITY);
 
     // Bar layout, centered on the frame.
-    const s = Math.min(Math.max(W / 420, 1), 1.5);
+    const s = barFrameScale(W);
     const f = Math.min(s, 1.25);
     const nameW = Math.max(...VALUE_ORDER.map((v) => measureText(VALUES[v].name, NAME_FS * f, 600)));
     const pctW = Math.max(...VALUE_ORDER.map((v) => measureText(`${Math.round(p[v] * 100)}%`, PERCENT_FS * f, 400)));
     const track = Math.min(Math.max(W - 2 * INSET - nameW - pctW - 2 * GAP, 48), BAR_TRACK_MAX * s);
     const barX = cx - (nameW + GAP + track + GAP + pctW) / 2 + nameW + GAP;
-    const rowY = (i: number) => cy + (i - 1.5) * BAR_PITCH * s;
+    const resting = restingRowYs(W, H);
+    const rowY = (i: number) => rowYs?.[i] ?? resting[i];
     const stripLeft = cx - C / 2;
 
     const bars = VALUE_ORDER.map((v, i) => {

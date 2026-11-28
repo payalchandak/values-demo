@@ -1,9 +1,10 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
-import { NEUTRAL } from "../../design";
+import { NEUTRAL, VALUE_ORDER } from "../../design";
 import { beatStart } from "../../types";
 import OpeningScene, {
   ChoiceLabels,
   SettledChoice,
+  type LabelRowCue,
 } from "../opening/OpeningScene";
 import { GptDotRow } from "../opening/DecisionBoard";
 import { CaseHeaderLine } from "../opening/TuckedCase";
@@ -13,15 +14,25 @@ import { dotRowVars } from "../opening/rowMetrics";
 import { at } from "../opening/timeline";
 import { addedCases, GPT_TRIALS, type DilemmaCard } from "./data";
 import {
+  ACT_LEAD_MS,
+  ACT_MS,
   BOX_MS,
   CASE_STARTS,
   casesBeats,
   DOT_IN_MS,
   DOT_STAGGER_MS,
   FAST_IN_MS,
+  FLY_MS,
   IN_MS,
   isFast,
+  valueVoteAt,
+  VOTE_FLY_MS,
+  voteAt,
+  WIN_LEAD_MS,
+  WIN_MS,
 } from "./beats";
+import type { Value } from "../../study/types";
+import { votingValues, winnerSide, winnerTag } from "./votes";
 
 /** The opening's width cap, and the card's width once it has narrowed, in em. */
 const OPEN_EM = 46;
@@ -153,6 +164,65 @@ function Blend({
   );
 }
 
+interface VoteCue {
+  /** 0..1 the winning choice is locked in. Fades back out after the last vote lands. */
+  win: number;
+  /** 0..1 per voting value, lit before its judgment leaves. */
+  hot: Record<Value, number>;
+  /** 0..1 per voting value, the pill has left and not yet returned. */
+  spent: Record<Value, number>;
+  /** Values whose pills are the origin of a vote still to be measured or in flight. */
+  sources: ReadonlySet<Value>;
+}
+
+/**
+ * The readable case's vote, as weights on the clock. The choice GPT landed on
+ * locks in, then each value it judged lights and leaves in turn. Skipped cases
+ * and ties cast nothing you can watch.
+ */
+function voteCue(t: number, index: number, card: DilemmaCard): VoteCue | null {
+  if (isFast(index) || winnerSide(card) === null) return null;
+  const cast = voteAt(index);
+  const begin = cast - WIN_LEAD_MS;
+  const end = cast + FLY_MS + 300;
+  if (t <= begin || t >= end) return null;
+  const rest = 1 - smooth(ramp(t, cast + FLY_MS, end));
+  const win = smooth(ramp(t, begin, begin + WIN_MS)) * rest;
+  const voting = new Set(votingValues(card));
+  const hot = { A: 0, B: 0, N: 0, J: 0 };
+  const spent = { A: 0, B: 0, N: 0, J: 0 };
+  const sources = new Set<Value>();
+  VALUE_ORDER.forEach((v, k) => {
+    if (!voting.has(v)) return;
+    const depart = valueVoteAt(index, k);
+    const light = depart - ACT_LEAD_MS;
+    const lit = smooth(ramp(t, light, light + ACT_MS));
+    const leave = smooth(ramp(t, depart, depart + 140));
+    hot[v] = lit * (1 - leave) * rest;
+    const back = smooth(ramp(t, cast + FLY_MS, end));
+    spent[v] = leave * (1 - back);
+    if (t >= light && t < depart + VOTE_FLY_MS) sources.add(v);
+  });
+  return { win, hot, spent, sources };
+}
+
+function rowCues(card: DilemmaCard, cue: VoteCue, side: 0 | 1): Record<Value, LabelRowCue> | undefined {
+  const won = winnerSide(card);
+  if (won === null) return undefined;
+  const voting = new Set(votingValues(card));
+  const cueFor = (v: Value): LabelRowCue => {
+    const on = side === won;
+    const casts = on && voting.has(v);
+    return {
+      hot: casts ? cue.hot[v] : 0,
+      dim: casts ? 0 : cue.win,
+      spent: casts ? cue.spent[v] : 0,
+      source: casts && cue.sources.has(v) && winnerTag(card, v) !== null,
+    };
+  };
+  return { A: cueFor("A"), B: cueFor("B"), N: cueFor("N"), J: cueFor("J") };
+}
+
 function dotOpacity(
   t: number,
   i: number,
@@ -193,6 +263,8 @@ function CaseContent({
   const blank = isFast(index) && up >= EDGE_EM * 2;
   const rise = (1 - arrive) * (fast ? 0 : RISE_EM);
   const buried = up > 0.001;
+  const cue = top && !blank ? voteCue(t, index, card) : null;
+  const won = cue ? winnerSide(card) : null;
   return (
     <div
       className="relative isolate col-start-1 row-start-1 flex min-w-0 flex-col"
@@ -248,6 +320,8 @@ function CaseContent({
                       card.choices[side]
                     )
                   }
+                  selected={cue && won === side ? cue.win : 0}
+                  dim={cue && won !== null && won !== side ? cue.win : 0}
                 />
                 {mix ? (
                   <div className="grid">
@@ -262,7 +336,7 @@ function CaseContent({
                     ))}
                   </div>
                 ) : (
-                  <ChoiceLabels tags={card.tags[side]} />
+                  <ChoiceLabels tags={card.tags[side]} rows={cue ? rowCues(card, cue, side) : undefined} />
                 )}
               </li>
             ))}
@@ -305,9 +379,11 @@ function CaseContent({
               <GptDotRow
                 left={card.gptChoice1}
                 right={GPT_TRIALS - card.gptChoice1}
-                opacityAt={(side, n) =>
-                  dotOpacity(t, index, card.gptChoice1, side, n)
-                }
+                opacityAt={(dotSide, n) => {
+                  const base = dotOpacity(t, index, card.gptChoice1, dotSide, n);
+                  if (!cue || won === null || dotSide === won) return base;
+                  return base * (1 - cue.win * 0.7);
+                }}
                 sharedIcon={sharedIcon}
                 anchorName={top ? "icon-response" : ""}
                 label={`${gpt.name} chose Choice 1 in ${card.gptChoice1} of ${GPT_TRIALS} queries`}

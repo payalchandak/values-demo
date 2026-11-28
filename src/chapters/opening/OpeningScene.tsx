@@ -646,6 +646,18 @@ export function RelationPill({ tag }: { tag: Tag }) {
 /** Space a new label opens between itself and the label above it. */
 const CHIP_ROW_GAP = "0.28em";
 
+/** How a value row behaves while a case is voting. All zero is the row at rest. */
+export interface LabelRowCue {
+  /** 0..1 the row lights up, because this value is about to vote. */
+  hot: number;
+  /** 0..1 the row recedes. */
+  dim: number;
+  /** 0..1 the pill fades while its judgment is in flight. */
+  spent: number;
+  /** This pill is where that flight begins. */
+  source: boolean;
+}
+
 /**
  * One label under a choice. The row's height follows the clock, so labels
  * already on screen stay put and the list opens instead of jumping. The name
@@ -657,14 +669,18 @@ function ChipRow({
   progress,
   rowHeight,
   name,
+  value,
   tag,
+  cue,
 }: {
   first: boolean;
   /** Linear 0..1 over the landing. */
   progress: number;
   rowHeight: number;
   name: string;
+  value: Value;
   tag: Tag;
+  cue?: LabelRowCue;
 }) {
   const p = Math.min(1, Math.max(0, progress));
   // A finished row is fully open even before the line has been measured, so a
@@ -681,10 +697,22 @@ function ChipRow({
     minHeight: 0,
     overflow: settled ? ("visible" as const) : ("hidden" as const),
   };
+  const hot = cue?.hot ?? 0;
+  const dim = cue?.dim ?? 0;
+  const spent = cue?.spent ?? 0;
+  const source = cue?.source ?? false;
+  const presence = 1 - dim * 0.62 * (1 - hot);
+  const pop = 1 + hot * 0.14;
   return (
     <>
       <span aria-hidden="true" className="self-center text-right font-semibold leading-none" style={clip}>
-        <span className="block" style={{ opacity: nameIn, transform: rise === 0 ? undefined : `translateY(${rise}em)` }}>
+        <span
+          className="block"
+          style={{
+            opacity: nameIn * presence,
+            transform: rise === 0 ? undefined : `translateY(${rise}em)`,
+          }}
+        >
           {name}:
         </span>
       </span>
@@ -693,13 +721,19 @@ function ChipRow({
         aria-hidden={p <= 0}
         className="self-center justify-self-start"
         style={clip}
+        {...(source ? { "data-vote-pill": value, "data-vote-tag": String(tag) } : {})}
       >
         <span
-          className="block"
+          className="inline-flex"
           style={{
-            opacity: pillIn,
-            transform: settled ? undefined : `translateY(${(1 - pillIn) * 0.4}em) scale(${0.96 + 0.04 * pillIn})`,
-            transformOrigin: "left center",
+            opacity: pillIn * presence * (1 - spent * 0.72),
+            transform:
+              settled && hot <= 0
+                ? undefined
+                : `translateY(${settled ? -hot * 0.08 : (1 - pillIn) * 0.4}em) scale(${(settled ? 1 : 0.96 + 0.04 * pillIn) * (settled ? pop : 1)})`,
+            transformOrigin: hot > 0 ? "center" : "left center",
+            borderRadius: 999,
+            boxShadow: hot > 0 ? `0 0 0 ${3 * hot}px rgba(43, 47, 54, ${0.55 * hot})` : undefined,
           }}
         >
           <RelationPill tag={tag} />
@@ -728,11 +762,14 @@ export function ChoiceLabels({
   tags,
   weight = FULL_WEIGHT,
   fluid = false,
+  rows,
 }: {
   tags: Record<Value, Tag>;
   weight?: Record<Value, number>;
   /** Keep the columns on the text's own width. Used while measuring a font size. */
   fluid?: boolean;
+  /** Per-value lighting while this choice's values vote. Omit it and every row is at rest. */
+  rows?: Partial<Record<Value, LabelRowCue>>;
 }) {
   const [setName, nameBox] = useBox();
   const [setPill, pillBox] = useBox();
@@ -768,7 +805,9 @@ export function ChoiceLabels({
             progress={weight[v]}
             rowHeight={rowHeight}
             name={VALUES[v].name}
+            value={v}
             tag={tags[v]}
+            cue={rows?.[v]}
           />
         ))}
       </div>
@@ -800,9 +839,39 @@ function VotesLeave({ t, children }: { t: number; children: ReactNode }) {
   );
 }
 
-/** The choice button at rest: neutral frame, no selection. */
-export function SettledChoice({ label }: { label: ReactNode }) {
-  return <ChoiceFace label={label} selected={false} />;
+/** The choice button at rest. `selected` locks in the choice a model landed on; `dim` lets a loss recede. */
+export function SettledChoice({
+  label,
+  selected = 0,
+  dim = 0,
+}: {
+  label: ReactNode;
+  /** 0..1, drawn as the choice the model landed on. */
+  selected?: number;
+  /** 0..1, the choice that lost. */
+  dim?: number;
+}) {
+  const s = Math.min(1, Math.max(0, selected));
+  const d = Math.min(1, Math.max(0, dim));
+  if (s <= 0 && d <= 0) return <ChoiceFace label={label} selected={false} />;
+  const neutral = `color-mix(in srgb, ${NEUTRAL.ink} 28%, white)`;
+  return (
+    <div
+      aria-current={s >= 0.5 ? "true" : undefined}
+      className="flex h-full min-w-0 items-center justify-center rounded-[0.7em] border bg-white px-[0.85em] py-[0.4em] text-center"
+      style={{
+        borderColor: `color-mix(in srgb, ${OPTION_ACCENT} ${s * 100}%, ${neutral})`,
+        backgroundColor: `color-mix(in srgb, #ECEEF1 ${s * 100}%, #FFFFFF)`,
+        boxShadow: s > 0 ? `0 0 0 ${1.5 * s}px ${OPTION_ACCENT}` : "0 1px 2px rgba(16,24,40,0.06)",
+        color: NEUTRAL.ink,
+        opacity: 1 - d * 0.55,
+      }}
+    >
+      <p className="min-w-0 font-semibold leading-snug" style={{ fontSize: "1.05em" }}>
+        {label}
+      </p>
+    </div>
+  );
 }
 
 function ChoiceFace({ label, selected }: { label: ReactNode; selected: boolean }) {

@@ -1,4 +1,3 @@
 /** On-screen text. */
 export const VOTE_HEADLINE = "Each choice is a vote.";
 export const PROFILE_HEADLINE = "A value profile, inferred from decisions.";
-export const VOTE_CAPTION = (n: number, total: number) => `${n} of ${total} cases counted`;

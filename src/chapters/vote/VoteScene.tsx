@@ -1,27 +1,29 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
-import { DONUT_INK, DONUT_MUTED, FONT_STACK, clamp01 } from "../../components/Donut";
+import { clamp01 } from "../../components/Donut";
 import { VALUE_ORDER } from "../../design";
-import Morph from "../../stage/Morph";
+import Morph, { restingRowYs } from "../../stage/Morph";
 import { MORPH_HANDOFF_MS } from "../../stage/morphBeats";
-import type { Profile, Value } from "../../study/types";
+import type { Profile, Tag, Value } from "../../study/types";
 import { beatStart } from "../../types";
+import { HERO_CHROME } from "../ending/IndividualModels";
 import { easeInOut } from "../ending/shared";
 import CasesScene, { CARDS } from "../cases/CasesScene";
 import {
-  FLY_MS,
   LAND_MS,
   SETTLE_MS,
   SHRINK_MS,
+  VOTE_FLY_MS,
   casesBeats,
   isFast,
   landAt,
+  valueLandAt,
+  valueVoteAt,
   voteAt,
 } from "../cases/beats";
-import { GPT_TRIALS } from "../cases/data";
-import { VOTE_CAPTION } from "./beats";
+import { votesOf } from "../cases/votes";
+import { RelationPill } from "../opening/OpeningScene";
 
 const SHRINK_AT = beatStart(casesBeats, "shrink");
-const VOTE_AT = beatStart(casesBeats, "vote");
 const SETTLE_AT = beatStart(casesBeats, "settle");
 
 /** Room left above the pile for its paper edges, and between the pile and the value names, in px. */
@@ -30,15 +32,12 @@ const NAMES_GAP = 22;
 /** Side by side: the bars' column width, the gap before it, and the margin at the viewport's edges, in px. */
 const COLUMN_MIN = 230;
 const COLUMN_MAX = 440;
-/** Beside the bars, votes arc over the value names and drop onto the bars without crossing them: the curve's control point, in px from the bar's left end and above the names. */
-const ARC_RIGHT_PX = 50;
-const ARC_UP_PX = 90;
+/** How far past the card a judgment travels before it bends toward its bar, in px. */
+const EXIT_PX = 36;
 const COLUMN_GAP = 24;
 const EDGE = 16;
 /** Below this card scale, side by side wastes the card: the pile goes above the bars instead. */
 const MIN_SIDE_SCALE = 0.6;
-/** A vote in flight, in px. */
-const VOTE_PX = 11;
 /** The pile lifts this far as it leaves, in px. */
 const LEAVE_PX = 24;
 
@@ -47,16 +46,10 @@ const smooth = (x: number) => x * x * (3 - 2 * x);
 const lerp = (a: number, b: number, p: number) => a + (b - a) * p;
 
 /**
- * One case's vote for each value: how much more Choice 1 favors the value than
- * Choice 2, times how far GPT leaned to Choice 1 (k of 10, centred). Summed over
- * the cases it ranks the values much as the regression does.
+ * One case's vote for each value. Summed over the cases it ranks the values
+ * much as the regression does.
  */
-const VOTES: Record<Value, number>[] = CARDS.map((card) => {
-  const lean = card.gptChoice1 / GPT_TRIALS - 0.5;
-  const out = {} as Record<Value, number>;
-  for (const v of VALUE_ORDER) out[v] = (card.tags[0][v] - card.tags[1][v]) * lean;
-  return out;
-});
+const VOTES: Record<Value, number>[] = CARDS.map((card) => votesOf(card));
 const TOTAL = Object.fromEntries(
   VALUE_ORDER.map((v) => [v, VOTES.reduce((sum, c) => sum + c[v], 0)]),
 ) as Record<Value, number>;
@@ -80,9 +73,8 @@ interface Layout {
   card: Box;
   /** Left end and vertical centre of each bar, relative to this scene's box. */
   bars: Record<Value, { x: number; cy: number }>;
-  /** Top of the value names, and the line under the bars. */
+  /** Top of the value names. */
   namesTop: number;
-  captionCy: number;
 }
 
 const near = (a: number, b: number) => Math.abs(a - b) < 0.5;
@@ -96,7 +88,6 @@ function sameLayout(a: Layout | null, b: Layout): boolean {
     boxes(a.stage, b.stage) &&
     boxes(a.card, b.card) &&
     near(a.namesTop, b.namesTop) &&
-    near(a.captionCy, b.captionCy) &&
     VALUE_ORDER.every((v) => near(a.bars[v].x, b.bars[v].x) && near(a.bars[v].cy, b.bars[v].cy))
   );
 }
@@ -133,7 +124,6 @@ function measure(root: HTMLElement, pileHost: HTMLElement | null, probe: HTMLEle
     bars[v] = { x: r.left - box.left, cy: r.top + r.height / 2 - box.top };
     namesTop = Math.min(namesTop, name.getBoundingClientRect().top - box.top);
   }
-  const sub = probe.querySelector('[data-anchor="bar-subcaption"]')?.getBoundingClientRect();
   return {
     root: { w: root.clientWidth, h: root.clientHeight },
     zone: { left: z.left - box.left, top: z.top - box.top, w: z.width, h: z.height },
@@ -141,7 +131,6 @@ function measure(root: HTMLElement, pileHost: HTMLElement | null, probe: HTMLEle
     card: { left: at.left, top: at.top, w: shell.offsetWidth, h: shell.offsetHeight },
     bars,
     namesTop,
-    captionCy: sub ? sub.top + sub.height / 2 - box.top : namesTop + 200,
   };
 }
 
@@ -189,6 +178,81 @@ function place(layout: Layout): Placement {
   return { column: zone, scale, centre: { x: zone.left + zone.w / 2, y: (TOP_ROOM + bottom) / 2 }, side: false };
 }
 
+interface ValueRows {
+  /** Y centre of each value, in this scene's box. */
+  scene: number[];
+  /** Same centres, in the bars' frame. */
+  frame: number[];
+  /** Distance between centres while they span the card. */
+  pitch: number;
+}
+
+/**
+ * Beside the card, the four values split its height evenly: the same gap from
+ * the card's top to the first name, between names, and from the last name to
+ * the card's bottom. As the tally settles they ease back onto the ring's
+ * resting rows, so the last frame is still the ring's first.
+ */
+function valueRows(layout: Layout, placement: Placement, barsBox: Box, regroup: number): ValueRows | null {
+  if (!placement.side) return null;
+  const pitch = (layout.card.h * placement.scale) / VALUE_ORDER.length;
+  const home = restingRowYs(layout.zone.w, Math.max(0, layout.zone.h - HERO_CHROME));
+  const scene = VALUE_ORDER.map((_, i) => {
+    const along = placement.centre.y + (i - 1.5) * pitch;
+    return lerp(along, layout.zone.top + home[i], regroup);
+  });
+  return { scene, frame: scene.map((y) => y - barsBox.top), pitch };
+}
+
+interface PillAt {
+  value: Value;
+  tag: Tag;
+  x: number;
+  y: number;
+  font: number;
+}
+
+function isValue(s: string | undefined): s is Value {
+  return s === "A" || s === "B" || s === "N" || s === "J";
+}
+
+function isTag(n: number): n is Tag {
+  return n === -1 || n === 0 || n === 1;
+}
+
+/** Where each voting pill sits, in this scene's box. The anchor is unscaled, so the flight starts on the pill. */
+function measurePills(root: HTMLElement, pile: HTMLElement | null): PillAt[] {
+  if (!pile) return [];
+  const box = root.getBoundingClientRect();
+  const out: PillAt[] = [];
+  pile.querySelectorAll<HTMLElement>("[data-vote-pill]").forEach((el) => {
+    const value = el.dataset.votePill;
+    const tag = Number(el.dataset.voteTag);
+    if (!isValue(value) || !isTag(tag)) return;
+    const rect = el.getBoundingClientRect();
+    const css = parseFloat(getComputedStyle(el).fontSize);
+    const scale = el.offsetHeight > 0 ? rect.height / el.offsetHeight : 1;
+    out.push({
+      value,
+      tag,
+      x: rect.left + rect.width / 2 - box.left,
+      y: rect.top + rect.height / 2 - box.top,
+      font: (Number.isFinite(css) ? css : 13) * scale,
+    });
+  });
+  return out;
+}
+
+function samePills(a: readonly PillAt[], b: readonly PillAt[]): boolean {
+  if (a.length !== b.length) return false;
+  return a.every((p, i) => {
+    const q = b[i];
+    return p.value === q.value && p.tag === q.tag && near(p.x, q.x) && near(p.y, q.y) && near(p.font, q.font);
+  });
+}
+
+const quad = (a: number, c: number, b: number, e: number) => (1 - e) ** 2 * a + 2 * (1 - e) * e * c + e ** 2 * b;
+
 const lerpBox = (a: Box, b: Box, p: number): Box => ({
   left: lerp(a.left, b.left, p),
   top: lerp(a.top, b.top, p),
@@ -210,12 +274,15 @@ export default function VoteScene({ elapsedMs, profile }: { elapsedMs: number; p
   const pileRef = useRef<HTMLDivElement>(null);
   const probeRef = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState<Layout | null>(null);
+  const [pills, setPills] = useState<PillAt[]>([]);
 
   useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root) return;
     const next = measure(root, pileRef.current, probeRef.current);
     if (next) setLayout((prev) => (sameLayout(prev, next) ? prev : next));
+    const nextPills = measurePills(root, pileRef.current);
+    setPills((prev) => (samePills(prev, nextPills) ? prev : nextPills));
   });
   useLayoutEffect(() => {
     const root = rootRef.current;
@@ -223,6 +290,8 @@ export default function VoteScene({ elapsedMs, profile }: { elapsedMs: number; p
     const remeasure = () => {
       const next = measure(root, pileRef.current, probeRef.current);
       if (next) setLayout((prev) => (sameLayout(prev, next) ? prev : next));
+      const nextPills = measurePills(root, pileRef.current);
+      setPills((prev) => (samePills(prev, nextPills) ? prev : nextPills));
     };
     const ro = new ResizeObserver(remeasure);
     ro.observe(root);
@@ -234,12 +303,13 @@ export default function VoteScene({ elapsedMs, profile }: { elapsedMs: number; p
   const p = profile.priorities;
   const lead = Math.max(...VALUE_ORDER.map((v) => p[v]));
   const settle = easeInOut(ramp(t, SETTLE_AT, SETTLE_AT + SETTLE_MS));
-  let counted = 0;
   const running = Object.fromEntries(VALUE_ORDER.map((v) => [v, 0])) as Record<Value, number>;
   CARDS.forEach((_, i) => {
-    const w = smooth(ramp(t, isFast(i) ? voteAt(i) : landAt(i) - LAND_MS, landAt(i)));
-    if (w >= 0.5) counted += 1;
-    for (const v of VALUE_ORDER) running[v] += VOTES[i][v] * w;
+    VALUE_ORDER.forEach((v, k) => {
+      const arrive = isFast(i) ? landAt(i) : valueLandAt(i, k);
+      const begin = isFast(i) ? voteAt(i) : arrive - LAND_MS;
+      running[v] += VOTES[i][v] * smooth(ramp(t, begin, arrive));
+    });
   });
   const shares = Object.fromEntries(
     VALUE_ORDER.map((v) => [v, lerp((Math.max(0, running[v]) / TOP_TOTAL) * lead, p[v], settle)]),
@@ -248,7 +318,6 @@ export default function VoteScene({ elapsedMs, profile }: { elapsedMs: number; p
   const shrink = easeInOut(ramp(t, SHRINK_AT, SHRINK_AT + SHRINK_MS));
   const namesIn = smooth(ramp(t, SHRINK_AT + SHRINK_MS * 0.6, SHRINK_AT + SHRINK_MS + 200));
   const numbersIn = smooth(ramp(t, SETTLE_AT + SETTLE_MS * 0.6, SETTLE_AT + SETTLE_MS));
-  const captionIn = smooth(ramp(t, VOTE_AT - 300, VOTE_AT)) * (1 - smooth(ramp(t, SETTLE_AT, SETTLE_AT + SETTLE_MS * 0.5)));
   const leave = smooth(ramp(t, SETTLE_AT, SETTLE_AT + SETTLE_MS * 0.4));
   // Beside the card, the bars wait for it to clear before they move to the centre.
   const regroup = easeInOut(ramp(t, SETTLE_AT + SETTLE_MS * 0.25, SETTLE_AT + SETTLE_MS));
@@ -257,17 +326,12 @@ export default function VoteScene({ elapsedMs, profile }: { elapsedMs: number; p
   const side = placement?.side ?? false;
 
   let pileStyle: CSSProperties = {};
-  let pileCentre = { x: 0, y: 0 };
-  /** Where a card's votes leave from: its right edge beside the bars, its centre above them. */
-  let voteFrom = { x: 0, y: 0 };
   if (layout && placement) {
     const { stage, card } = layout;
     const from = { x: stage.left + card.left + card.w / 2, y: stage.top + card.top + card.h / 2 };
     const dx = (placement.centre.x - from.x) * shrink;
     const dy = (placement.centre.y - from.y) * shrink;
     const scale = lerp(1, placement.scale, shrink);
-    pileCentre = { x: from.x + dx, y: from.y + dy };
-    voteFrom = side ? { x: pileCentre.x + (card.w * scale) / 2, y: pileCentre.y } : pileCentre;
     const away = leave * LEAVE_PX;
     pileStyle = {
       ...boxStyle(stage),
@@ -277,55 +341,54 @@ export default function VoteScene({ elapsedMs, profile }: { elapsedMs: number; p
     };
   }
 
-  // Only the cases shown at full pace send their votes flying; skipped ones just move the bars.
+  const column = placement?.column;
+  // The bars leave their column for the scene zone as the tally settles, so the last frame is the ring's first.
+  const barsBox = layout && column ? lerpBox(column, layout.zone, side ? regroup : settle) : null;
+  const rows = layout && placement && barsBox ? valueRows(layout, placement, barsBox, regroup) : null;
+
+  // Shown cases send the winning choice's judgments, one value at a time, from the lit pill.
+  // Skipped cases only move the bars.
   const votes =
     layout &&
     CARDS.map((_, i) => {
       if (isFast(i)) return null;
-      const fly = ramp(t, voteAt(i), voteAt(i) + FLY_MS);
-      if (fly <= 0 || fly >= 1) return null;
-      const e = easeInOut(fly);
-      const fade = smooth(ramp(fly, 0, 0.15)) * (1 - smooth(ramp(fly, 0.85, 1)));
       return VALUE_ORDER.map((v, k) => {
-        const vote = VOTES[i][v];
-        if (Math.abs(vote) < 1e-6) return null;
-        const spread = (k - 1.5) * VOTE_PX * 2;
-        // Beside the bars, votes leave the card's edge in a row above the names.
-        const x0 = voteFrom.x + (side ? VOTE_PX + k * VOTE_PX * 2 : spread);
-        const y0 = side ? layout.namesTop - ARC_UP_PX / 3 : voteFrom.y;
-        const x1 = layout.bars[v].x + VOTE_PX;
-        const y1 = layout.bars[v].cy;
-        let x = lerp(x0, x1, e);
-        let y = lerp(y0, y1, e);
-        if (side) {
-          const cx = x1 + ARC_RIGHT_PX;
-          const cy = layout.namesTop - ARC_UP_PX;
-          x = (1 - e) ** 2 * x0 + 2 * (1 - e) * e * cx + e ** 2 * x1;
-          y = (1 - e) ** 2 * y0 + 2 * (1 - e) * e * cy + e ** 2 * y1;
-        }
+        if (Math.abs(VOTES[i][v]) < 1e-6) return null;
+        const depart = valueVoteAt(i, k);
+        const fly = ramp(t, depart, depart + VOTE_FLY_MS);
+        if (fly <= 0 || fly >= 1) return null;
+        const pill = pills.find((item) => item.value === v);
+        if (!pill) return null;
+        const e = easeInOut(fly);
+        const fade = smooth(ramp(fly, 0, 0.12)) * (1 - smooth(ramp(fly, 0.62, 1)));
+        const x0 = pill.x;
+        const y0 = pill.y;
+        const x1 = layout.bars[v].x + 8;
+        const y1 = rows ? rows.scene[k] : layout.bars[v].cy;
+        // Leave sideways, clear of the case text, and only then bend up or down to the bar.
+        const cardRight = placement ? placement.centre.x + (layout.card.w * lerp(1, placement.scale, shrink)) / 2 : x0;
+        const x = quad(x0, side ? Math.min(cardRight + EXIT_PX, x1) : (x0 + x1) / 2, x1, e);
+        const y = quad(y0, side ? y0 : (y0 + y1) / 2, y1, e);
+        const scale = lerp(1, 0.62, smooth(ramp(fly, 0.25, 1)));
         return (
           <div
             key={`${i}-${v}`}
             className="absolute"
             style={{
-              left: x - VOTE_PX / 2,
-              top: y - VOTE_PX / 2,
-              width: VOTE_PX,
-              height: VOTE_PX,
-              borderRadius: VOTE_PX,
-              boxSizing: "border-box",
-              background: vote > 0 ? DONUT_INK : "#fff",
-              border: `1.5px solid ${DONUT_INK}`,
+              left: x,
+              top: y,
+              fontSize: pill.font,
               opacity: fade,
+              transform: `translate(-50%, -50%) scale(${scale})`,
+              filter: "drop-shadow(0 8px 14px rgba(16,24,40,0.16))",
+              zIndex: k + 1,
             }}
-          />
+          >
+            <RelationPill tag={pill.tag} />
+          </div>
         );
       });
     });
-
-  const column = placement?.column;
-  // The bars leave their column for the scene zone as the tally settles, so the last frame is the ring's first.
-  const barsBox = layout && column && lerpBox(column, layout.zone, side ? regroup : settle);
 
   return (
     <div className="relative h-full w-full">
@@ -344,6 +407,7 @@ export default function VoteScene({ elapsedMs, profile }: { elapsedMs: number; p
             names={namesIn}
             numbers={numbersIn}
             shares={shares}
+            rowYs={rows?.frame}
           />
         </div>
         <div
@@ -356,23 +420,6 @@ export default function VoteScene({ elapsedMs, profile }: { elapsedMs: number; p
         </div>
         <div aria-hidden className="pointer-events-none absolute inset-0 z-10">
           {votes}
-          {layout && column && (
-            <div
-              className="absolute text-center"
-              style={{
-                left: column.left,
-                width: column.w,
-                top: layout.captionCy,
-                transform: "translateY(-50%)",
-                fontFamily: FONT_STACK,
-                fontSize: 13,
-                color: DONUT_MUTED,
-                opacity: captionIn,
-              }}
-            >
-              {VOTE_CAPTION(counted, CARDS.length)}
-            </div>
-          )}
         </div>
       </div>
     </div>
