@@ -66,7 +66,7 @@ const VOTES_HOLD_MS = 1600;
 /** Opening time at which physician icon number `i` (0-based, in vote order) starts to appear. */
 export const voteStartMs = (i: number): number => at("dilemma", "votes") + i * VOTE_GAP_MS;
 const dilemma = [
-  { name: "question", startMs: 0 }, // "Physicians disagree on the decision"
+  { name: "question", startMs: 0 }, // "Doctors disagree on this decision"
   { name: "options", startMs: OPTIONS_AT }, // two equal option cards
   { name: "hold", startMs: OPTIONS_AT + 500 }, // nothing moves: the viewer decides, no model answer yet
   { name: "heading", startMs: HEADING_AT }, // heading holds before the physician icons
@@ -77,13 +77,18 @@ const dilemma = [
 
 /** Two full turns of the provider mark, with "Thinking…" in the panel. */
 const SPIN_MS = 1600;
-/** How fast the answer types, once the icon has stopped. */
-const TYPE_MS_PER_CHAR = 16;
+/**
+ * How long the answer takes to stream, once the icon has stopped.
+ * Long enough that a full reply still reads as typing, and capped so the
+ * parse is not stuck behind a page of text.
+ */
+const REVEAL_MS = Math.min(11000, Math.max(2400, openingCase.response.text.length * 8));
 const THINK_AT = 500;
 const REVEAL_AT = THINK_AT + SPIN_MS;
-const REVEALED_AT = REVEAL_AT + openingCase.response.text.length * TYPE_MS_PER_CHAR;
+const REVEALED_AT = REVEAL_AT + REVEAL_MS;
 const HIGHLIGHT_AT = REVEALED_AT + 1000;
-const EXTRACT_AT = HIGHLIGHT_AT + 1000;
+/** Scroll back to the recommendation sentence, then mark it, before the choice is outlined. */
+const EXTRACT_AT = HIGHLIGHT_AT + 1700;
 const EXTRACTED_AT = EXTRACT_AT + 1000;
 /**
  * The excerpted query's dot rises beside the mark, holds, and then the answer
@@ -187,7 +192,7 @@ const REPEAT_SPINS: readonly { start: number; end: number }[] = (() => {
 const LAST_DOT_AT = REPEAT_SPINS[REPEAT_SPINS.length - 1].end + MODEL_ROW_IN_MS;
 
 const model = [
-  { name: "ask", startMs: 0 }, // "Physicians disagree on the decision" starts leaving; the response eases in with it
+  { name: "ask", startMs: 0 }, // "Doctors disagree on this decision" starts leaving; the response eases in with it
   { name: "think", startMs: THINK_AT }, // mark spins; the panel is arriving with it
   { name: "reveal", startMs: REVEAL_AT }, // answer starts typing
   { name: "revealed", startMs: REVEALED_AT }, // last character is on screen

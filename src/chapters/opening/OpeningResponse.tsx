@@ -15,6 +15,12 @@ const ramp = (t: number, start: number, end: number): number =>
 /** Neutral highlight color (deliberately not green / not a success state). */
 const HIGHLIGHT = "rgba(27, 36, 51, 0.14)";
 
+/**
+ * How much of the answer stays on screen. The reply is longer than this;
+ * it scrolls, and the parse brings the recommendation sentence back into view.
+ */
+const ANSWER_WINDOW = "16em";
+
 interface Piece {
   text: string;
   group: number;
@@ -149,6 +155,33 @@ export default function OpeningResponse({
   );
   const progress = getResponseProgress(elapsedMs, timing);
   const typed = typedCount(progress.elapsedMs, timing.revealStartMs, timing.revealEndMs, text.length);
+  // The parse: scroll from wherever typing finished back to the marked sentence, then sweep it.
+  const parseWindow = Math.max(1, timing.outlineStartMs - timing.highlightStartMs);
+  const find = ramp(progress.elapsedMs, timing.highlightStartMs, timing.highlightStartMs + parseWindow * 0.42);
+  const sweep = ramp(
+    progress.elapsedMs,
+    timing.highlightStartMs + parseWindow * 0.38,
+    timing.highlightStartMs + parseWindow * 0.72,
+  );
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const markRef = useRef<HTMLElement>(null);
+  const caretRef = useRef<HTMLSpanElement>(null);
+  const [overflows, setOverflows] = useState(false);
+  useLayoutEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const max = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+    const contentTop = (el: HTMLElement) =>
+      el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+    const clamp = (n: number) => Math.max(0, Math.min(max, n));
+    const caret = caretRef.current;
+    const mark = markRef.current;
+    const follow = caret ? clamp(contentTop(caret) - scroller.clientHeight + 36) : max;
+    const found = mark ? clamp(contentTop(mark) - 8) : 0;
+    scroller.scrollTop = follow * (1 - find) + found * find;
+    const over = max > 1;
+    setOverflows((prev) => (prev === over ? prev : over));
+  }, [typed, find, text, layout]);
   const thinking = typed === 0;
   const dots = ".".repeat((Math.floor(Math.max(0, progress.elapsedMs - timing.thinkStartMs) / 400) % 3) + 1);
   // Two full turns while thinking, then one more turn for each repeated query.
@@ -176,11 +209,14 @@ export default function OpeningResponse({
     const shownN = Math.max(0, Math.min(piece.text.length, typed - piece.start));
     const shown = piece.text.slice(0, shownN);
     const hidden = piece.text.slice(shownN);
+    // The caret sits on the typed boundary so the window can follow the stream.
+    const atBoundary = shownN < piece.text.length && (shownN > 0 || piece.start === typed);
     // `display: contents` keeps the untyped tail in the same line boxes as the typed text,
     // so a cursor in the middle of a word cannot push the rest onto the next line.
     const body = (
       <>
         {shown}
+        {atBoundary ? <span ref={caretRef} style={{ display: "inline-block", width: 0 }} /> : null}
         {hidden ? (
           <span aria-hidden style={{ display: "contents", color: "transparent" }}>
             {hidden}
@@ -190,7 +226,7 @@ export default function OpeningResponse({
     );
     if (!highlight) return <span key={key}>{body}</span>;
     const from = piece.spanOffset ?? 0;
-    const fill = clamp01((progress.highlight * layout.spanLength - from) / piece.text.length);
+    const fill = clamp01((sweep * layout.spanLength - from) / piece.text.length);
     const style: CSSProperties = {
       backgroundImage: `linear-gradient(${HIGHLIGHT}, ${HIGHLIGHT})`,
       backgroundRepeat: "no-repeat",
@@ -284,20 +320,39 @@ export default function OpeningResponse({
           >
             {identifyLabel}
           </p>
-          <p className="relative mt-[0.2em] leading-snug">
-            {thinking && (
-              <span className="absolute left-0 top-0" style={{ color: NEUTRAL.inkMuted }}>
-                Thinking{dots}
+          <div
+            ref={scrollerRef}
+            className="[scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            style={{
+              maxHeight: ANSWER_WINDOW,
+              overflowY: "auto",
+              position: "relative",
+              // Once the sentence is found, soften the cut so the rest of the reply is still implied.
+              maskImage:
+                overflows && find > 0.65
+                  ? "linear-gradient(to bottom, #000 0, #000 calc(100% - 1.1em), transparent)"
+                  : undefined,
+              WebkitMaskImage:
+                overflows && find > 0.65
+                  ? "linear-gradient(to bottom, #000 0, #000 calc(100% - 1.1em), transparent)"
+                  : undefined,
+            }}
+          >
+            <p className="relative whitespace-pre-wrap leading-snug">
+              {thinking && (
+                <span className="absolute left-0 top-0" style={{ color: NEUTRAL.inkMuted }}>
+                  Thinking{dots}
+                </span>
+              )}
+              <span aria-hidden={thinking} style={{ opacity: thinking ? 0 : 1 }}>
+                {layout.before.map((piece, i) => renderPiece(piece, i, false))}
+                <mark ref={markRef} className="bg-transparent text-inherit">
+                  {layout.inSpan.map((piece, i) => renderPiece(piece, i, true))}
+                </mark>
+                {layout.after.map((piece, i) => renderPiece(piece, i, false))}
               </span>
-            )}
-            <span aria-hidden={thinking} style={{ opacity: thinking ? 0 : 1 }}>
-              {layout.before.map((piece, i) => renderPiece(piece, i, false))}
-              <mark className="bg-transparent text-inherit">
-                {layout.inSpan.map((piece, i) => renderPiece(piece, i, true))}
-              </mark>
-              {layout.after.map((piece, i) => renderPiece(piece, i, false))}
-            </span>
-          </p>
+            </p>
+          </div>
         </div>
       </div>
       {/* Keeps the row's full height once the panel is gone. */}

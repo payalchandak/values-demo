@@ -42,7 +42,7 @@ export interface OpeningCase {
   choices: readonly [string, string];
   tags: readonly [Record<Value, Tag>, Record<Value, Tag>];
   response: {
-    /** Display text of the excerpt (markdown stripped, ends in an ellipsis). */
+    /** Display text of the excerpt. Markdown is removed; paragraph and list breaks stay. */
     text: string;
     /** Substring of `text`: the marked recommendation sentence. */
     recommendationSpan: string;
@@ -54,15 +54,28 @@ export interface OpeningCase {
 }
 
 /**
- * Display form of model text: markdown markers removed and line breaks folded
- * to spaces. Words are never altered; `build` throws if a dash is left on screen.
+ * Display form of model text: markdown markers removed. Paragraph breaks and
+ * list lines stay. Words are never altered; `build` throws if a dash is left
+ * on screen.
  */
 const plain = (s: string): string =>
   s
     .replace(/^#+\s*/gm, "")
     .replace(/\*+/g, "")
-    .replace(/\s*\n+\s*/g, " ")
-    .trim();
+    .replace(/[^\S\n]+/g, " ")
+    .replace(/[ \t]*\n[ \t]*/g, "\n")
+    .replace(/\n{3,}/g, "\n\n");
+
+/** Join the pieces around the marked sentence without eating a line break. */
+const joinParts = (parts: readonly string[]): string => {
+  let out = "";
+  for (const part of parts) {
+    if (part === "") continue;
+    if (out.length > 0 && !/\s$/.test(out) && !/^\s/.test(part)) out += " ";
+    out += part;
+  }
+  return out.trim();
+};
 
 function toIndex(n: number): 0 | 1 {
   if (n !== 1 && n !== 2) throw new Error(`opening.json: bad choice ${n}`);
@@ -71,10 +84,9 @@ function toIndex(n: number): 0 | 1 {
 
 function build(json: OpeningJson): OpeningCase {
   const { text: fullText, recommendation, runChoice } = json.models.gpt.excerpt;
-  // The recommendation line has an em dash ("Choice 1 \u2014 Recommend feeding
-  // tube."). The quote is not altered: the excerpt starts after the dash, and
-  // the marked offsets move with it, so the recommendation is still the
-  // verbatim words that follow the dash.
+  // An em dash inside the marked sentence is the one character the screen
+  // never shows. The excerpt starts after it, and the offsets move with the
+  // cut, so the sentence is still the words the data marked.
   const dash = fullText.indexOf("\u2014");
   if (dash !== -1 && (dash < recommendation.start || dash >= recommendation.end)) {
     throw new Error("opening.json: the em dash is outside the marked recommendation");
@@ -86,13 +98,17 @@ function build(json: OpeningJson): OpeningCase {
   // Cut by the marked offsets first, so the recommendation sentence is exactly
   // the one the data marks, then clean each piece for display.
   const before = plain(text.slice(0, markStart));
-  const span = plain(text.slice(markStart, markEnd));
+  const span = plain(text.slice(markStart, markEnd)).trim();
   const after = plain(text.slice(markEnd));
   // A cut excerpt (trailing colon or comma) keeps an ellipsis. A finished
   // sentence is shown as written.
-  const tail = after.replace(/[:,;]$/, "");
-  const finished = /[.!?]$/.test(tail || span);
-  const display = [before, span, finished ? tail : `${tail}\u2026`].filter((part) => part !== "").join(" ");
+  const tail = after.replace(/[:,;](?=\s*$)/, "");
+  const finished = /[.!?]\s*$/.test(tail || span);
+  const ending = finished ? tail : `${tail.replace(/\s*$/, "")}\u2026`;
+  const display = joinParts([before, span, ending]);
+  if (span.length === 0 || display.split(span).length !== 2) {
+    throw new Error("opening.json: the recommendation sentence is not in the displayed response once");
+  }
   const shown: string[] = [display, json.vignette, json.choices[0], json.choices[1]];
   if (shown.some((s) => /[\u2013\u2014]/.test(s))) {
     throw new Error("opening.json: on-screen text contains a dash character");

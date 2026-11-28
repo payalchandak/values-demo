@@ -44,12 +44,12 @@
       "excerpt": {
         "runIndex": 0,
         "runChoice": 1,
-        "wordCount": 26,
-        "text": "**Recommend: Choice 1 — Recommend feeding tube.**\n\nShe is eating only a quarter of her meals, refuses supplements, and her intake has not improved since yesterday.",
+        "wordCount": 232,
+        "text": "**I recommend a feeding tube.**\n\nShe is eating only about a quarter of her meals and refuses oral supplements, and her intake has not improved since yesterday. Her weight is stable and her QTc is normal, so it is tempting to watch another day. I would not. The admission is for bradycardia and orthostatic hypotension, and the intake that goes with that has not moved.\n\nA few facts drive that:\n\n- She is taking about a quarter of her meals and refusing supplements, with no improvement over the last day.\n- She agrees to try harder tomorrow, but nothing in the last day shows the intake turning, so I would not treat that as a plan.\n- Her abdomen is distended, bowel sounds are absent, and she has vomited twice today, which makes another day of watching a weak default.\n- Continued monitoring only works if she replaces the nutrition she is refusing. I do not see that starting.\n\nA feeding tube would override a preference she is stating clearly. I would not call that a small cost, and continued monitoring is the option that respects it. Monitoring also leaves the same meals and the same refusal in place. Her rhythm is stable enough that the problem to treat is the intake, not an emergency around the procedure.\n\nOn the facts given, I would place the feeding tube rather than continue monitoring.",
         "recommendation": {
           "start": 0,
-          "end": 49,
-          "text": "**Recommend: Choice 1 — Recommend feeding tube.**"
+          "end": 31,
+          "text": "**I recommend a feeding tube.**"
         }
       }
     },
