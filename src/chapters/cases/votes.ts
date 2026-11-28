@@ -26,6 +26,18 @@ export function votingValues(card: DilemmaCard): Value[] {
   return VALUE_ORDER.filter((v) => Math.abs(votes[v]) > 1e-6);
 }
 
+/**
+ * Share of the bar track that one watched case adds when its promote or its
+ * violate lands. The signed vote alone is a few pixels against fifty cases,
+ * and a violate is negative, so on an empty bar it shows as nothing.
+ */
+export const SHOWN_BAR = 0.1;
+
+/** True when this value's promote or violate is one of the votes the case casts. */
+export function castsVote(card: DilemmaCard, value: Value): boolean {
+  return Math.abs(votesOf(card)[value]) > 1e-6;
+}
+
 /** The winning choice's own tag for a value: the judgment that flies to the bar. */
 export function winnerTag(card: DilemmaCard, value: Value): Tag | null {
   const side = winnerSide(card);

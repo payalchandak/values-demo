@@ -20,7 +20,7 @@ import {
   valueVoteAt,
   voteAt,
 } from "../cases/beats";
-import { votesOf } from "../cases/votes";
+import { castsVote, SHOWN_BAR, votesOf } from "../cases/votes";
 import { RelationPill } from "../opening/OpeningScene";
 
 const SHRINK_AT = beatStart(casesBeats, "shrink");
@@ -300,19 +300,27 @@ export default function VoteScene({ elapsedMs, profile }: { elapsedMs: number; p
   }, []);
 
   // The running tally. Bars show what is above zero, scaled so the leader ends at its own priority.
+  // Watched cases (the first three and the last) also add a fixed step for each
+  // promote and each violate, so the landing itself is visible before the settle.
   const p = profile.priorities;
   const lead = Math.max(...VALUE_ORDER.map((v) => p[v]));
   const settle = easeInOut(ramp(t, SETTLE_AT, SETTLE_AT + SETTLE_MS));
   const running = Object.fromEntries(VALUE_ORDER.map((v) => [v, 0])) as Record<Value, number>;
-  CARDS.forEach((_, i) => {
+  const shown = Object.fromEntries(VALUE_ORDER.map((v) => [v, 0])) as Record<Value, number>;
+  CARDS.forEach((card, i) => {
     VALUE_ORDER.forEach((v, k) => {
       const arrive = isFast(i) ? landAt(i) : valueLandAt(i, k);
       const begin = isFast(i) ? voteAt(i) : arrive - LAND_MS;
-      running[v] += VOTES[i][v] * smooth(ramp(t, begin, arrive));
+      const w = smooth(ramp(t, begin, arrive));
+      running[v] += VOTES[i][v] * w;
+      if (!isFast(i) && castsVote(card, v)) shown[v] += SHOWN_BAR * w;
     });
   });
   const shares = Object.fromEntries(
-    VALUE_ORDER.map((v) => [v, lerp((Math.max(0, running[v]) / TOP_TOTAL) * lead, p[v], settle)]),
+    VALUE_ORDER.map((v) => [
+      v,
+      lerp(Math.min(1, (Math.max(0, running[v]) / TOP_TOTAL) * lead + shown[v]), p[v], settle),
+    ]),
   ) as Record<Value, number>;
 
   const shrink = easeInOut(ramp(t, SHRINK_AT, SHRINK_AT + SHRINK_MS));
