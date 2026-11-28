@@ -11,21 +11,6 @@ const BORDER_PX = 2;
 /** The header is a slimmer card than the full case: less padding above and below its one line. */
 const HEADER_PAD = "0.6em";
 
-/** The tucked case at rest: the vignette's first sentence, one line, ellipsis if it overflows. */
-export function CaseHeaderLine({ text, shared = false }: { text: string; shared?: boolean }) {
-  return (
-    <div
-      data-shared={shared ? "patient" : undefined}
-      className={CARD_CLASS}
-      style={{ borderColor: NEUTRAL.line, color: NEUTRAL.ink, paddingTop: HEADER_PAD, paddingBottom: HEADER_PAD }}
-    >
-      <p className="truncate leading-[1.5]" data-case-header>
-        {text}
-      </p>
-    </div>
-  );
-}
-
 function useHeight() {
   const [node, setNode] = useState<HTMLElement | null>(null);
   const [height, setHeight] = useState(0);
@@ -57,7 +42,17 @@ export default function TuckedCase({ tuck, shared, body }: { tuck: number; share
     </p>
   );
 
-  if (p >= 1) return <CaseHeaderLine text={openingRows.caseHeader} shared={shared} />;
+  if (p >= 1) {
+    return (
+      <div
+        data-shared={shared ? "patient" : undefined}
+        className={CARD_CLASS}
+        style={{ ...frame, paddingTop: HEADER_PAD, paddingBottom: HEADER_PAD }}
+      >
+        {header}
+      </div>
+    );
+  }
 
   const full = fullH + BORDER_PX;
   const height =

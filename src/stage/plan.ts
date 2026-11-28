@@ -1,4 +1,3 @@
-import { casesBeats } from "../chapters/cases/beats";
 import { OPENING_BEATS, OFFSETS as OPENING_OFFSETS, type OpeningChapterKey } from "../chapters/opening/timeline";
 import { stackBeats } from "../chapters/stack/beats";
 import { compressBeats, PROFILE_HEADLINE } from "../chapters/regression/beats";
@@ -7,13 +6,12 @@ import { FADE_MS } from "../design/motion";
 import { beatStart, chapterDuration, type Beat } from "../types";
 import { morphBeats } from "./morphBeats";
 
-/** Chapter ids, in play order: opening (4), cases, stack, regression bridge, morph, ending (2). */
+/** Chapter ids, in play order: opening (4), stack, regression bridge, morph, ending (2). */
 export const SEGMENTS = [
   "opening-hook",
   "opening-dilemma",
   "opening-framework",
   "opening-model",
-  "cases",
   "stack",
   "regression",
   "morph",
@@ -34,7 +32,6 @@ export const SEGMENT_BEATS: Record<SegmentId, readonly Beat[]> = {
   "opening-dilemma": OPENING_BEATS.dilemma,
   "opening-framework": OPENING_BEATS.framework,
   "opening-model": OPENING_BEATS.model,
-  cases: casesBeats,
   stack: stackBeats,
   regression: compressBeats,
   morph: morphBeats,
