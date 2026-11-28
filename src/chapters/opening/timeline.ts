@@ -69,12 +69,13 @@ const COLLAPSE_AT = EXTRACTED_AT;
 const FIRST_DOT_AT = COLLAPSE_AT + COLLAPSE_MS;
 /**
  * Choice each repeated query shows, in run order. 0 = choice 1, 1 = choice 2.
- * The recorded runs all pick choice 1. The opening shows 9–1 instead: the slow
- * second query picks choice 2, so one dot lands on the other side.
+ * Straight from the recorded runs (opening.json), so GPT's dots match its row
+ * in the model rows and decisions.json.
  */
-const SHOWN_CHOICES = [0, 1, 0, 0, 0, 0, 0, 0, 0, 0] as const;
-if (SHOWN_CHOICES.length !== openingRows.models[0].trials) {
-  throw new Error("timeline: the staged GPT queries and decisions.json disagree on how many queries ran");
+const SHOWN_CHOICES: readonly (0 | 1)[] = openingCase.decisions;
+const shownChoice1 = SHOWN_CHOICES.filter((c) => c === 0).length;
+if (SHOWN_CHOICES.length !== openingRows.models[0].trials || shownChoice1 !== openingRows.models[0].choice1) {
+  throw new Error("timeline: GPT's recorded queries and decisions.json disagree");
 }
 /** Each repeat query: the mark turns once, then its dot lands. */
 const RUN_COUNT = SHOWN_CHOICES.length;
