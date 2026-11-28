@@ -9,13 +9,17 @@ import CasesScene from "../chapters/cases/CasesScene";
 import { casesBeats } from "../chapters/cases/beats";
 import PrismScene from "../chapters/prism/PrismScene";
 import { ENTER_MS as PRISM_ENTER_MS, prismBeats } from "../chapters/prism/beats";
+import StackStage from "../chapters/stack/StackStage";
+import { stackBeats } from "../chapters/stack/beats";
+import { RegressionScene } from "../chapters/regression/RegressionChapter";
+import { regressionBeats } from "../chapters/regression/beats";
 import IndividualModels from "../chapters/ending/IndividualModels";
 import ModelsAndPhysicians from "../chapters/ending/ModelsAndPhysicians";
 import { AUTOPLAY_MODELS, GALLERY_PHYSICIANS, INDIVIDUAL_MODELS } from "../chapters/ending/profiles";
 import { individualLabelWeight } from "../chapters/ending/beats";
 import { clamp01, easeInOut } from "../chapters/ending/shared";
 import { FADE_MS } from "../design/motion";
-import { gptProfile } from "./data";
+import { foregroundCases, gptProfile, stackCases } from "./data";
 import Morph from "./Morph";
 import { MORPH_TIMING, morphBeats } from "./morphBeats";
 import {
@@ -64,6 +68,9 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
       return { from: "icon-response", mix: 0, opacity: modelHandoff(e).responseEnter };
     case "cases":
       // Every card draws its own icon, so the pile fades it with the card.
+      return { from: null, mix: 0, opacity: 0 };
+    case "stack":
+    case "regression":
       return { from: null, mix: 0, opacity: 0 };
     case "morph": {
       // The icon fades in at the donut hole when the labels arrive.
@@ -146,8 +153,26 @@ function Headline({ state }: { state: HeadlineState }) {
 /*  Stage                                                                     */
 /* -------------------------------------------------------------------------- */
 
+const STACK_END = chapterDuration({ beats: stackBeats });
 const CASES_END = chapterDuration({ beats: casesBeats });
+const REGRESSION_END = chapterDuration({ beats: regressionBeats });
 const PRISM_END = chapterDuration({ beats: prismBeats });
+
+function StackScene({ elapsedMs }: { elapsedMs: number }) {
+  return (
+    <StackStage
+      cases={stackCases}
+      beats={stackBeats}
+      elapsedMs={elapsedMs}
+      profileKey={gptProfile.key}
+      profileLabel={gptProfile.displayName}
+    />
+  );
+}
+
+function RegressionLayer({ elapsedMs }: { elapsedMs: number }) {
+  return <RegressionScene elapsedMs={elapsedMs} rows={foregroundCases} profile={gptProfile} showHeadline={false} />;
+}
 
 /**
  * The one stage every chapter renders into. It is a single component, never
@@ -205,16 +230,38 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
           <div data-scene-zone className="relative min-h-0 flex-1">
             {segment === "prism" && <PrismScene elapsedMs={e} profile={gptProfile} />}
 
-            {segment === "morph" && (
+            {segment === "stack" && <StackScene elapsedMs={e} />}
+            {segment === "stack" && prev === "prism" && e < GHOST_MS && (
+              <div aria-hidden className="pointer-events-none absolute inset-0 bg-canvas" style={{ opacity: 1 - e / GHOST_MS }}>
+                <PrismScene elapsedMs={PRISM_END} profile={gptProfile} />
+              </div>
+            )}
+
+            {segment === "regression" && (
               <>
-                <Morph profile={gptProfile} elapsedMs={e} />
-                {prev === "prism" && e < GHOST_MS && (
+                <RegressionLayer elapsedMs={e} />
+                {e < GHOST_MS && (
                   <div
                     aria-hidden
                     className="pointer-events-none absolute inset-0 bg-canvas"
                     style={{ opacity: 1 - e / GHOST_MS }}
                   >
-                    <PrismScene elapsedMs={PRISM_END} profile={gptProfile} />
+                    <StackScene elapsedMs={STACK_END} />
+                  </div>
+                )}
+              </>
+            )}
+
+            {segment === "morph" && (
+              <>
+                <Morph profile={gptProfile} elapsedMs={e} />
+                {e < GHOST_MS && (
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 bg-canvas"
+                    style={{ opacity: 1 - e / GHOST_MS }}
+                  >
+                    <RegressionLayer elapsedMs={REGRESSION_END} />
                   </div>
                 )}
               </>
@@ -251,6 +298,16 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
             opacity: 1 - e / PRISM_ENTER_MS,
             transform: `translateX(${-34 * (e / PRISM_ENTER_MS)}%) scale(${1 - 0.7 * (e / PRISM_ENTER_MS)})`,
           }}
+        >
+          <CasesScene elapsedMs={CASES_END} ownIcons />
+        </div>
+      )}
+
+      {segment === "stack" && prev === "cases" && e < GHOST_MS && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-20"
+          style={{ opacity: 1 - e / GHOST_MS }}
         >
           <CasesScene elapsedMs={CASES_END} ownIcons />
         </div>

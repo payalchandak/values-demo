@@ -11,10 +11,11 @@ import type { Beat } from "../../types";
  *   card       the opening's card, already on its tag-chip side with its dots in, holding
  *   turn       (empty: the card arrives already turned)
  *   values     (empty: the tag side already held in the opening)
- *   shrink     (empty: the title grid does not play)
- *   reveal     (empty)
- *   grid       (empty)
- *   flip       (empty: the cards are already on their tag side)
+ *   shrink     the card flips back and shrinks into the middle of the grid, becoming a
+ *              title card
+ *   reveal     the other cards appear one by one, spreading out from the first
+ *   grid       every card is on screen and holds, so the titles can be read
+ *   flip       every card flips to its tag-chip back, one after another (the structure)
  *   settle     all the tag backs sit so the trade-offs can be read
  *   markers    the red and dark decision dots come in along the card edges, beside the tags
  *   observed   the dots are all in and hold
@@ -51,11 +52,14 @@ const CARD_HOLD_MS = 1600;
 const TURN_MS = 0;
 /** The hero's tag back holds so the values can be read. */
 const VALUES_HOLD_MS = 0;
-/** Collapsed. The title grid (shrink, reveal, hold, flip from titles) does not play. */
-const SHRINK_MS = 0;
-const REVEAL_MS = 0;
-const GRID_HOLD_MS = 0;
-const FLIP_MS = 0;
+/** The hero card flips back and shrinks into the grid. */
+const SHRINK_MS = 700;
+/** The other cards appear one by one. Each card fades in over 30% of this (see the timeline). */
+const REVEAL_MS = 3000;
+/** The full grid holds so the titles can be read. */
+const GRID_HOLD_MS = 1500;
+/** Every card flips, staggered from the middle out. Each flip takes 45% of this. */
+const FLIP_MS = 3000;
 /** The tag backs stay up long enough to read the trade-offs before the decisions arrive. */
 const TRADEOFF_HOLD_MS = 1600;
 /** Dots cascade across the cards. */
