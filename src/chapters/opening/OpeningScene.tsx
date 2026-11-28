@@ -81,7 +81,8 @@ const OPTION_ACCENT = RECOMMENDATION_COLORS.option2;
 /* -------------------------------------------------------------------------- */
 
 const MIN_FONT_PX = 6;
-const MAX_FONT_PX = 22;
+/** Ceiling only. The stage height, and lines that must stay on one row, stop the type first. */
+const MAX_FONT_PX = 64;
 /**
  * The opening card (logo + paper title) is on screen alone, so it is sized to
  * the viewport instead of the font that later, denser chapters fit into.
@@ -194,9 +195,12 @@ const easeOut = (x: number) => 1 - (1 - Math.min(1, Math.max(0, x))) ** 3;
  * because the focused layout enlarges a different sentence for each. The hook
  * is probed at its last frame, where the question slot is already reserved.
  */
+/** Settled dilemma: the case, the options and the physician icons. The live scene scales up to this frame. */
+const FILL_PROBE_T = at("dilemma", "end") - 1;
+
 const PROBE_TIMES: readonly number[] = [
   at("hook", "end") - 1,
-  at("dilemma", "end") - 1, // the case, the options and the physician icons
+  FILL_PROBE_T, // the case, the options and the physician icons
   ...VALUE_ORDER.filter((v) => triggerWords(v) > 0).map((v) => at("framework", `${v}Highlight`) + 400),
   ...VALUE_ORDER.map((v) => at("framework", `${v}Chip2`) + PILL_ENTER_MS),
   at("framework", "all") + 800, // tinted case, labels under both choices, heading restored
@@ -1174,9 +1178,7 @@ const SceneBody = memo(function SceneBody({
   return (
     <div
       data-scene-body
-      className={`relative mx-auto flex w-full max-w-[46em] flex-col items-center ${
-        probe ? "" : "h-full justify-center"
-      }`}
+      className="relative mx-auto flex w-full max-w-[46em] flex-col items-center"
       style={{ gap: STACK_GAP, ...ROW_VARS }}
     >
       {showHeading && (
@@ -1287,6 +1289,7 @@ export default function OpeningScene({
   // Narrow-screen vignette layout; chosen by the fit below, not by a fixed breakpoint.
   const [focused, setFocused] = useState(false);
   const [lockup, setLockup] = useState<HeroLockup>(EMPTY_LOCKUP);
+  const scaleRef = useRef<HTMLDivElement>(null);
   // The full-scene card, and the in-flow card's place it shrinks into.
   const [fullRect, setFullRect] = useState<Rect | null>(null);
   const [target, setTarget] = useState<Rect | null>(null);
@@ -1340,7 +1343,9 @@ export default function OpeningScene({
       root.dataset.fontPx = root.style.getPropertyValue("--fs");
       root.dataset.fullFitPx = String(fullPx);
       const fs = parseFloat(root.style.getPropertyValue("--fs")) || 16;
-      const scene = root.querySelector<HTMLElement>(":scope > [data-scene-body]");
+      const scene = [...root.querySelectorAll<HTMLElement>("[data-scene-body]")].find(
+        (el) => !el.closest("[data-probe]"),
+      );
       const next = measureHero(scene?.clientWidth || root.clientWidth, root.clientHeight, fs, lineProbe);
       setLockup((prev) => (sameLockup(prev, next) ? prev : next));
 
@@ -1385,20 +1390,70 @@ export default function OpeningScene({
     return () => observer.disconnect();
   }, []);
 
+  // The shared font fits the tallest frame, so the dilemma column sits in leftover
+  // space. Scale that column up until it meets the stage, and hold the scale
+  // through the framework so the case does not jump. Once the model answer
+  // arrives the column is already as tall as the stage, and it stays at the
+  // shared size so the handoff to the next chapter matches.
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    const box = scaleRef.current;
+    if (!root || !box) return;
+    const probeSet = root.dataset.layout === "focused" ? focusedProbesRef.current : fullProbesRef.current;
+    const settled = probeSet?.querySelector<HTMLElement>("[data-fill-probe] [data-scene-body]");
+    const body = box.querySelector<HTMLElement>("[data-scene-body]");
+    const colW = settled?.offsetWidth ?? 0;
+    const settledH = settled?.offsetHeight ?? 0;
+    // Measure the column at its own height. A stretch from the previous frame
+    // would otherwise feed back into the scale.
+    if (body) {
+      body.style.height = "";
+      body.style.justifyContent = "";
+    }
+    box.style.height = "";
+    const liveH = body?.offsetHeight ?? 0;
+    const availW = root.clientWidth;
+    const availH = root.clientHeight;
+    let scale = 1;
+    if (colW > 1 && settledH > 1 && liveH > 1 && availW > 1 && availH > 1) {
+      const byW = availW / colW;
+      const dilemmaFill = Math.min(byW, availH / settledH);
+      const liveFit = Math.min(byW, availH / liveH);
+      const fill = Math.max(1, Math.min(dilemmaFill, liveFit));
+      scale = t >= at("model", "ask") + MODEL_HANDOFF_MS ? 1 : fill;
+    }
+    const next = Math.round(scale * 1000) / 1000;
+    const locked = t >= at("model", "ask") + MODEL_HANDOFF_MS;
+    box.style.transform = next === 1 ? "" : `scale(${next})`;
+    // The type stops at the stage's edge. Whatever height is left goes into
+    // the gaps, so the heading, the case and the choices reach the stage.
+    const room = !locked && next > 0 ? availH / next - liveH : 0;
+    if (body && room > 8) {
+      box.style.height = `${liveH + room}px`;
+      body.style.height = "100%";
+      body.style.justifyContent = "space-between";
+    }
+  });
+
   // Where the in-flow card sits. Measured only while the full-scene card needs it.
   useLayoutEffect(() => {
     const root = rootRef.current;
-    const slot = root?.querySelector<HTMLElement>("[data-case-slot]");
+    const slot = [...(root?.querySelectorAll<HTMLElement>("[data-case-slot]") ?? [])].find(
+      (el) => !el.closest("[data-probe]"),
+    );
     if (!root || !slot || !overlayOn) return;
-    const card = slot.firstElementChild ?? slot;
+    const card = slot.firstElementChild instanceof HTMLElement ? slot.firstElementChild : slot;
     const r = card.getBoundingClientRect();
     const o = root.getBoundingClientRect();
+    // The column is scaled to fill the stage. The overlay has to land on that
+    // visual size, including the type, which a transform does not change.
+    const grown = card.offsetWidth > 0 ? r.width / card.offsetWidth : 1;
     const next: Rect = {
       left: r.left - o.left,
       top: r.top - o.top,
       width: r.width,
       height: r.height,
-      fs: parseFloat(getComputedStyle(slot).fontSize) || 16,
+      fs: (parseFloat(getComputedStyle(slot).fontSize) || 16) * grown,
     };
     setTarget((prev) => (sameRect(prev, next) ? prev : next));
   });
@@ -1406,7 +1461,7 @@ export default function OpeningScene({
   const probeSet = (ref: typeof fullProbesRef, isFocused: boolean) => (
     <div ref={ref} data-probe aria-hidden="true" className="pointer-events-none invisible absolute left-0 top-0 w-full">
       {PROBE_TIMES.map((pt) => (
-        <div key={pt} className="absolute left-0 top-0 w-full">
+        <div key={pt} data-fill-probe={pt === FILL_PROBE_T ? "" : undefined} className="absolute left-0 top-0 w-full">
           <SceneBody
             t={pt}
             probe
@@ -1430,15 +1485,19 @@ export default function OpeningScene({
       style={{ fontSize: "var(--fs)" }}
     >
       <CaseOverlay t={t} full={fullRect} target={target} />
-      <SceneBody
-        t={t}
-        probe={false}
-        focused={focused}
-        sharedIcon={sharedIcon}
-        hidePatient={hidePatient}
-        recallPatient={recallPatient}
-        caseOverlay={overlayOn}
-      />
+      <div className="flex h-full w-full items-center justify-center">
+        <div ref={scaleRef} data-scale-box className="w-full max-w-[46em] origin-center">
+          <SceneBody
+            t={t}
+            probe={false}
+            focused={focused}
+            sharedIcon={sharedIcon}
+            hidePatient={hidePatient}
+            recallPatient={recallPatient}
+            caseOverlay={overlayOn}
+          />
+        </div>
+      </div>
       <HeroOverlay t={t} lockup={lockup} />
       <div ref={heroProbeRef} aria-hidden="true" className="pointer-events-none invisible absolute left-0 top-0">
         <span data-hero-word className="whitespace-nowrap font-semibold tracking-tight">

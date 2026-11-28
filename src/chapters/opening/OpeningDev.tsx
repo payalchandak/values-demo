@@ -14,7 +14,7 @@ export default function OpeningDev() {
   if (t === null || Number.isNaN(Number(t))) return <DemoPlayer chapters={openingChapters} />;
   return (
     <div className="h-screen w-screen overflow-hidden bg-canvas">
-      <main className="mx-auto h-full w-full max-w-5xl px-3 pb-24 pt-3 md:px-10 md:pt-8">
+      <main className="mx-auto h-full w-full px-3 pb-24 pt-3 md:px-10 md:pt-16">
         <OpeningScene t={Number(t)} />
       </main>
     </div>
