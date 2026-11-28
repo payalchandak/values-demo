@@ -132,9 +132,9 @@ function CaseContent({
 }) {
   const arrive = arrival(t, index);
   const { up, shrink } = sink(t, index);
-  // Skipped cards are plain blank cards: no content, and they barely slide.
-  const blank = isFast(index);
-  const rise = (1 - arrive) * (blank ? 0 : RISE_EM);
+  // Skipped cards keep their content while on top, then go blank once buried, which is never seen.
+  const blank = isFast(index) && up >= EDGE_EM * 2;
+  const rise = (1 - arrive) * (isFast(index) ? 0 : RISE_EM);
   const buried = up > 0.001;
   return (
     <div

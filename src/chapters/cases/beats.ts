@@ -19,10 +19,10 @@ export const HOLD_MS = 2200;
 export const CASE_COUNT = 50;
 /** Cards 4 to 49 (index 3 to 48) are skipped through. The rest are shown at full pace. */
 export const isFast = (i: number) => i >= 3 && i <= CASE_COUNT - 2;
-/** Skipped cards land as plain blank cards, one after another. */
-export const FAST_STEP_MS = 60;
+/** Skipped cards land one after another, too quick to read but not a strobe. */
+export const FAST_STEP_MS = 110;
 /** A skipped card's soft fade in. */
-export const FAST_IN_MS = 320;
+export const FAST_IN_MS = 260;
 /** The skip, start to last blank card. */
 export const SKIP_MS = (CASE_COUNT - 5) * FAST_STEP_MS;
 
