@@ -50,11 +50,11 @@ const hook = [
 const OPTIONS_AT = 600;
 /** The full-scene case card shrinks to its place while the question fades in. Ends before the options. */
 export const CASE_SHRINK_MS = 500;
-/** The choices finish landing, then a short still hold before the heading changes. */
+/** The choices finish landing, then a short still hold before the physician icons. */
 const OPTIONS_LANDED_MS = 680;
 const HEADING_HOLD_MS = 400;
 const HEADING_AT = OPTIONS_AT + OPTIONS_LANDED_MS + HEADING_HOLD_MS;
-/** "What would you recommend?" cross-fades to "Physicians disagree on the decision". */
+/** Still hold with the heading up, before the physician icons. */
 export const HEADING_SWAP_MS = 500;
 /** Physician icons arrive one at a time, in a fixed interleaved order. */
 const VOTES_AT = HEADING_AT + HEADING_SWAP_MS;
@@ -66,10 +66,10 @@ const VOTES_HOLD_MS = 1600;
 /** Opening time at which physician icon number `i` (0-based, in vote order) starts to appear. */
 export const voteStartMs = (i: number): number => at("dilemma", "votes") + i * VOTE_GAP_MS;
 const dilemma = [
-  { name: "question", startMs: 0 }, // "What would you recommend?"
+  { name: "question", startMs: 0 }, // "Physicians disagree on the decision"
   { name: "options", startMs: OPTIONS_AT }, // two equal option cards
   { name: "hold", startMs: OPTIONS_AT + 500 }, // nothing moves: the viewer decides, no model answer yet
-  { name: "heading", startMs: HEADING_AT }, // heading cross-fades to "Physicians disagree on the decision"
+  { name: "heading", startMs: HEADING_AT }, // heading holds before the physician icons
   { name: "votes", startMs: VOTES_AT }, // physician icons appear one at a time under each option
   { name: "voted", startMs: VOTES_DONE_AT }, // all 25 are in
   { name: "end", startMs: VOTES_DONE_AT + VOTES_HOLD_MS },
@@ -185,7 +185,7 @@ const REPEAT_SPINS: readonly { start: number; end: number }[] = (() => {
 const LAST_DOT_AT = REPEAT_SPINS[REPEAT_SPINS.length - 1].end + MODEL_ROW_IN_MS;
 
 const model = [
-  { name: "ask", startMs: 0 }, // "What would you recommend?" starts leaving; the response eases in with it
+  { name: "ask", startMs: 0 }, // "Physicians disagree on the decision" starts leaving; the response eases in with it
   { name: "think", startMs: THINK_AT }, // mark spins; the panel is arriving with it
   { name: "reveal", startMs: REVEAL_AT }, // answer starts typing
   { name: "revealed", startMs: REVEALED_AT }, // last character is on screen

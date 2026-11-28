@@ -25,18 +25,16 @@ import { CHARCOAL, CHARCOAL_FAINT } from "./charcoal";
 import { ROW_VARS } from "./rowMetrics";
 import { valueSteps } from "./valueSteps";
 import { triggerWords } from "./valueTriggers";
-import { CASE_SHRINK_MS, COLLAPSE_MS, OPENING_BEATS, HEADING_SWAP_MS, OFFSETS, PILL_ENTER_MS, at, caseCharsAt, modelHandoff, ramp, stripProgress, visibility, voteEnter } from "./timeline";
+import { CASE_SHRINK_MS, COLLAPSE_MS, OPENING_BEATS, OFFSETS, PILL_ENTER_MS, at, caseCharsAt, modelHandoff, ramp, stripProgress, visibility, voteEnter } from "./timeline";
 
 /* -------------------------------------------------------------------------- */
 /*  Copy                                                                       */
 /* -------------------------------------------------------------------------- */
 
 /** Storyboard copy, verbatim. */
-const PHYSICIANS_HEADING = "Physicians disagree on the decision";
-
 const HEADLINES = [
   { text: "Do Language Models Share Your Doctor's Priorities?", size: "2.6em" }, // ch1
-  { text: "What would you recommend?", size: "1.7em" }, // ch2, then it becomes the physicians heading
+  { text: "Physicians disagree on the decision", size: "1.7em" }, // ch2
   { text: "Clinical decisions require prioritizing competing values.", size: "1.7em" }, // ch4
 ] as const;
 
@@ -338,7 +336,6 @@ function HeadlineReplace({
   titleOpacity,
   questionOpacity,
   titleSize,
-  swap = 0,
 }: {
   /** 0 = the paper title's box, 1 = the question's box. */
   mix: number;
@@ -350,8 +347,6 @@ function HeadlineReplace({
   questionOpacity: number;
   /** Override for the opening card. Omit to use the shared headline size. */
   titleSize?: string;
-  /** 0..1 cross-fade from the question to the physicians heading. */
-  swap?: number;
 }) {
   const [titleRef, titleH] = useBoxHeight();
   const [questionRef, questionH] = useBoxHeight();
@@ -420,12 +415,7 @@ function HeadlineReplace({
           }}
           aria-hidden={questionOpacity < 0.5}
         >
-          <span className="grid">
-            <span style={{ gridArea: "1 / 1", opacity: 1 - swap }}>{HEADLINES[1].text}</span>
-            <span style={{ gridArea: "1 / 1", opacity: swap }} aria-hidden={swap < 0.5}>
-              {PHYSICIANS_HEADING}
-            </span>
-          </span>
+          {HEADLINES[1].text}
         </h1>
       </div>
       <div aria-hidden style={{ height: `calc(${STACK_GAP} * ${1 - gone})` }} />
@@ -913,7 +903,6 @@ const SceneBody = memo(function SceneBody({
   const showChips = t >= FRAMEWORK_AT;
   // Space is held from the options on, so the icons arrive without moving anything.
   const votes = showOptions && t < at("model", "ask") ? t : null;
-  const headingSwap = ease(ramp(t, at("dilemma", "heading"), at("dilemma", "heading") + HEADING_SWAP_MS));
   const steps = valueSteps(t);
   // While a label is opening, its height already follows the clock. A layout
   // animation on top of that would trail the row and make the arrival feel late.
@@ -944,7 +933,6 @@ const SceneBody = memo(function SceneBody({
         <HeadlineReplace
           mix={1}
           exit={h === 0 ? 0 : questionExit}
-          swap={headingSwap}
           drift={h === 0 ? 0 : handoff.questionFade}
           titleOpacity={0}
           questionOpacity={questionIn * (1 - handoff.questionFade)}
