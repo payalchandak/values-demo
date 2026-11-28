@@ -125,7 +125,13 @@ export default function Morph({
     const C = TAU * rMid;
     const spans = ringSpans(p);
     const top = dominantValue(p);
-    const opacityOf = (v: (typeof VALUE_ORDER)[number]) => (v === top ? 1 : LIGHT_OPACITY);
+    // One ink through the vote chapter, which freezes this at MORPH_HANDOFF_MS.
+    // After the bars have rested in this chapter, the leading value eases to
+    // full ink before they stack, and the ring keeps that emphasis.
+    const stackAt = at("stack");
+    const inkStart = Math.max(MORPH_HANDOFF_MS, stackAt * 0.4);
+    const inkP = easeInOut(clamp01((t - inkStart) / Math.max(1, stackAt - inkStart)));
+    const opacityOf = (v: Value) => lerp(LIGHT_OPACITY, v === top ? 1 : LIGHT_OPACITY, inkP);
 
     // Bar layout, centered on the frame.
     const s = barFrameScale(W);
