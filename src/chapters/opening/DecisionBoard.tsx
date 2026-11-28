@@ -45,6 +45,7 @@ export function GptDotRow({
   label,
   iconSrc,
   iconAlt,
+  anchorName = "icon-response",
 }: {
   left: number;
   right: number;
@@ -53,6 +54,8 @@ export function GptDotRow({
   label: string;
   iconSrc: string;
   iconAlt: string;
+  /** The shared icon's anchor name; "" leaves the slot without one. */
+  anchorName?: string;
 }) {
   const dots = (side: 0 | 1, n: number) =>
     Array.from({ length: n }, (_, i) => <Dot key={i} opacity={opacityAt(side, i)} />);
@@ -65,7 +68,7 @@ export function GptDotRow({
         style={{ height: ROW_HEIGHT, columnGap: COLUMN_GAP }}
       >
         <div className="flex min-w-0 items-center" style={{ paddingLeft: EDGE_PAD, gap: ICON_GAP }}>
-          <IconSlot anchor={sharedIcon ? "icon-response" : undefined}>
+          <IconSlot anchor={sharedIcon && anchorName ? anchorName : undefined}>
             {sharedIcon ? null : <ProviderIcon src={iconSrc} alt={iconAlt} size={36} />}
           </IconSlot>
           <span className="flex items-center" style={{ gap: DOT_GAP }}>

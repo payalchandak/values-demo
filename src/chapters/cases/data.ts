@@ -5,9 +5,8 @@ import type { StudyCase, Tag, Value } from "../../study/types";
 export const GPT_TRIALS = 10;
 
 /**
- * Short choice labels for the four cases that follow the opening case, in play order.
- * Keys are id prefixes in cases.json. The opening case keeps its own wording.
- * Expected GPT counts for choice 1 are noted for reference and checked against the data.
+ * Short choice labels for the four hand-labelled cases. Keys are id prefixes in cases.json.
+ * Every other case shows its own choices. `k` is noted for reference.
  */
 export const CASE_CHOICE_LABELS = [
   { prefix: "4b731f8c", k: 7, labels: ["Give chemotherapy", "Stop chemotherapy"] },
@@ -15,6 +14,12 @@ export const CASE_CHOICE_LABELS = [
   { prefix: "c66799aa", k: 10, labels: ["Start counseling", "Defer counseling"] },
   { prefix: "7bd46c3e", k: 0, labels: ["Transfer both", "Transfer one"] },
 ] as const;
+type Labelled = (typeof CASE_CHOICE_LABELS)[number];
+const labelOf = (prefix: string): Labelled => {
+  const f = CASE_CHOICE_LABELS.find((l) => l.prefix === prefix);
+  if (!f) throw new Error(`no labels for ${prefix}`);
+  return f;
+};
 
 export interface DilemmaCard {
   id: string;
@@ -25,16 +30,15 @@ export interface DilemmaCard {
   gptChoice1: number;
 }
 
-function noDash(text: string, where: string): string {
-  if (/[\u2013\u2014]/.test(text)) throw new Error(`${where} has a dash character on screen`);
-  return text;
+/** No dash characters on screen: swap them for a comma. */
+function noDash(text: string, _where: string): string {
+  return text.replace(/\s*[\u2013\u2014]\s*/g, ", ");
 }
 
 /** First sentence, as written. The same cut the opening uses for its header. */
 function firstSentence(vignette: string, id: string): string {
   const match = vignette.match(/^.+?\.(?=\s)/);
-  if (!match || !vignette.startsWith(match[0])) throw new Error(`${id}: no first sentence`);
-  return noDash(match[0], id);
+  return noDash(match && vignette.startsWith(match[0]) ? match[0] : vignette, id);
 }
 
 function findByPrefix(prefix: string): StudyCase {
@@ -43,22 +47,41 @@ function findByPrefix(prefix: string): StudyCase {
   return matches[0];
 }
 
-function added(entry: (typeof CASE_CHOICE_LABELS)[number]): DilemmaCard {
-  const raw = findByPrefix(entry.prefix);
+function toCard(raw: StudyCase, labels?: readonly [string, string]): DilemmaCard {
   const k = raw.modelChoice1Counts.gpt;
   if (!Number.isInteger(k) || k < 0 || k > GPT_TRIALS) {
     throw new Error(`${raw.id}: modelChoice1Counts.gpt is ${String(k)}`);
   }
-  noDash(entry.labels[0], entry.prefix);
-  noDash(entry.labels[1], entry.prefix);
+  const [c1, c2] = labels ?? raw.choices;
   return {
     id: raw.id,
     header: firstSentence(raw.vignette, raw.id),
-    choices: [entry.labels[0], entry.labels[1]],
+    choices: [noDash(c1, raw.id), noDash(c2, raw.id)],
     tags: raw.tags,
     gptChoice1: k,
   };
 }
 
-/** Chemotherapy, amputation, weight counseling, embryo transfer. */
-export const addedCases: readonly DilemmaCard[] = CASE_CHOICE_LABELS.map(added);
+/** The opening's case is card 1 and is built by the scene. */
+const OPENING_PREFIX = "0b5a2bcb";
+const FIRST = "4b731f8c";
+const LAST_TWO = ["c66799aa", "7bd46c3e"] as const;
+
+/** Cards 2 to 50: chemotherapy, every other case as is, then weight counseling and embryo transfer. */
+export const addedCases: readonly DilemmaCard[] = (() => {
+  const named = new Set<string>([OPENING_PREFIX, FIRST, ...LAST_TWO]);
+  const middle = allCases.filter((c) => ![...named].some((p) => c.id.startsWith(p)));
+  const labelled = (prefix: string) => {
+    const l = labelOf(prefix);
+    return toCard(findByPrefix(prefix), l.labels);
+  };
+  const out = [
+    labelled(FIRST),
+    ...middle.map((c) => {
+      const l = CASE_CHOICE_LABELS.find((x) => c.id.startsWith(x.prefix));
+      return toCard(c, l?.labels);
+    }),
+    ...LAST_TWO.map(labelled),
+  ];
+  return out;
+})();

@@ -9,7 +9,7 @@ import { openingRows } from "../opening/openingRows";
 import { ROW_VARS } from "../opening/rowMetrics";
 import { at } from "../opening/timeline";
 import { addedCases, GPT_TRIALS, type DilemmaCard } from "./data";
-import { BOX_MS, CASE_STARTS, casesBeats, DOT_IN_MS, DOT_STAGGER_MS, IN_MS } from "./beats";
+import { BOX_MS, CASE_STARTS, casesBeats, DOT_IN_MS, DOT_STAGGER_MS, FAST_IN_MS, IN_MS, isFast } from "./beats";
 
 /** The opening's width cap, and the card's width once it has narrowed, in em. */
 const OPEN_EM = 46;
@@ -25,6 +25,8 @@ const STACK_GAP = "0.9em";
 /** Each card on the pile sits this far higher and a little smaller than the one above it. */
 const PEEK_EM = 0.8;
 const SHRINK = 0.04;
+/** Cards this deep show behind the top one. */
+const PILE = 3;
 /** A new card slides up from this far below. */
 const RISE_EM = 1;
 /** Dots wait for the card to be mostly in. */
@@ -58,18 +60,21 @@ const startOf = (i: number) => (i === 0 ? -Infinity : CASE_STARTS[i - 1]);
 
 /** 0 to 1 as case `i` lands on the pile. Case 0 is already there. */
 function arrival(t: number, i: number): number {
-  return i === 0 ? 1 : smooth(ramp(t, startOf(i), startOf(i) + IN_MS));
+  return i === 0 ? 1 : smooth(ramp(t, startOf(i), startOf(i) + (isFast(i) ? FAST_IN_MS : IN_MS)));
 }
 
 /** How far down the pile case `i` has sunk: one per case that has landed on top of it. */
 function depthOf(t: number, i: number): number {
   let d = 0;
-  for (let j = i + 1; j < CARDS.length; j++) d += arrival(t, j);
+  for (let j = i + 1; j < CARDS.length; j++) {
+    if (t < startOf(j)) break;
+    d += arrival(t, j);
+  }
   return d;
 }
 
 function dotOpacity(t: number, i: number, k: number, side: 0 | 1, index: number): number {
-  if (i === 0) return 1;
+  if (i === 0 || isFast(i)) return 1;
   const order = side === 0 ? index : k + index;
   const start = startOf(i) + DOT_DELAY_MS + order * DOT_STAGGER_MS;
   return smooth(ramp(t, start, start + DOT_IN_MS));
@@ -86,16 +91,22 @@ function CaseContent({
   index,
   t,
   sharedIcon,
+  top,
   boxP,
 }: {
   card: DilemmaCard;
   index: number;
   t: number;
   sharedIcon: boolean;
+  /** The newest card on the pile holds the shared icon's anchor. */
+  top: boolean;
   boxP: number;
 }) {
   const arrive = arrival(t, index);
   const depth = depthOf(t, index);
+  // Only the first few cards down the pile show. Deeper ones are gone.
+  const shown = Math.min(depth, PILE);
+  const fade = 1 - clamp01(depth - PILE);
   const rise = (1 - arrive) * RISE_EM;
   const buried = depth > 0.001;
   return (
@@ -104,9 +115,9 @@ function CaseContent({
       style={{
         gap: STACK_GAP,
         padding: `${PAD_EM * boxP}em`,
-        opacity: arrive,
+        opacity: arrive * fade,
         visibility: arrive <= 0 ? "hidden" : undefined,
-        transform: `translateY(${rise - depth * PEEK_EM}em) scale(${1 - depth * SHRINK})`,
+        transform: `translateY(${rise - shown * PEEK_EM}em) scale(${1 - shown * SHRINK})`,
         transformOrigin: "50% 0%",
         zIndex: index,
         ...ROW_VARS,
@@ -125,7 +136,7 @@ function CaseContent({
         }}
       />
       <CaseHeaderLine text={card.header} />
-      <ul className="grid w-full min-w-0 grid-cols-2 grid-rows-[auto_auto] gap-x-[0.6em] gap-y-[0.45em] [&_li>div>p]:whitespace-nowrap">
+      <ul className="grid w-full min-w-0 grid-cols-2 grid-rows-[auto_auto] gap-x-[0.6em] gap-y-[0.45em] [&_li>div>p]:truncate">
         {([0, 1] as const).map((side) => (
           <li key={side} className="col-span-1 row-span-2 grid min-w-0 grid-rows-subgrid gap-y-[0.45em]">
             <SettledChoice label={card.choices[side]} />
@@ -139,6 +150,7 @@ function CaseContent({
           right={GPT_TRIALS - card.gptChoice1}
           opacityAt={(side, n) => dotOpacity(t, index, card.gptChoice1, side, n)}
           sharedIcon={sharedIcon}
+          anchorName={top ? "icon-response" : ""}
           label={`${gpt.name} chose Choice 1 in ${card.gptChoice1} of ${GPT_TRIALS} queries`}
           iconSrc={gpt.logo.src}
           iconAlt={gpt.logo.alt}
@@ -190,6 +202,11 @@ export default function CasesScene({ elapsedMs, ownIcons = false }: { elapsedMs:
   const fitPx = Math.max(8, (metrics.stageW - SIDE * 2) / FIT_EM);
   const fontPx = metrics.stageW > 0 ? Math.min(metrics.openingPx, fitPx) : metrics.openingPx;
 
+  let topIndex = 0;
+  CARDS.forEach((_, i) => {
+    if (arrival(elapsedMs, i) >= 0.5) topIndex = i;
+  });
+
   const shell: CSSProperties = {
     width: `min(100%, ${lerp(OPEN_EM, CARD_EM, boxP)}em)`,
     fontSize: fontPx,
@@ -209,9 +226,21 @@ export default function CasesScene({ elapsedMs, ownIcons = false }: { elapsedMs:
 
       <div className="absolute inset-0 flex items-center justify-center" style={{ padding: SIDE }}>
         <div className="@container relative box-border grid" style={shell}>
-          {CARDS.map((card, i) => (
-            <CaseContent key={card.id} card={card} index={i} t={elapsedMs} sharedIcon={!ownIcons} boxP={boxP} />
-          ))}
+          {CARDS.map((card, i) => {
+            if (i > 0 && elapsedMs < startOf(i)) return null;
+            if (depthOf(elapsedMs, i) >= PILE + 1) return null;
+            return (
+              <CaseContent
+                key={card.id}
+                card={card}
+                index={i}
+                t={elapsedMs}
+                sharedIcon={!ownIcons}
+                top={i === topIndex}
+                boxP={boxP}
+              />
+            );
+          })}
         </div>
       </div>
     </div>
