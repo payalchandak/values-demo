@@ -168,7 +168,7 @@ export default function Morph({
                 {Math.round(p[b.v] * 100)}%
               </text>
             ))}
-            <text x={cx} y={rowY(3) + 36 * s} textAnchor="middle" fontSize={12 * f} fill={NEUTRAL.inkFaint}>
+            <text data-anchor="bar-subcaption" x={cx} y={rowY(3) + 36 * s} textAnchor="middle" fontSize={12 * f} fill={NEUTRAL.inkFaint}>
               {BAR_SUBCAPTION}
             </text>
           </g>

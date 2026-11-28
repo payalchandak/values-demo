@@ -50,21 +50,20 @@ interface StackStageProps {
   profileLabel?: string;
   /** Note under the case count. Used when the table is held after the stack. */
   caption?: ReactNode;
-  /** Table-to-profile hand-off, all 0..1 except `headersHidden`. Omit for the plain table. */
+  /** Table-to-profile hand-off, all 0..1. Omit for the plain table. */
   handoff?: TableHandoff;
 }
 
 /**
- * The four value headers carry `data-anchor="hdr-<value>"`, so whatever takes
- * them over measures them. `rest` is the opacity of everything but the
- * headers (rows, decision bars, ellipsis, case count, the other header cells).
+ * The four value headers carry `data-anchor="hdr-<value>"` and each row
+ * `data-anchor="row-<index>"`, so whatever builds on the table measures them.
+ * `rest` is the opacity of the rows, their decision bars and the header cells
+ * that are not values; `chrome` that of the ellipsis, the case count and the caption.
  */
 export interface TableHandoff {
   emphasis: number;
   rest: number;
-  caption: number;
-  /** The headers are drawn elsewhere: keep their place, hide their ink. */
-  headersHidden: boolean;
+  chrome: number;
 }
 
 /**
@@ -181,18 +180,18 @@ export default function StackStage({
             />
           ),
         )}
+        </div>
 
-        <Centered layout={L} y={L.ellipsisY} opacity={frame.ellipsisOpacity}>
+        <Centered layout={L} y={L.ellipsisY} opacity={frame.ellipsisOpacity * (handoff?.chrome ?? 1)}>
           <span className="text-3xl leading-none tracking-[0.3em]" style={{ color: `${INK}99` }}>
             ...
           </span>
         </Centered>
-        <Centered layout={L} y={L.countLabelY} opacity={frame.countLabelOpacity}>
+        <Centered layout={L} y={L.countLabelY} opacity={frame.countLabelOpacity * (handoff?.chrome ?? 1)}>
           <span data-stack-footer className="text-lg font-semibold tracking-tight" style={{ color: `${INK}cc` }}>
             {cases.length} cases
           </span>
         </Centered>
-        </div>
         {caption && (
           <div
             style={{
@@ -203,7 +202,7 @@ export default function StackStage({
               boxSizing: "border-box",
               padding: "0 16px",
               textAlign: "center",
-              opacity: frame.countLabelOpacity * (handoff?.caption ?? 1),
+              opacity: frame.countLabelOpacity * (handoff?.chrome ?? 1),
               pointerEvents: "none",
               color: "#4b5563",
               fontSize: 16,
@@ -266,6 +265,7 @@ function StackCard({
   return (
     <div
       aria-hidden={card.index >= FOREGROUND ? true : undefined}
+      data-anchor={`row-${card.index}`}
       style={{
         position: "absolute",
         left: card.cx - card.w / 2,
@@ -561,7 +561,6 @@ function TableHeader({
               data-anchor={`hdr-${v}`}
               style={{
                 borderRadius: 4,
-                visibility: handoff?.headersHidden ? "hidden" : undefined,
                 ...(e > 0
                   ? {
                       color: `color-mix(in srgb, ${INK} ${e * 100}%, ${compact ? VALUE_COLORS[v] : "#6b7280"})`,

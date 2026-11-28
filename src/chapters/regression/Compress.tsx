@@ -15,8 +15,8 @@ import {
   COMPRESS_TIMING,
   GHOST_LEVEL,
   NUMBERS_AT,
+  TABLE_GAP_PX,
   TILT_FROM_EQUAL,
-  TRAVEL_CLEAR,
   compressBeats,
   easeOut,
 } from "./beats";
@@ -25,6 +25,8 @@ const STACK_END = chapterDuration({ beats: stackBeats });
 const GHOST_AT = beatStart(compressBeats, "ghost");
 const TRAVEL_AT = beatStart(compressBeats, "travel");
 const GROW_AT = beatStart(compressBeats, "grow");
+const SETTLE_AT = beatStart(compressBeats, "settle");
+const END_AT = chapterDuration({ beats: compressBeats });
 
 /** Bars start at this share each when TILT_FROM_EQUAL is on. */
 const EQUAL_SHARE = 0.25;
@@ -34,7 +36,8 @@ const ramp = (x: number, a: number, b: number) => clamp01((x - a) / (b - a));
 const smooth = (x: number) => x * x * (3 - 2 * x);
 
 /* -------------------------------------------------------------------------- */
-/*  Measured anchors: where each header word is, and where its bar label goes  */
+/*  Measured layout: where each header word is, where its bar label goes,      */
+/*  and how far below the table the priorities have to sit                     */
 /* -------------------------------------------------------------------------- */
 
 /** Everything is in px, relative to the bridge's own box. `cy` is the vertical centre of the text. */
@@ -44,22 +47,28 @@ interface WordAnchor {
   to: { text: string; left: number; cy: number; fontPx: number };
 }
 
-type Anchors = Partial<Record<Value, WordAnchor>>;
+interface Anchors {
+  words: Partial<Record<Value, WordAnchor>>;
+  /** How far down the priorities sit while the table is still on the page. */
+  dock: number;
+}
 
+const NO_ANCHORS: Anchors = { words: {}, dock: 0 };
 const round = (x: number) => Math.round(x * 10) / 10;
 
 /**
- * Reads the real table headers (data-anchor "hdr-<value>") and the real bar
- * labels of a hidden copy of the Morph's first frame (data-anchor "bar-name-<value>").
- * Nothing is hard-coded, so it holds at any viewport and in either table layout.
+ * Reads the real table (header words, data-anchor "hdr-<value>", and its
+ * last row, "row-2") and a hidden copy of the morph's first frame (bar
+ * labels, "bar-name-<value>", and the line under the bars). Nothing is
+ * hard-coded, so it holds at any viewport and in either table layout.
  */
 function measure(root: HTMLElement, table: HTMLElement | null, probe: HTMLElement | null, prev: Anchors, settled: boolean): Anchors {
   const box = root.getBoundingClientRect();
-  const next: Anchors = { ...prev };
+  const words: Anchors["words"] = { ...prev.words };
   for (const v of VALUE_ORDER) {
     const head = table?.querySelector<HTMLElement>(`[data-anchor="hdr-${v}"]`);
     const bar = probe?.querySelector<Element>(`[data-anchor="bar-name-${v}"]`);
-    const old = prev[v];
+    const old = prev.words[v];
     if (!head && !bar) continue;
     let from = old?.from;
     let to = old?.to;
@@ -80,7 +89,7 @@ function measure(root: HTMLElement, table: HTMLElement | null, probe: HTMLElemen
         spacingEm: Number.isFinite(spacing) ? round(spacing / unscaled) : 0,
         color: cs.color,
       };
-      // Ink and weight ease in with the emphasis; take them once it has settled.
+      // Ink eases in with the emphasis; take it once it has settled.
       from = settled || !old ? measured : { ...measured, family: old.from.family, weight: old.from.weight, color: old.from.color };
     }
     if (bar) {
@@ -92,9 +101,20 @@ function measure(root: HTMLElement, table: HTMLElement | null, probe: HTMLElemen
         fontPx: round(parseFloat(getComputedStyle(bar).fontSize)),
       };
     }
-    if (from && to) next[v] = { value: v, from, to };
+    if (from && to) words[v] = { value: v, from, to };
   }
-  return next;
+
+  let dock = prev.dock;
+  const bottom = table?.querySelector<HTMLElement>('[data-anchor="row-2"]');
+  const first = probe?.querySelector<Element>('[data-anchor="bar-name-A"]');
+  const line = probe?.querySelector<Element>('[data-anchor="bar-subcaption"]');
+  const svg = probe?.querySelector<Element>('[data-testid="morph-svg"]');
+  if (bottom && first && line && svg) {
+    const want = bottom.getBoundingClientRect().bottom - first.getBoundingClientRect().top + TABLE_GAP_PX;
+    const room = svg.getBoundingClientRect().bottom - line.getBoundingClientRect().bottom - 4;
+    dock = round(Math.min(Math.max(want, 0), Math.max(room, 0)));
+  }
+  return { words, dock };
 }
 
 const same = (a: Anchors, b: Anchors) => JSON.stringify(a) === JSON.stringify(b);
@@ -104,12 +124,14 @@ const same = (a: Anchors, b: Anchors) => JSON.stringify(a) === JSON.stringify(b)
 /* -------------------------------------------------------------------------- */
 
 /**
- * The word leaves its column in the mono header style and arrives in the bar
- * label style. Both are drawn the whole way and cross-fade. When the table is
- * compact the header is a single letter: that letter becomes the first letter
- * of the full name, and the rest of the name spells out as it travels.
+ * A copy of the word lifts off its column (the header stays) in the mono
+ * header style and lands in the bar label style. Both are drawn the whole way
+ * and cross-fade. When the table is compact the header is a single letter:
+ * that letter becomes the first letter of the full name, and the rest of the
+ * name spells out as it travels. A soft halo keeps table text from showing
+ * through while it passes over the rows.
  */
-function TravelingWord({ word, p }: { word: WordAnchor; p: number }) {
+function TravelingWord({ word, p, dock }: { word: WordAnchor; p: number; dock: number }) {
   const e = easeInOut(p);
   const { from, to } = word;
   const fontPx = lerp(from.fontPx, to.fontPx, e);
@@ -117,6 +139,8 @@ function TravelingWord({ word, p }: { word: WordAnchor; p: number }) {
   const letterToName = to.text !== from.text && to.text.toLowerCase().startsWith(from.text.toLowerCase());
   const restOpacity = letterToName ? smooth(ramp(p, 0.4, 0.9)) : swap;
   const split = letterToName ? from.text.length : 0;
+  const halo = Math.round(100 * ramp(p, 0, 0.15) * (1 - ramp(p, 0.85, 1)));
+  const glow = `color-mix(in srgb, var(--color-canvas) ${halo}%, transparent)`;
   const base: CSSProperties = {
     position: "absolute",
     left: 0,
@@ -125,6 +149,7 @@ function TravelingWord({ word, p }: { word: WordAnchor; p: number }) {
     whiteSpace: "nowrap",
     lineHeight: 1,
     fontSize: fontPx,
+    textShadow: `0 0 3px ${glow}, 0 0 3px ${glow}, 0 0 6px ${glow}, 0 0 6px ${glow}`,
   };
   return (
     <div
@@ -132,7 +157,7 @@ function TravelingWord({ word, p }: { word: WordAnchor; p: number }) {
         position: "absolute",
         left: 0,
         top: 0,
-        transform: `translate(${lerp(from.left, to.left, e)}px, ${lerp(from.cy, to.cy, e)}px)`,
+        transform: `translate(${lerp(from.left, to.left, e)}px, ${lerp(from.cy, to.cy + dock, e)}px)`,
       }}
     >
       <span
@@ -161,13 +186,16 @@ function TravelingWord({ word, p }: { word: WordAnchor; p: number }) {
 
 /**
  * Autoplay after the stack table: "decisions and trade-offs in, four numbers
- * out". Every frame is a pure function of `elapsedMs`; the only thing read
- * from the page is layout (where the real header words and bar labels are).
+ * out", the table and the four priorities on one page. Every frame is a pure
+ * function of `elapsedMs`; the only thing read from the page is layout (where
+ * the real header words and bar labels are).
  *
- *   caption  the table holds under one question; the four headers get emphasis
- *   ghost    rows, per-row bars and the ellipsis dim back; headers stay
- *   travel   the header words move into the bar label list
- *   grow     a bar grows beside each word, then the morph takes over
+ *   caption   the table holds under one question; the four headers get emphasis
+ *   ghost     the table steps back, headers stay at full strength
+ *   travel    copies of the header words move down into the bar label list
+ *   grow      a bar grows beside each word, under the table
+ *   together  both on screen
+ *   settle    the table fades, the bars settle to where the morph starts
  *
  * A clock past the end holds the last frame, which is the morph's first frame.
  */
@@ -176,10 +204,10 @@ export function CompressBridge({ elapsedMs, profile }: { elapsedMs: number; prof
   const T = COMPRESS_TIMING;
 
   const emphasis = easeInOut(clamp01(t / T.emphasisMs));
-  const dim = easeInOut(ramp(t, GHOST_AT, GHOST_AT + T.ghostMs));
+  const ghost = easeInOut(ramp(t, GHOST_AT, GHOST_AT + T.ghostMs));
   const travel = ramp(t, TRAVEL_AT, GROW_AT);
-  const clear = easeInOut(clamp01(travel / TRAVEL_CLEAR));
   const growP = ramp(t, GROW_AT, GROW_AT + T.growMs);
+  const settle = easeInOut(ramp(t, SETTLE_AT, END_AT));
   const barGrow = easeOut(growP);
   const numbers = smooth(ramp(growP, NUMBERS_AT, 1));
   const tilt = TILT_FROM_EQUAL ? 1 - easeInOut(growP) : 0;
@@ -190,8 +218,8 @@ export function CompressBridge({ elapsedMs, profile }: { elapsedMs: number; prof
   const rootRef = useRef<HTMLDivElement>(null);
   const tableRef = useRef<HTMLDivElement>(null);
   const probeRef = useRef<HTMLDivElement>(null);
-  const anchorsRef = useRef<Anchors>({});
-  const [anchors, setAnchors] = useState<Anchors>({});
+  const anchorsRef = useRef<Anchors>(NO_ANCHORS);
+  const [anchors, setAnchors] = useState<Anchors>(NO_ANCHORS);
   const [, setSize] = useState(0);
 
   // Layout is read after every commit and kept only when it changed, so it settles in a pass or two.
@@ -204,41 +232,49 @@ export function CompressBridge({ elapsedMs, profile }: { elapsedMs: number; prof
       setAnchors(next);
     }
   });
-  // A resize changes where everything is, even when the clock has not moved.
+  // A resize, or a font arriving, changes where everything is, even when the clock has not moved.
   useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root) return;
-    const observer = new ResizeObserver(() => flushSync(() => setSize((n) => n + 1)));
+    const remeasure = () => flushSync(() => setSize((n) => n + 1));
+    const observer = new ResizeObserver(remeasure);
     observer.observe(root);
-    return () => observer.disconnect();
+    document.fonts.addEventListener("loadingdone", remeasure);
+    return () => {
+      observer.disconnect();
+      document.fonts.removeEventListener("loadingdone", remeasure);
+    };
   }, []);
 
-  const words = VALUE_ORDER.map((v) => anchors[v]).filter((w): w is WordAnchor => w !== undefined);
+  const words = VALUE_ORDER.map((v) => anchors.words[v]).filter((w): w is WordAnchor => w !== undefined);
   const flying = t >= TRAVEL_AT && t < GROW_AT && words.length === VALUE_ORDER.length;
   const handoff: TableHandoff = {
     emphasis,
-    rest: (1 - dim * (1 - GHOST_LEVEL)) * (1 - clear),
-    caption: 1 - clear,
-    headersHidden: flying,
+    rest: (1 - ghost * (1 - GHOST_LEVEL)) * (1 - settle),
+    chrome: 1 - ghost,
   };
+  // The priorities wait under the table, then settle to the middle where the morph starts.
+  const lift = anchors.dock * (1 - settle);
 
   return (
     <div ref={rootRef} className="relative h-full w-full">
-      <div className="absolute inset-0">
-        <Morph
-          profile={profile}
-          elapsedMs={MORPH_HANDOFF_MS}
-          barGrow={barGrow}
-          names={t >= GROW_AT ? 1 : 0}
-          numbers={numbers}
-          barShare={barShare}
-        />
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0" style={{ transform: `translateY(${lift}px)` }}>
+          <Morph
+            profile={profile}
+            elapsedMs={MORPH_HANDOFF_MS}
+            barGrow={barGrow}
+            names={t >= GROW_AT ? 1 : 0}
+            numbers={numbers}
+            barShare={barShare}
+          />
+        </div>
       </div>
       {/* The morph's first frame, unseen: its bar labels are where the header words land. */}
       <div ref={probeRef} data-probe aria-hidden className="pointer-events-none absolute inset-0" style={{ visibility: "hidden" }}>
         <Morph profile={profile} elapsedMs={MORPH_HANDOFF_MS} />
       </div>
-      {t < GROW_AT && (
+      {t < END_AT && (
         <div ref={tableRef} className="absolute inset-0">
           <StackStage
             cases={stackCases}
@@ -254,7 +290,7 @@ export function CompressBridge({ elapsedMs, profile }: { elapsedMs: number; prof
       {flying && (
         <div aria-hidden className="pointer-events-none absolute inset-0 z-20">
           {words.map((w) => (
-            <TravelingWord key={w.value} word={w} p={travel} />
+            <TravelingWord key={w.value} word={w} p={travel} dock={anchors.dock} />
           ))}
         </div>
       )}

@@ -127,20 +127,24 @@ export const COMPRESS_TIMING = {
   captionHoldMs: 2500,
   /** The headers ease to full emphasis over this long, from the start of the hold. */
   emphasisMs: 700,
-  /** Rows, per-row bars and the ellipsis dim back. */
+  /** The table steps back (rows dim, ellipsis, count and caption fade) to make room under it. */
   ghostMs: 500,
-  /** The four header words travel into the bar label list. */
+  /** Copies of the four header words travel down into the bar label list. */
   travelMs: 600,
   /** A bar grows beside each word. */
   growMs: 700,
+  /** Table above, priorities below, both on screen. */
+  togetherMs: 1600,
+  /** The table fades while the bars settle to the middle, where the morph starts. */
+  settleMs: 800,
 } as const;
 
-/** How faint the rows, the decision bars, the ellipsis and the case count get while the headers stay. */
-export const GHOST_LEVEL = 0.22;
-/** Share of the travel over which the dimmed table, caption and case count fade out completely. */
-export const TRAVEL_CLEAR = 0.35;
+/** How faint the rows, per-row bars and ellipsis get while the headers stay at full strength. */
+export const GHOST_LEVEL = 0.4;
+/** Space kept between the table's last row and the first bar. */
+export const TABLE_GAP_PX = 24;
 /** Share of the grow after which the percent numbers fade in, once the bars have settled. */
-export const NUMBERS_AT = 0.72;
+export const NUMBERS_AT = 0.75;
 
 /**
  * When true, the bars start at an equal 25% each and ease to their fitted
@@ -155,20 +159,26 @@ export const CAPTION_HOLD_MS = COMPRESS_TIMING.captionHoldMs;
 const ghostAt = COMPRESS_TIMING.captionHoldMs;
 const travelAt = ghostAt + COMPRESS_TIMING.ghostMs;
 const growAt = travelAt + COMPRESS_TIMING.travelMs;
-const compressEnd = growAt + COMPRESS_TIMING.growMs;
+const togetherAt = growAt + COMPRESS_TIMING.growMs;
+const settleAt = togetherAt + COMPRESS_TIMING.togetherMs;
+const compressEnd = settleAt + COMPRESS_TIMING.settleMs;
 
 /**
  * Autoplay between the stack table and the bars-to-ring morph.
- *   caption  the table holds under one question; the four headers get emphasis
- *   ghost    rows, per-row bars and the ellipsis dim back; headers stay
- *   travel   the header words move into the bar label list
- *   grow     a bar grows beside each word; the profile headline takes over
- *   end      chapter end marker
+ *   caption   the table holds under one question; the four headers get emphasis
+ *   ghost     the table steps back, headers stay at full strength
+ *   travel    copies of the header words move down into the bar label list
+ *   grow      a bar grows beside each word; the profile headline takes over
+ *   together  the table and the four priorities, on one page
+ *   settle    the table fades, the bars settle to where the morph starts
+ *   end       chapter end marker
  */
 export const compressBeats = [
   { name: "caption", startMs: 0 },
   { name: "ghost", startMs: ghostAt },
   { name: "travel", startMs: travelAt },
   { name: "grow", startMs: growAt },
+  { name: "together", startMs: togetherAt },
+  { name: "settle", startMs: settleAt },
   { name: "end", startMs: compressEnd },
 ] as const satisfies readonly Beat[];
