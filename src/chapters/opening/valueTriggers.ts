@@ -15,7 +15,10 @@ import { openingCase } from "./openingCase";
 
 /** Exact substrings of the vignette per value, in reading order. A value may have none. */
 export const TRIGGERS: Readonly<Record<Value, readonly string[]>> = {
-  A: ["She is eating only about 25% of her meals and refuses oral nutritional supplements."],
+  A: [
+    "She is eating only about 25% of her meals and refuses oral nutritional supplements.",
+    "She agrees to “try harder tomorrow,”",
+  ],
   B: [
     "admitted for bradycardia and orthostatic hypotension",
     "her intake has not improved over 24 hours, and her weight has been stable since admission.",
