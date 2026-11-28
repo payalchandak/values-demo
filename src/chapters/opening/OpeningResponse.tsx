@@ -4,7 +4,8 @@ import { getResponseProgress, type ModelResponseTiming } from "../../components/
 import { NEUTRAL } from "../../design";
 import { CHARCOAL } from "./charcoal";
 import { openingRows } from "./openingRows";
-import { COLUMN_GAP, DOT_GAP, DOT_SIZE, EDGE_PAD, ICON_GAP } from "./rowMetrics";
+import { DotSide } from "./DecisionBoard";
+import { COLUMN_GAP, DOT_SIZE } from "./rowMetrics";
 import { FIRST_DOT_CHOICE, firstDotEnter, markSpinDeg } from "./timeline";
 
 const clamp01 = (n: number): number => Math.min(Math.max(n, 0), 1);
@@ -167,10 +168,6 @@ export default function OpeningResponse({
   }, []);
   const gpt = openingRows.models[0];
   const firstDot = firstDotEnter(progress.elapsedMs);
-  const sideDots = (side: 0 | 1, count: number) => {
-    // Only the excerpt's dot is here. The rest land with their own spins on the board.
-    return side === FIRST_DOT_CHOICE && count > 0 ? <RisingDot enter={firstDot} /> : null;
-  };
   const c = clamp01(collapse);
   const settled = c <= 0 || panelH === 0;
   const panelFade = 1 - ramp(c, 0, 0.6);
@@ -217,30 +214,38 @@ export default function OpeningResponse({
         className="relative z-10 grid w-full grid-cols-2 items-center"
         style={{ height: ROW, gap: COLUMN_GAP }}
       >
-        <div className="flex min-w-0 items-center" style={{ paddingLeft: EDGE_PAD, gap: ICON_GAP }}>
-          {/* Sized with calc, not `zoom`: the stage measures this box to place its own copy of the icon. */}
-          <span
-            data-anchor={hideIcon ? "icon-response" : undefined}
-            className="inline-flex shrink-0 items-center justify-center"
-            style={{
-              width: "calc(36px * var(--z))",
-              height: "calc(36px * var(--z))",
-              visibility: hideIcon ? "hidden" : undefined,
-            }}
-          >
-            <span className="inline-flex" style={{ zoom: "var(--z)", transform: `rotate(${spin}deg)` }}>
-              <ProviderIcon src={iconSrc} alt={iconLabel} size={36} />
-            </span>
-          </span>
-          <span className="flex items-center" style={{ gap: DOT_GAP }}>
-            {sideDots(0, gpt.choice1)}
-          </span>
-        </div>
-        <div className="flex min-w-0 items-center justify-end" style={{ paddingRight: EDGE_PAD, gap: DOT_GAP }}>
-          <span className="flex items-center" style={{ gap: DOT_GAP }}>
-            {sideDots(1, gpt.choice2)}
-          </span>
-        </div>
+        {/* Every slot is present, so the first dot already sits where the full row will center it. */}
+        {([0, 1] as const).map((side) => (
+          <DotSide
+            key={side}
+            count={side === 0 ? gpt.choice1 : gpt.choice2}
+            icon={
+              side === 0 ? (
+                // Sized with calc, not `zoom`: the stage measures this box to place its own copy of the icon.
+                <span
+                  data-anchor={hideIcon ? "icon-response" : undefined}
+                  className="inline-flex shrink-0 items-center justify-center"
+                  style={{
+                    width: "calc(36px * var(--z))",
+                    height: "calc(36px * var(--z))",
+                    visibility: hideIcon ? "hidden" : undefined,
+                  }}
+                >
+                  <span className="inline-flex" style={{ zoom: "var(--z)", transform: `rotate(${spin}deg)` }}>
+                    <ProviderIcon src={iconSrc} alt={iconLabel} size={36} />
+                  </span>
+                </span>
+              ) : undefined
+            }
+            renderDot={(i) =>
+              side === FIRST_DOT_CHOICE && i === 0 ? (
+                <RisingDot enter={firstDot} />
+              ) : (
+                <span aria-hidden className="block shrink-0" style={{ width: DOT_SIZE, height: DOT_SIZE }} />
+              )
+            }
+          />
+        ))}
       </div>
 
       <div

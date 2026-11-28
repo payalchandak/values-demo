@@ -9,7 +9,7 @@ import { GptDotRow } from "../opening/DecisionBoard";
 import { CaseHeaderLine } from "../opening/TuckedCase";
 import { openingCase } from "../opening/openingCase";
 import { openingRows } from "../opening/openingRows";
-import { ROW_VARS } from "../opening/rowMetrics";
+import { dotRowVars } from "../opening/rowMetrics";
 import { at } from "../opening/timeline";
 import { addedCases, GPT_TRIALS, type DilemmaCard } from "./data";
 import {
@@ -166,12 +166,6 @@ function dotOpacity(
   return smooth(ramp(t, start, start + DOT_IN_MS));
 }
 
-/**
- * The dot pitch for up to ten dots on one side: the opening's own pitch when the
- * card is wide, tighter when the card is narrow so ten dots stay in their column.
- */
-const PITCH = `min(1.15em, (((min(${OPEN_EM}em, 100cqw) - 0.6em) / 2) - 3.85em) / ${GPT_TRIALS})`;
-
 function CaseContent({
   card,
   index,
@@ -210,8 +204,7 @@ function CaseContent({
         transform: `translateY(${rise - up}em) scale(${1 - shrink})`,
         transformOrigin: "50% 0%",
         zIndex: index,
-        ...ROW_VARS,
-        ["--pitch" as string]: PITCH,
+        ...dotRowVars(`calc(100cqw - ${PAD_EM * 2 * boxP}em)`),
       }}
       aria-hidden={arrive <= 0 || buried}
     >

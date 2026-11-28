@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import ProviderIcon from "../../components/ProviderIcon";
 import { openingCase } from "./openingCase";
 import { openingRows } from "./openingRows";
-import { COLUMN_GAP, DOT_GAP, DOT_SIZE, EDGE_PAD, ICON_GAP, ROW_HEIGHT } from "./rowMetrics";
+import { COLUMN_GAP, DOT_GAP, DOT_SIZE, EDGE_PAD, ICON_BLOCK, ROW_HEIGHT } from "./rowMetrics";
 import { CHARCOAL } from "./charcoal";
 import { decisionDotEnter, OFFSETS } from "./timeline";
 
@@ -36,6 +36,37 @@ function Dot({ opacity }: { opacity: number }) {
   );
 }
 
+/**
+ * Dots for one choice, centered on that choice's button. The left gutter is the
+ * icon block (empty on choice 2) and the right gutter matches it, so a full row
+ * fills the middle of the button and a shorter row sits in that same middle.
+ */
+export function DotSide({
+  count,
+  renderDot,
+  icon,
+}: {
+  count: number;
+  renderDot: (index: number) => ReactNode;
+  icon?: ReactNode;
+}) {
+  return (
+    <div className="flex min-w-0 items-center">
+      <span className="flex shrink-0 items-center" style={{ width: ICON_BLOCK, paddingLeft: EDGE_PAD }}>
+        {icon}
+      </span>
+      <span className="flex grow items-center justify-center" style={{ gap: DOT_GAP, flexShrink: 0 }}>
+        {Array.from({ length: count }, (_, i) => (
+          <span key={i} className="inline-flex shrink-0">
+            {renderDot(i)}
+          </span>
+        ))}
+      </span>
+      <span aria-hidden className="min-w-0" style={{ flexBasis: ICON_BLOCK, flexShrink: 1 }} />
+    </div>
+  );
+}
+
 /** One GPT dot row: the mark, then `left` dots under choice 1 and `right` dots under choice 2. */
 export function GptDotRow({
   left,
@@ -57,8 +88,6 @@ export function GptDotRow({
   /** The shared icon's anchor name; "" leaves the slot without one. */
   anchorName?: string;
 }) {
-  const dots = (side: 0 | 1, n: number) =>
-    Array.from({ length: n }, (_, i) => <Dot key={i} opacity={opacityAt(side, i)} />);
   return (
     <div className="w-full shrink-0">
       <div
@@ -67,17 +96,16 @@ export function GptDotRow({
         className="grid w-full grid-cols-2 items-center"
         style={{ height: ROW_HEIGHT, columnGap: COLUMN_GAP }}
       >
-        <div className="flex min-w-0 items-center" style={{ paddingLeft: EDGE_PAD, gap: ICON_GAP }}>
-          <IconSlot anchor={sharedIcon && anchorName ? anchorName : undefined}>
-            {sharedIcon ? null : <ProviderIcon src={iconSrc} alt={iconAlt} size={36} />}
-          </IconSlot>
-          <span className="flex items-center" style={{ gap: DOT_GAP }}>
-            {dots(0, left)}
-          </span>
-        </div>
-        <div className="flex min-w-0 items-center justify-end" style={{ paddingRight: EDGE_PAD, gap: DOT_GAP }}>
-          {dots(1, right)}
-        </div>
+        <DotSide
+          count={left}
+          icon={
+            <IconSlot anchor={sharedIcon && anchorName ? anchorName : undefined}>
+              {sharedIcon ? null : <ProviderIcon src={iconSrc} alt={iconAlt} size={36} />}
+            </IconSlot>
+          }
+          renderDot={(i) => <Dot opacity={opacityAt(0, i)} />}
+        />
+        <DotSide count={right} renderDot={(i) => <Dot opacity={opacityAt(1, i)} />} />
       </div>
     </div>
   );
