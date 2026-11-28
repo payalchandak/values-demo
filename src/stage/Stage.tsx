@@ -4,7 +4,9 @@ import { beatStart, chapterDuration } from "../types";
 import ProviderIcon from "../components/ProviderIcon";
 import openaiLogo from "../assets/providers/openai.svg";
 import OpeningScene from "../chapters/opening/OpeningScene";
-import { cardCollapse, markSpinDeg, modelHandoff } from "../chapters/opening/timeline";
+import { markSpinDeg, modelHandoff } from "../chapters/opening/timeline";
+import CasesScene from "../chapters/cases/CasesScene";
+import { casesBeats } from "../chapters/cases/beats";
 import StackStage from "../chapters/stack/StackStage";
 import { stackBeats } from "../chapters/stack/beats";
 import { RegressionScene } from "../chapters/regression/RegressionChapter";
@@ -60,7 +62,10 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
       // The model has not answered yet: the shared icon waits for the model chapter.
       return { from: null, mix: 0, opacity: 0 };
     case "opening-model":
-      return { from: "icon-response", mix: 0, opacity: modelHandoff(e).responseEnter * (1 - cardCollapse(e)) };
+      return { from: "icon-response", mix: 0, opacity: modelHandoff(e).responseEnter };
+    case "cases":
+      // The first card keeps this icon on its anchor. A narrow cross-fade has no anchor, so the icon hides and each card draws its own.
+      return { from: "icon-response", mix: 0, opacity: 1 };
     case "stack":
     case "regression":
       return { from: null, mix: 0, opacity: 0 };
@@ -146,6 +151,7 @@ function Headline({ state }: { state: HeadlineState }) {
 /* -------------------------------------------------------------------------- */
 
 const STACK_END = chapterDuration({ beats: stackBeats });
+const CASES_END = chapterDuration({ beats: casesBeats });
 const REGRESSION_END = chapterDuration({ beats: regressionBeats });
 
 function StackScene({ elapsedMs }: { elapsedMs: number }) {
@@ -177,9 +183,8 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
   const iconRef = useRef<HTMLDivElement>(null);
 
   const inOpening = isOpening(segment);
-  const showScenes = !inOpening;
-  // The opening's last 1.5 s: everything shrinks and fades while the stack's first card fades in.
-  const collapse = segment === "opening-model" ? cardCollapse(e) : 0;
+  const inCases = segment === "cases";
+  const showScenes = !inOpening && !inCases;
 
   useLayoutEffect(() => {
     const root = rootRef.current;
@@ -207,29 +212,11 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
 
   return (
     <div ref={rootRef} data-stage className="relative h-full w-full">
-      {inOpening && (
-        <>
-          <div
-            className="absolute inset-0"
-            key="opening"
-            style={collapse > 0 ? { opacity: 1 - collapse, transform: `scale(${1 - 0.4 * collapse})` } : undefined}
-          >
-            <OpeningScene t={openingTime(segment, e)} sharedIcon />
-          </div>
-          {collapse > 0 && (
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 flex flex-col"
-              key="card"
-              style={{ opacity: collapse, transform: `scale(${0.75 + 0.25 * collapse})` }}
-            >
-              <div className="shrink-0" style={{ minHeight: "4.5rem" }} />
-              <div className="relative min-h-0 flex-1">
-                <StackScene elapsedMs={0} />
-              </div>
-            </div>
-          )}
-        </>
+      {(inOpening || inCases) && (
+        <div className="absolute inset-0">
+          {inOpening && <OpeningScene t={openingTime(segment, e)} sharedIcon />}
+          {inCases && <CasesScene elapsedMs={e} />}
+        </div>
       )}
 
       {showScenes && (
@@ -288,6 +275,16 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
               />
             )}
           </div>
+        </div>
+      )}
+
+      {segment === "stack" && e < GHOST_MS && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-20"
+          style={{ opacity: 1 - e / GHOST_MS }}
+        >
+          <CasesScene elapsedMs={CASES_END} ownIcons />
         </div>
       )}
 

@@ -624,7 +624,7 @@ export function PatientCard({
  *   violates: down arrow + outlined chip + "violates"
  *   neutral:  dash + faint chip + "neutral"
  */
-function RelationPill({ tag }: { tag: Tag }) {
+export function RelationPill({ tag }: { tag: Tag }) {
   const meta = TAGS[tag];
   const style =
     meta.chip === "solid"
@@ -668,7 +668,9 @@ function ChipRow({
   tag: Tag;
 }) {
   const p = Math.min(1, Math.max(0, progress));
-  const settled = p >= 1 && rowHeight > 0;
+  // A finished row is fully open even before the line has been measured, so a
+  // static grid (every weight already 1) does not paint at zero height.
+  const settled = p >= 1;
   const grow = easeOut(p);
   // The name is readable first. The pill fades in across the rest of the open.
   const nameIn = easeOut(Math.min(1, p / 0.7));
@@ -716,10 +718,23 @@ function ChipRow({
  * own landing, so a longer name does not shove the rows already on screen.
  * Choice 1's label lands first, then Choice 2's.
  */
-function Chips({ index, t }: { index: 0 | 1; t: number }) {
-  const steps = valueSteps(t);
-  const tags = openingCase.tags[index];
-  const weight = index === 0 ? steps.chip1 : steps.chip2;
+const FULL_WEIGHT: Record<Value, number> = { A: 1, B: 1, N: 1, J: 1 };
+
+/**
+ * The label grid under one choice. Names share a column and the pills share
+ * the next. Pass `weight` to land rows over time; omit it and every row is
+ * fully shown.
+ */
+export function ChoiceLabels({
+  tags,
+  weight = FULL_WEIGHT,
+  fluid = false,
+}: {
+  tags: Record<Value, Tag>;
+  weight?: Record<Value, number>;
+  /** Keep the columns on the text's own width. Used while measuring a font size. */
+  fluid?: boolean;
+}) {
   const [setName, nameBox] = useBox();
   const [setPill, pillBox] = useBox();
   const [setLine, lineBox] = useBox();
@@ -730,10 +745,10 @@ function Chips({ index, t }: { index: 0 | 1; t: number }) {
   const rowHeight = measuredLine > 0 ? measuredLine + 4 : 0;
   // A little slack so a rounded measurement never clips the glyph while the row is opening.
   const columns =
-    nameBox.w > 0 && pillBox.w > 0 ? `${nameBox.w + 2}px ${pillBox.w + 2}px` : "max-content max-content";
+    !fluid && nameBox.w > 0 && pillBox.w > 0 ? `${nameBox.w + 2}px ${pillBox.w + 2}px` : "max-content max-content";
   return (
     <div className="relative mx-auto w-fit" style={{ fontSize: "0.78em", color: CHARCOAL }}>
-      <div aria-hidden className="pointer-events-none invisible absolute left-0 top-0">
+      <div data-measure aria-hidden className="pointer-events-none invisible absolute left-0 top-0">
         <span ref={setName} className="block whitespace-nowrap font-semibold leading-none">
           Nonmaleficence:
         </span>
@@ -746,7 +761,7 @@ function Chips({ index, t }: { index: 0 | 1; t: number }) {
           <RelationPill tag={-1} />
         </span>
       </div>
-      <div className="grid items-center gap-x-[0.45em]" style={{ gridTemplateColumns: columns }}>
+      <div data-label-grid className="grid items-center gap-x-[0.45em]" style={{ gridTemplateColumns: columns }}>
         {VALUE_ORDER.map((v, i) => (
           <ChipRow
             key={v}
@@ -760,6 +775,12 @@ function Chips({ index, t }: { index: 0 | 1; t: number }) {
       </div>
     </div>
   );
+}
+
+function Chips({ index, t }: { index: 0 | 1; t: number }) {
+  const steps = valueSteps(t);
+  const weight = index === 0 ? steps.chip1 : steps.chip2;
+  return <ChoiceLabels tags={openingCase.tags[index]} weight={weight} />;
 }
 
 /**
@@ -780,6 +801,31 @@ function VotesLeave({ t, children }: { t: number; children: ReactNode }) {
   );
 }
 
+/** The choice button at rest: neutral frame, no selection. */
+export function SettledChoice({ label }: { label: string }) {
+  return <ChoiceFace label={label} selected={false} />;
+}
+
+function ChoiceFace({ label, selected }: { label: string; selected: boolean }) {
+  const frame = selected ? OPTION_ACCENT : `color-mix(in srgb, ${NEUTRAL.ink} 28%, white)`;
+  return (
+    <div
+      aria-current={selected ? "true" : undefined}
+      className="flex h-full min-w-0 items-center justify-center rounded-[0.7em] border bg-white px-[0.85em] py-[0.4em] text-center transition-colors duration-75 ease-out"
+      style={{
+        borderColor: frame,
+        backgroundColor: selected ? "#F4F4F5" : "#FFFFFF",
+        boxShadow: selected ? `0 0 0 1px ${OPTION_ACCENT}` : "0 1px 2px rgba(16,24,40,0.06)",
+        color: NEUTRAL.ink,
+      }}
+    >
+      <p className="min-w-0 font-semibold leading-snug" style={{ fontSize: "1.05em" }}>
+        {label}
+      </p>
+    </div>
+  );
+}
+
 function OptionCard({
   index,
   t,
@@ -794,23 +840,9 @@ function OptionCard({
   /** Opening time while the physician icons are on screen, or null once they have left. */
   votes: number | null;
 }) {
-  const frame = selected ? OPTION_ACCENT : `color-mix(in srgb, ${NEUTRAL.ink} 28%, white)`;
   return (
     <li className="flex min-w-0 flex-col gap-[0.45em] @md:col-span-1 @md:row-span-2 @md:grid @md:grid-rows-subgrid @md:gap-y-[0.45em]">
-      <div
-        aria-current={selected ? "true" : undefined}
-        className="flex h-full items-center justify-center rounded-[0.7em] border bg-white px-[0.85em] py-[0.4em] text-center transition-colors duration-75 ease-out"
-        style={{
-          borderColor: frame,
-          backgroundColor: selected ? "#F4F4F5" : "#FFFFFF",
-          boxShadow: selected ? `0 0 0 1px ${OPTION_ACCENT}` : "0 1px 2px rgba(16,24,40,0.06)",
-          color: NEUTRAL.ink,
-        }}
-      >
-        <p className="font-semibold leading-snug" style={{ fontSize: "1.05em" }}>
-          {openingCase.choices[index]}
-        </p>
-      </div>
+      <ChoiceFace label={openingCase.choices[index]} selected={selected} />
       {votes !== null && (
         <VotesLeave t={t}>
           <PhysicianVotes index={index} enterOf={(i) => voteEnter(votes, i)} />
