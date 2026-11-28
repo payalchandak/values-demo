@@ -4,7 +4,7 @@ import { beatStart, chapterDuration } from "../types";
 import ProviderIcon from "../components/ProviderIcon";
 import openaiLogo from "../assets/providers/openai.svg";
 import OpeningScene from "../chapters/opening/OpeningScene";
-import { ICON_DOCK_MS, at, markSpinDeg, modelHandoff } from "../chapters/opening/timeline";
+import { STRIP_MS, markSpinDeg, modelHandoff } from "../chapters/opening/timeline";
 import StackStage from "../chapters/stack/StackStage";
 import { stackBeats } from "../chapters/stack/beats";
 import { RegressionScene } from "../chapters/regression/RegressionChapter";
@@ -59,9 +59,8 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
     case "opening-model":
       return { from: "icon-response", mix: 0, opacity: modelHandoff(e).responseEnter };
     case "opening-framework": {
-      // The icon stays with the other models until the band leaves, then fades out with it.
-      const end = at("framework", "end") - at("framework", "framework");
-      return { from: "icon-response", mix: 0, opacity: 1 - easeInOut(ramp(e, end - ICON_DOCK_MS, end)) };
+      // The clusters leave as this slide arrives. The icon fades with them.
+      return { from: "icon-response", mix: 0, opacity: 1 - easeInOut(ramp(e, 0, STRIP_MS)) };
     }
     case "stack":
     case "regression":

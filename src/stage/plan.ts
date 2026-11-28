@@ -63,7 +63,7 @@ export const OPENING_END_MS =
 
 /** Verbatim. */
 export const STACK_HEADLINES = {
-  start: "Do language models prioritize certain values?",
+  start: "ValuePrism contains 50 dilemmas developed by doctors",
   markers: "Observe decisions across cases.",
   flip: "Each case has annotated value trade-offs.",
 } as const;

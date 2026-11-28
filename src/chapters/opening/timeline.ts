@@ -151,14 +151,11 @@ export const GATHER_MS = 1100;
 /** The three groups held under the choices, before the next slide. TODO: tune after visual review */
 export const SUMMARY_HOLD_MS = 2000;
 /**
- * The next slide arrives and the grouped icons move to the bottom of the stage.
+ * The values slide arrives over this span: the vignette opens and the grouped
+ * icons fade out. They do not stay on that slide.
  * TODO: tune after visual review
  */
 export const STRIP_MS = 1000;
-/** The bottom band fades at the end of the framework chapter, as the icon leaves for its dock. */
-export const BAND_LEAVE_MS = 700;
-/** The shared icon's flight from the band to the dock, inside the band's leaving window. */
-export const ICON_DOCK_MS = 450;
 
 /** GPT's row is already there, so only the rest arrive. */
 const ARRIVING_ROWS = openingRows.models.length - 1;
@@ -228,7 +225,7 @@ export function highlightSweepMs(v: Value): number {
 
 const framework = (() => {
   const beats: Beat[] = [{ name: "framework", startMs: 0 }]; // "Clinical decisions require ..."
-  let cursor = 1800; // the grouped models have reached the bottom; hold the slide, then the values
+  let cursor = 1800; // the grouped models have left; hold the slide, then the values
   for (const v of VALUE_ORDER) {
     const highlight = cursor + NAME_MS;
     const chip1 = highlight + round100(HIGHLIGHT_BASE_MS + HIGHLIGHT_PER_WORD_MS * triggerWords(v));
@@ -337,23 +334,14 @@ export function gatherProgress(t: number): number {
   return ramp(t, start, start + GATHER_MS);
 }
 
-/** 0 at the framework slide's start, 1 once the grouped icons have reached the bottom. */
+/** 0 at the values slide's start, 1 once the grouped icons have faded out. */
 export function stripProgress(t: number): number {
   const start = at("framework", "framework");
   return ramp(t, start, start + STRIP_MS);
 }
 
-/**
- * The physician summary leaves during the first half of the move to the bottom.
- * The band that arrives there is the models.
- */
+/** The physician mark leaves with the clouds, a little ahead of the models. */
 export function physicianSummaryOpacity(t: number): number {
   const start = at("framework", "framework");
   return 1 - ramp(t, start, start + STRIP_MS * 0.45);
-}
-
-/** 0 while the band is on screen, 1 once it has faded for the stack. */
-export function bandLeaveProgress(t: number): number {
-  const end = at("framework", "end");
-  return ramp(t, end - BAND_LEAVE_MS, end);
 }

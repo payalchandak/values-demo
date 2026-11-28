@@ -27,7 +27,13 @@ export default function DemoPlayer({ chapters }: DemoPlayerProps) {
     <div className="relative h-screen w-screen overflow-hidden bg-canvas">
       <PausedBadge visible={clock.isPaused && clock.pausedByViewer} />
 
-      <main className="mx-auto h-full w-full max-w-5xl px-6 pb-24 pt-8 md:px-10">
+      <main
+        className={
+          chapter.id === "stack"
+            ? "mx-auto h-full w-full px-4 pb-24 pt-8 md:px-6"
+            : "mx-auto h-full w-full max-w-5xl px-6 pb-24 pt-8 md:px-10"
+        }
+      >
         {/*
           One persistent stage: never keyed by chapter, so elements that share a
           layoutId (or the same component type) carry over and morph instead of

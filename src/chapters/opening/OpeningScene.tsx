@@ -62,8 +62,8 @@ const RESPONSE_TIMING: ModelResponseTiming = {
 };
 
 /**
- * The framework chapter's first beat. The grouped models move to the bottom
- * while the plain vignette and the new headline arrive; the value walk follows.
+ * The framework chapter's first beat. The grouped models leave while the
+ * plain vignette and the new headline arrive; the value walk follows.
  */
 const FRAMEWORK_AT = at("framework", "framework");
 
@@ -722,7 +722,7 @@ const SceneBody = memo(function SceneBody({
   const showBoard = t >= modelsAt && t < frameworkEnd;
   const collapse = ramp(t, at("model", "collapse"), at("model", "collapse") + COLLAPSE_MS);
 
-  // The one-line case grows into the vignette over the same span the models move to the bottom.
+  // The one-line case grows into the vignette as the grouped models leave.
   const stripLinear = stripProgress(t);
   const stripP = ease(stripLinear);
   const stripping = t >= FRAMEWORK_AT && stripLinear < 1;
@@ -759,7 +759,7 @@ const SceneBody = memo(function SceneBody({
       className={`relative mx-auto flex w-full max-w-[46em] flex-col items-center ${
         probe ? "" : "h-full justify-center"
       }`}
-      style={{ gap: STACK_GAP, ...ROW_VARS, paddingBottom: "var(--band-pad, 0px)" }}
+      style={{ gap: STACK_GAP, ...ROW_VARS }}
     >
       {riseT < 1 && (
         <OpeningMark opacity={logoOpacity} lift={logoLift} drift={logoFade} open={logoOpen} />

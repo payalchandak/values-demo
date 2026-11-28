@@ -8,7 +8,6 @@ import { COLUMN_GAP, DOT_GAP, DOT_SIZE, EDGE_PAD, ICON_GAP, ROW_HEIGHT } from ".
 import { CHARCOAL } from "./charcoal";
 import {
   OFFSETS,
-  bandLeaveProgress,
   easeInOut,
   FIRST_DOT_CHOICE,
   gatherProgress,
@@ -26,11 +25,11 @@ import {
  * Three phases, all a function of the opening clock plus measurement:
  *   rows      one dot row per model, physicians as squares
  *   gather    the dots fold in and the marks gather into three loose clouds: choice 1, the split, choice 2
- *   dock      those groups move to the bottom and stay while the next slide arrives
+ *   leave     those clouds fade as the values slide arrives, and do not stay on it
  *
  * Physicians are not sorted onto a choice. A near-even vote is the middle, so the
  * squares collapse into the MD mark under the split models, and that mark fades
- * as the models move down. The next slide keeps the models.
+ * with the clouds.
  */
 
 interface Point {
@@ -240,27 +239,22 @@ export default function DecisionBoard({ t, sharedIcon }: { t: number; sharedIcon
 
       const gather = easeInOut(gatherProgress(t));
       const settle = easeInOut(stripProgress(t));
-      const leave = bandLeaveProgress(t);
       const mdSpace = 1 - ramp(stripProgress(t), 0.35, 0.75);
       const layout = layoutSummary(width, size, fontPx);
       const endH = layout.modelH + layout.mdBlockH * mdSpace;
       const boardH = fullH + (endH - fullH) * gather;
-      const gap = fontPx * 0.5;
 
       // Idle rows keep their natural height, which is in em, so the font fit can scale them.
-      // The pad is in em for the same reason: a px pad would stay put while the fit tries other sizes.
+      // The clouds fade in place as the values slide arrives. Their slot closes with them.
       slot.style.height = gather === 0 && settle === 0 ? "" : `${boardH * (1 - settle)}px`;
       slot.style.overflow = gather > 0 ? "hidden" : "visible";
-      const padEm = ((boardH + gap) * settle * (1 - leave)) / fontPx;
-      scene.style.setProperty("--band-pad", `${padEm}em`);
 
       const sceneBox = scene.getBoundingClientRect();
       const slotBox = slot.getBoundingClientRect();
-      const top = slotBox.top - sceneBox.top + (sceneBox.height - boardH - (slotBox.top - sceneBox.top)) * settle;
-      board.style.top = `${top}px`;
+      board.style.top = `${slotBox.top - sceneBox.top}px`;
       board.style.height = `${boardH}px`;
       // Opacity, not visibility. A visible board would show through the hidden measuring copies.
-      board.style.opacity = String(1 - leave);
+      board.style.opacity = String(1 - settle);
       flow.style.opacity = String(1 - Math.min(1, gather / 0.42));
 
       const boardBox = board.getBoundingClientRect();
@@ -299,7 +293,6 @@ export default function DecisionBoard({ t, sharedIcon }: { t: number; sharedIcon
     ro.observe(scene);
     return () => {
       ro.disconnect();
-      scene.style.setProperty("--band-pad", "0px");
     };
   });
 
