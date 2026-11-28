@@ -13,13 +13,13 @@ import { BOX_MS, CASE_STARTS, casesBeats, DOT_IN_MS, DOT_STAGGER_MS, IN_MS, OUT_
 
 /** The opening's width cap, and the card's width once it has narrowed, in em. */
 const OPEN_EM = 46;
-const CARD_EM = 30;
+const CARD_EM = 34;
 /** Padding the white card opens around its content, in em. */
 const PAD_EM = 0.9;
 /** Space around the card on the stage, in px. */
 const SIDE = 12;
 /** Card width, in em of type, that two columns of labels need. Narrower stages shrink the type. */
-const FIT_EM = 26;
+const FIT_EM = 32;
 /** Gap between the stacked parts, as in the opening. */
 const STACK_GAP = "0.9em";
 const CARD_SHADOW = "0 1px 2px rgba(16,24,40,0.04), 0 10px 28px -14px rgba(16,24,40,0.12)";
@@ -42,6 +42,7 @@ const CARDS: readonly DilemmaCard[] = [openingCard, ...addedCases];
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 const ramp = (t: number, a: number, b: number) => (b <= a ? (t >= b ? 1 : 0) : clamp01((t - a) / (b - a)));
+const smooth = (x: number) => x * x * (3 - 2 * x);
 const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - ((-2 * x + 2) ** 3) / 2);
 const lerp = (a: number, b: number, p: number) => a + (b - a) * p;
 
@@ -50,8 +51,8 @@ const startOf = (i: number) => (i === 0 ? -Infinity : CASE_STARTS[i - 1]);
 
 /** Content opacity of case `i`: fades in after the old one is gone, fades out as the next begins. */
 function caseOpacity(t: number, i: number): number {
-  const enter = i === 0 ? 1 : ramp(t, startOf(i) + OUT_MS, startOf(i) + OUT_MS + IN_MS);
-  const leave = i < CARDS.length - 1 ? ramp(t, startOf(i + 1), startOf(i + 1) + OUT_MS) : 0;
+  const enter = i === 0 ? 1 : smooth(ramp(t, startOf(i) + OUT_MS * 0.6, startOf(i) + OUT_MS * 0.6 + IN_MS));
+  const leave = i < CARDS.length - 1 ? smooth(ramp(t, startOf(i + 1), startOf(i + 1) + OUT_MS)) : 0;
   return enter * (1 - leave);
 }
 
@@ -59,7 +60,7 @@ function dotOpacity(t: number, i: number, k: number, side: 0 | 1, index: number)
   if (i === 0) return 1;
   const order = side === 0 ? index : k + index;
   const start = startOf(i) + OUT_MS + order * DOT_STAGGER_MS;
-  return ramp(t, start, start + DOT_IN_MS);
+  return smooth(ramp(t, start, start + DOT_IN_MS));
 }
 
 /**
@@ -93,7 +94,7 @@ function CaseContent({
       aria-hidden={opacity <= 0}
     >
       <CaseHeaderLine text={card.header} />
-      <ul className="grid w-full min-w-0 grid-cols-2 grid-rows-[auto_auto] gap-x-[0.6em] gap-y-[0.45em]">
+      <ul className="grid w-full min-w-0 grid-cols-2 grid-rows-[auto_auto] gap-x-[0.6em] gap-y-[0.45em] [&_li>div>p]:whitespace-nowrap">
         {([0, 1] as const).map((side) => (
           <li key={side} className="col-span-1 row-span-2 grid min-w-0 grid-rows-subgrid gap-y-[0.45em]">
             <SettledChoice label={card.choices[side]} />

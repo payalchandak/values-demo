@@ -1,21 +1,21 @@
 import type { Beat } from "../../types";
 
 /** Still on the opening's last frame before the card draws around it. */
-export const FRAME_MS = 400;
+export const FRAME_MS = 600;
 /** The white card fades in and the group narrows. */
-export const BOX_MS = 700;
+export const BOX_MS = 1000;
 /** How long each case is held, from the moment it starts to flash in. Tune here. */
-export const CASE_HOLD_MS = 1400;
+export const CASE_HOLD_MS = 2600;
 /** The old content fades out. */
-export const OUT_MS = 150;
+export const OUT_MS = 300;
 /** The new content fades in, after the old one is gone. */
-export const IN_MS = 200;
+export const IN_MS = 450;
 /** Dots on a new case land this far apart. */
-export const DOT_STAGGER_MS = 40;
+export const DOT_STAGGER_MS = 70;
 /** How long one dot takes to appear. */
-export const DOT_IN_MS = 120;
+export const DOT_IN_MS = 220;
 /** Hold after the last case. */
-export const HOLD_MS = 1500;
+export const HOLD_MS = 2200;
 
 const box = FRAME_MS;
 /** The anorexia case is held for a full beat once the box has finished. */

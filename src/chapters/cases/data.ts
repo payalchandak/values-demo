@@ -10,10 +10,10 @@ export const GPT_TRIALS = 10;
  * Expected GPT counts for choice 1 are noted for reference and checked against the data.
  */
 export const CASE_CHOICE_LABELS = [
-  { prefix: "4b731f8c", k: 7, labels: ["Proceed with chemotherapy", "Cancel chemotherapy"] },
-  { prefix: "7129cbd9", k: 3, labels: ["Amputate below the knee", "Continue antibiotics"] },
-  { prefix: "c66799aa", k: 10, labels: ["Start weight counseling", "Defer weight counseling"] },
-  { prefix: "7bd46c3e", k: 0, labels: ["Transfer both embryos", "Transfer one embryo"] },
+  { prefix: "4b731f8c", k: 7, labels: ["Give chemotherapy", "Stop chemotherapy"] },
+  { prefix: "7129cbd9", k: 3, labels: ["Amputate the leg", "Continue antibiotics"] },
+  { prefix: "c66799aa", k: 10, labels: ["Start counseling", "Defer counseling"] },
+  { prefix: "7bd46c3e", k: 0, labels: ["Transfer both", "Transfer one"] },
 ] as const;
 
 export interface DilemmaCard {
