@@ -4,6 +4,7 @@ import type { Beat } from "../../types";
 import ProviderIcon from "../../components/ProviderIcon";
 import openaiLogo from "../../assets/providers/openai.svg";
 import CaseCardFace, { CaseCardMini, caseCardFor, caseFaceStyle } from "./CaseCard";
+import { isSingleColumnCard, SingleColumnBack } from "./singleColumnBack";
 import { resolveBeats } from "./beats";
 import {
   deltaOf,
@@ -192,7 +193,10 @@ export default function StackStage({
             style={{ position: "absolute", inset: 0, zIndex: kept ? 2000 : 600, pointerEvents: "none", opacity: handoff?.rest ?? 1 }}
           >
             {frame.cards.map((card) =>
-              !card.flying || card.fly >= 1 || card.index < FOREGROUND !== kept ? null : (
+              !card.flying ||
+              card.fly >= 1 ||
+              card.index < FOREGROUND !== kept ||
+              isSingleColumnCard(cases[card.index]) ? null : (
                 <FlightParts
                   key={cases[card.index].id}
                   card={card}
@@ -287,6 +291,12 @@ function StackCard({
   profileLabel: string;
 }) {
   const showBack = card.flipDeg > 90;
+  // This card's back is one column, so its pieces do not fly. It fades into the row.
+  const single = isSingleColumnCard(study);
+  const cross = easeInOut(card.fly);
+  const faceOpacity = single && card.fly > 0 ? 1 - cross : card.faceOpacity;
+  const shellOpacity = single && card.fly > 0 ? cross : card.shellOpacity;
+  const rowOpacity = single && card.fly > 0 ? cross : card.rowOpacity;
   return (
     <div
       aria-hidden={card.index >= FOREGROUND ? true : undefined}
@@ -313,7 +323,7 @@ function StackCard({
           background: "#fff",
           border: `${card.shellBorder}px solid #e5e7eb`,
           boxShadow: "0 1px 2px rgba(17,24,39,0.06)",
-          opacity: card.shellOpacity,
+          opacity: shellOpacity,
         }}
       />
       {card.highlight > 0 && (
@@ -341,7 +351,7 @@ function StackCard({
               width: layout.rowW,
               height: layout.rowH,
               transform: "translate(-50%, -50%)",
-              opacity: card.rowOpacity,
+              opacity: rowOpacity,
             }}
           >
             <RowContent
@@ -355,7 +365,7 @@ function StackCard({
         </div>
       )}
 
-      {card.faceOpacity > 0 && (
+      {faceOpacity > 0 && (
         <div
           style={{
             position: "absolute",
@@ -364,20 +374,31 @@ function StackCard({
             width: CARD_W,
             height: CARD_H + card.extraH,
             transform: `translate(-50%, -50%) scale(${card.faceScale})`,
-            opacity: card.faceOpacity,
+            opacity: faceOpacity,
           }}
         >
           <div style={{ width: "100%", height: "100%", transform: `perspective(900px) rotateY(${card.flipDeg}deg)` }}>
             {showBack ? (
               <div style={{ width: "100%", height: "100%", transform: "rotateY(180deg)" }}>
-                <CardBack
-                  study={study}
-                  decisions={
-                    card.decisionOpacity > 0
-                      ? { ms: card.decisionMs, opacity: card.decisionOpacity, choice1: card.choice1Count, label: profileLabel }
-                      : undefined
-                  }
-                />
+                {single ? (
+                  <SingleColumnBack
+                    study={study}
+                    decisions={
+                      card.decisionOpacity > 0
+                        ? { ms: card.decisionMs, opacity: card.decisionOpacity, label: profileLabel }
+                        : undefined
+                    }
+                  />
+                ) : (
+                  <CardBack
+                    study={study}
+                    decisions={
+                      card.decisionOpacity > 0
+                        ? { ms: card.decisionMs, opacity: card.decisionOpacity, choice1: card.choice1Count, label: profileLabel }
+                        : undefined
+                    }
+                  />
+                )}
               </div>
             ) : (
               <CardFront study={study} mini={clamp01((MINI_BELOW + MINI_FADE - card.faceScale) / MINI_FADE)} />
@@ -386,7 +407,7 @@ function StackCard({
         </div>
       )}
 
-      {card.markerOpacity > 0 && card.dots > 0 && (
+      {!single && card.markerOpacity > 0 && card.dots > 0 && (
         <DotStrip side="left" frame={card} />
       )}
     </div>
