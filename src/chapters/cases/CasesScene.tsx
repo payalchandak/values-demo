@@ -34,12 +34,12 @@ const SIDE = 12;
 const FIT_EM = 32;
 /** Gap between the stacked parts, as in the opening. */
 const STACK_GAP = "0.9em";
-/** Each card on the pile sits this far higher and a little smaller than the one above it. */
-const PEEK_EM = 0.8;
-const SHRINK = 0.04;
-/** The blank cards of the skip thicken the pile by this much each, so fifty read as a stack. */
-const FAST_PEEK_EM = 0.05;
-const FAST_SHRINK = 0.0012;
+/** Each card under the top one shows a thin edge this tall, like paper in a stack. */
+const EDGE_EM = 0.2;
+/** And is this much narrower, so its corners tuck in. */
+const EDGE_SHRINK = 0.005;
+/** Edges past this depth sit together at the bottom of the pile. */
+const MAX_EDGES = 10;
 /** A new card slides up from this far below. */
 const RISE_EM = 1;
 /** Dots wait for the card to be mostly in. */
@@ -86,15 +86,13 @@ function arrival(t: number, i: number): number {
 
 /** How far up and back case `i` sits: each card that has landed on top of it adds a little. */
 function sink(t: number, i: number): { up: number; shrink: number } {
-  let up = 0;
-  let shrink = 0;
+  let depth = 0;
   for (let j = i + 1; j < CARDS.length; j++) {
     if (t < startOf(j)) break;
-    const a = arrival(t, j);
-    up += a * (isFast(j) ? FAST_PEEK_EM : PEEK_EM);
-    shrink += a * (isFast(j) ? FAST_SHRINK : SHRINK);
+    depth += arrival(t, j);
   }
-  return { up, shrink };
+  const d = Math.min(depth, MAX_EDGES);
+  return { up: d * EDGE_EM, shrink: d * EDGE_SHRINK };
 }
 
 function dotOpacity(
@@ -158,10 +156,11 @@ function CaseContent({
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 border bg-white"
         style={{
-          opacity: index === 0 ? boxP : 1,
           borderColor: NEUTRAL.line,
           borderRadius: 18,
-          boxShadow: CARD_SHADOW,
+          // Only the top card casts the soft shadow; under it, a stack of shadows turns into a grey smear.
+          boxShadow: up < EDGE_EM / 2 ? CARD_SHADOW : "none",
+          opacity: index === 0 ? boxP : 1,
         }}
       />
       {blank ? (
