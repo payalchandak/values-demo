@@ -13,7 +13,7 @@ import {
   VALUES,
   VALUE_ORDER,
 } from "../../design";
-import type { Tag, Value } from "../../study/types";
+import type { Tag } from "../../study/types";
 import { openingCase } from "./openingCase";
 import ModelRows from "./ModelRows";
 import OpeningResponse from "./OpeningResponse";
