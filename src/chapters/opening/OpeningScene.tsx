@@ -15,10 +15,14 @@ import {
 } from "../../design";
 import type { Tag, Value } from "../../study/types";
 import { openingCase } from "./openingCase";
+import ModelRows from "./ModelRows";
 import OpeningResponse from "./OpeningResponse";
 import ValueStrip from "./ValueStrip";
+import TuckedCase from "./TuckedCase";
 import Vignette from "./Vignette";
+import { CARD_CLASS } from "./cardClass";
 import { CHARCOAL, CHARCOAL_FAINT } from "./charcoal";
+import { ROW_VARS } from "./rowMetrics";
 import { valueSteps } from "./valueSteps";
 import { COLLAPSE_MS, OPENING_BEATS, OFFSETS, at, caseCharsAt, modelHandoff, ramp, visibility } from "./timeline";
 
@@ -112,6 +116,7 @@ const PROBE_TIMES: readonly number[] = [
   at("hook", "end") - HEADING_SWAP_MS - 1,
   at("dilemma", "end") - 1,
   at("model", "extracted"),
+  at("model", "hold"), // the case tucked, all twelve model rows and the physician row on screen
   ...VALUE_ORDER.map((v) => at("framework", `${v}Highlight`) + 400),
   ...VALUE_ORDER.map((v) => at("framework", `${v}Chip2`) + FADE_MS),
   at("framework", "all") + 800,
@@ -351,9 +356,6 @@ function HeadlineReplace({
   );
 }
 
-const CARD_CLASS =
-  "w-full rounded-[0.9em] border bg-white p-[0.9em] shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_28px_-14px_rgba(16,24,40,0.12)]";
-
 function CaseBody({ text, caret, question }: { text: string; caret?: boolean; question?: ReactNode }) {
   return (
     <>
@@ -530,6 +532,7 @@ const SceneBody = memo(function SceneBody({
   sharedIcon,
   hidePatient,
   recallPatient,
+  ghost = false,
 }: {
   t: number;
   probe: boolean;
@@ -537,6 +540,8 @@ const SceneBody = memo(function SceneBody({
   sharedIcon: boolean;
   hidePatient: boolean;
   recallPatient: boolean;
+  /** An invisible copy that only holds the icon's anchor (see OpeningScene). Never the patient's shared card. */
+  ghost?: boolean;
 }) {
   /* Headline: the old one fades out as its chapter ends, the new one fades in just after. */
   let h = 0;
@@ -579,6 +584,13 @@ const SceneBody = memo(function SceneBody({
 
   // The verbatim case stays up through the model chapter; the response sits below it.
   // With the stack handoff, it returns once the framework has cleared, in time for the last beat.
+  // The case collapses to its one-line header, then the model rows and the physician row take its room.
+  const tuckAt = at("model", "tuck");
+  const modelsAt = at("model", "models");
+  const tucked = t >= tuckAt && t < FRAMEWORK_AT;
+  const tuck = ease(ramp(t, tuckAt, modelsAt));
+  const tuckMoving = t >= tuckAt && t < modelsAt;
+  const sharedCard = !probe && !ghost;
   const showSummary = (t >= at("hook", "patient") && t < FRAMEWORK_AT) || (recallPatient && t >= recall + FADE_MS);
   const summaryOpacity =
     recallPatient && t >= recall
@@ -586,7 +598,7 @@ const SceneBody = memo(function SceneBody({
       : visibility(t, at("hook", "patient"), at("hook", "patient") + FADE_MS, FRAMEWORK_AT - FADE_MS, FRAMEWORK_AT);
   // The mark stays after the framework starts, only until the stage icon has left for its dock.
   const responseEnter = handoff.responseEnter;
-  const showResponse = t >= ask && responseEnter > 0 && t < FRAMEWORK_AT + ICON_LEAVE_MS;
+  const showResponse = t >= ask && responseEnter > 0 && t < FRAMEWORK_AT;
   const collapse = ramp(t, at("model", "collapse"), at("model", "collapse") + COLLAPSE_MS);
   const responseFadeOut = 1 - ramp(t, FRAMEWORK_AT - FADE_MS, FRAMEWORK_AT);
 
@@ -611,7 +623,7 @@ const SceneBody = memo(function SceneBody({
       className={`relative mx-auto flex w-full max-w-[46em] flex-col items-center ${
         probe ? "" : "h-full justify-center"
       }`}
-      style={{ gap: STACK_GAP }}
+      style={{ gap: STACK_GAP, ...ROW_VARS }}
     >
       {riseT < 1 && (
         <OpeningMark opacity={logoOpacity} lift={logoLift} drift={logoFade} open={logoOpen} />
@@ -639,10 +651,14 @@ const SceneBody = memo(function SceneBody({
       )}
 
       {showSummary && (
-        <Block probe={probe} className="w-full" layout={!headingMoving && !optionsMoving}>
+        <Block probe={probe} className="w-full" layout={!headingMoving && !optionsMoving && !tuckMoving}>
           <div style={{ opacity: summaryOpacity }} aria-hidden={summaryOpacity === 0 || hidePatient}>
             <div style={{ visibility: hidePatient ? "hidden" : undefined }}>
-              <PatientCard shared={!probe} typedChars={caseCharsAt(t)} />
+              {tucked ? (
+                <TuckedCase tuck={tuck} shared={sharedCard} />
+              ) : (
+                <PatientCard shared={sharedCard} typedChars={caseCharsAt(t)} />
+              )}
             </div>
           </div>
         </Block>
@@ -665,9 +681,14 @@ const SceneBody = memo(function SceneBody({
       )}
 
       {showOptions && (
-        <Block probe={probe} className="w-full" layout={!headingMoving && !optionsMoving}>
+        <Block probe={probe} className="w-full" layout={!headingMoving && !optionsMoving && !tuckMoving}>
           <FadeSlot enter={optionsEnter}>
-            <ul className="grid w-full grid-cols-1 gap-y-[0.7em] @md:grid-cols-2 @md:grid-rows-[auto_auto] @md:gap-x-[0.6em] @md:gap-y-[0.45em]">
+            <ul
+              className={`grid w-full grid-cols-1 gap-y-[0.7em] @md:grid-cols-2 @md:grid-rows-[auto_auto] @md:gap-x-[0.6em] @md:gap-y-[0.45em] ${
+                // The rows sit under these two buttons as their column heads, so they stay side by side on a narrow screen.
+                tucked ? "@max-md:grid-cols-2 @max-md:gap-x-[0.6em] @max-md:gap-y-0" : ""
+              }`}
+            >
               <OptionCard index={0} t={t} selected={selectedIndex === 0} showChips={showChips} />
               <OptionCard index={1} t={t} selected={selectedIndex === 1} showChips={showChips} />
             </ul>
@@ -679,7 +700,7 @@ const SceneBody = memo(function SceneBody({
         <Block
           probe={probe}
           className="w-full"
-          layout={!headingMoving}
+          layout={!headingMoving && !tuckMoving}
           style={responseEnter < 1 ? { marginTop: `calc(${STACK_GAP} * ${responseEnter - 1})` } : undefined}
         >
           <GrowIn enter={responseEnter}>
@@ -697,6 +718,7 @@ const SceneBody = memo(function SceneBody({
                 collapse={collapse}
                 hideIcon={sharedIcon}
               />
+              {tucked && <ModelRows t={t} grow={tuck} />}
             </div>
           </GrowIn>
         </Block>
@@ -806,6 +828,22 @@ export default function OpeningScene({
         hidePatient={hidePatient}
         recallPatient={recallPatient}
       />
+      {sharedIcon && t >= FRAMEWORK_AT && t < FRAMEWORK_AT + ICON_LEAVE_MS && (
+        // The stage icon leaves for its dock from the GPT row, so that row's anchor has to stay where the
+        // viewer last saw it. The framework layout has moved on, so an invisible copy of the last model
+        // frame holds the anchor for the leave. It is the same function of the clock, so a seek is exact.
+        <div aria-hidden className="pointer-events-none invisible absolute inset-0">
+          <SceneBody
+            t={FRAMEWORK_AT - 1}
+            probe={false}
+            focused={focused}
+            sharedIcon
+            hidePatient={false}
+            recallPatient={false}
+            ghost
+          />
+        </div>
+      )}
       {probeSet(fullProbesRef, false)}
       {probeSet(focusedProbesRef, true)}
     </div>

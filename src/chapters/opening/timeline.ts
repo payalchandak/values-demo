@@ -2,6 +2,7 @@ import { beatStart, type Beat } from "../../types";
 import { FADE_MS, MOVE_MS, VALUE_ORDER } from "../../design";
 import type { Value } from "../../study/types";
 import { openingCase } from "./openingCase";
+import { openingRows } from "./openingRows";
 import { triggerWords } from "./valueTriggers";
 
 /**
@@ -72,6 +73,9 @@ const FIRST_DOT_AT = COLLAPSE_AT + COLLAPSE_MS;
  * second query picks choice 2, so one dot lands on the other side.
  */
 const SHOWN_CHOICES = [0, 1, 0, 0, 0, 0, 0, 0, 0, 0] as const;
+if (SHOWN_CHOICES.length !== openingRows.models[0].trials) {
+  throw new Error("timeline: the staged GPT queries and decisions.json disagree on how many queries ran");
+}
 /** Each repeat query: the mark turns once, then its dot lands. */
 const RUN_COUNT = SHOWN_CHOICES.length;
 const RERUNS_AT = FIRST_DOT_AT + 500;
@@ -141,6 +145,39 @@ export function modelHandoff(elapsedMs: number): {
   };
 }
 
+/**
+ * After the repeat queries the case tucks away, the other eleven models arrive
+ * as dot rows under GPT's, then the physicians arrive as one row of squares.
+ * These are local to this feature: design/motion.ts is deliberately too short
+ * for them. Chapter-local ms. TODO: tune after visual review (every value here).
+ */
+/** Rest after the last dot before the case tucks. TODO: tune after visual review */
+export const TUCK_DELAY_MS = 500;
+/** The case card shrinks to its one-line header. TODO: tune after visual review */
+export const TUCK_MS = 450;
+/** Gap between one model row arriving and the next. TODO: tune after visual review */
+export const MODEL_ROW_STAGGER_MS = 120;
+/** One model row fading and settling in. TODO: tune after visual review */
+export const MODEL_ROW_IN_MS = 240;
+/** All twelve rows on screen, held for reading. TODO: tune after visual review */
+export const MODELS_HOLD_MS = 2500;
+/** Gap between one physician square arriving and the next. TODO: tune after visual review */
+export const PHYSICIAN_STAGGER_MS = 40;
+/** One physician square fading in; also the MD badge and the separator. TODO: tune after visual review */
+export const PHYSICIAN_IN_MS = 160;
+/** The full picture held before the framework chapter. TODO: tune after visual review */
+export const FULL_PICTURE_HOLD_MS = 3500;
+
+/** GPT's row is already there, so only the rest arrive. */
+const ARRIVING_ROWS = openingRows.models.length - 1;
+const PHYSICIAN_COUNT = openingRows.physicians.total;
+
+const TUCK_AT = RERUNS_DONE_AT + TUCK_DELAY_MS;
+const MODELS_AT = TUCK_AT + TUCK_MS;
+const MODELS_HOLD_AT = MODELS_AT + (ARRIVING_ROWS - 1) * MODEL_ROW_STAGGER_MS + MODEL_ROW_IN_MS;
+const PHYSICIANS_AT = MODELS_HOLD_AT + MODELS_HOLD_MS;
+const FULL_AT = PHYSICIANS_AT + (PHYSICIAN_COUNT - 1) * PHYSICIAN_STAGGER_MS + PHYSICIAN_IN_MS;
+
 const model = [
   { name: "ask", startMs: 0 }, // "What would you recommend?" starts leaving; the response eases in with it
   { name: "think", startMs: THINK_AT }, // mark spins; the panel is arriving with it
@@ -152,7 +189,12 @@ const model = [
   { name: "collapse", startMs: COLLAPSE_AT }, // answer shrinks away, first dot lands
   { name: "reruns", startMs: RERUNS_AT }, // the mark turns again for each repeat query
   { name: "rerunsDone", startMs: RERUNS_DONE_AT },
-  { name: "end", startMs: RERUNS_DONE_AT + 2600 },
+  { name: "tuck", startMs: TUCK_AT }, // the case collapses to its one-line header; room opens for the rows
+  { name: "models", startMs: MODELS_AT }, // the other models arrive, one row at a time
+  { name: "modelsHold", startMs: MODELS_HOLD_AT }, // all twelve rows visible, held for reading
+  { name: "physicians", startMs: PHYSICIANS_AT }, // the physician row arrives, one square at a time
+  { name: "hold", startMs: FULL_AT }, // the full picture, held
+  { name: "end", startMs: FULL_AT + FULL_PICTURE_HOLD_MS },
 ] as const satisfies readonly Beat[];
 
 const round100 = (ms: number): number => Math.round(ms / 100) * 100;
@@ -242,3 +284,24 @@ export const visibility = (
   outStart = Infinity,
   outEnd = Infinity,
 ): number => ramp(t, inStart, inEnd) * (1 - ramp(t, outStart, outEnd));
+
+/**
+ * Model rows 2 to 12 (index 0 is the first arriving row, GPT's is already
+ * there). 0 before it arrives, 1 once it has settled. Opening time `t`.
+ */
+export function modelRowEnter(t: number, index: number): number {
+  const start = at("model", "models") + index * MODEL_ROW_STAGGER_MS;
+  return ramp(t, start, start + MODEL_ROW_IN_MS);
+}
+
+/** Physician square `index` (left side first, then right), 0..1. Opening time `t`. */
+export function physicianEnter(t: number, index: number): number {
+  const start = at("model", "physicians") + index * PHYSICIAN_STAGGER_MS;
+  return ramp(t, start, start + PHYSICIAN_IN_MS);
+}
+
+/** The MD badge, the hairline and the caption arrive together at the physicians beat. */
+export function physicianRowEnter(t: number): number {
+  const start = at("model", "physicians");
+  return ramp(t, start, start + PHYSICIAN_IN_MS);
+}

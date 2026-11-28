@@ -3,6 +3,8 @@ import ProviderIcon from "../../components/ProviderIcon";
 import { getResponseProgress, type ModelResponseTiming } from "../../components/ModelResponse";
 import { FADE_MS, NEUTRAL } from "../../design";
 import { CHARCOAL } from "./charcoal";
+import { openingRows } from "./openingRows";
+import { COLUMN_GAP, DOT_GAP, DOT_SIZE, EDGE_PAD, ICON_GAP } from "./rowMetrics";
 import { RUN_DOTS, markSpinDeg } from "./timeline";
 
 const clamp01 = (n: number): number => Math.min(Math.max(n, 0), 1);
@@ -184,15 +186,15 @@ export default function OpeningResponse({
           The two columns match the option cards: choice 1 with the mark, choice 2 on the other side. */}
       <div
         role="img"
-        aria-label={`${arrived(0)} decisions for the first choice, ${arrived(1)} for the second`}
+        aria-label={`${openingRows.models[0].name} chose Choice 1 in ${arrived(0)} of ${RUN_DOTS.length} queries`}
         className="relative z-10 grid w-full grid-cols-2 items-center"
-        style={{ height: ROW, gap: "0.6em" }}
+        style={{ height: ROW, gap: COLUMN_GAP }}
       >
         {([0, 1] as const).map((choice) => (
           <div
             key={choice}
-            className="flex min-w-0 items-center"
-            style={{ paddingLeft: "0.9em", gap: choice === 0 ? "0.7em" : "0.45em" }}
+            className={`flex min-w-0 items-center ${choice === 1 ? "justify-end" : ""}`}
+            style={choice === 0 ? { paddingLeft: EDGE_PAD, gap: ICON_GAP } : { paddingRight: EDGE_PAD }}
           >
             {choice === 0 && (
               // Sized with calc, not `zoom`: the stage measures this box to place its own copy of the icon.
@@ -210,7 +212,7 @@ export default function OpeningResponse({
                 </span>
               </span>
             )}
-            <span className="flex items-center" style={{ gap: "0.45em" }}>
+            <span className="flex items-center" style={{ gap: DOT_GAP }}>
               {RUN_DOTS.map((dot, i) => {
                 if (dot.choice !== choice) return null;
                 const p = ramp(progress.elapsedMs, dot.startMs, dot.startMs + FADE_MS);
@@ -220,8 +222,8 @@ export default function OpeningResponse({
                     aria-hidden
                     className="block shrink-0 rounded-full"
                     style={{
-                      width: "0.7em",
-                      height: "0.7em",
+                      width: DOT_SIZE,
+                      height: DOT_SIZE,
                       backgroundColor: CHARCOAL,
                       opacity: p,
                       transform: `scale(${0.5 + 0.5 * p})`,

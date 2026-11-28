@@ -1,4 +1,4 @@
-import { siClaude, siDeepseek, siGooglegemini, siMistralai, siQwen } from "simple-icons";
+import { siBaidu, siClaude, siDeepseek, siGooglegemini, siKimi, siMeta, siMistralai, siPerplexity, siQwen, siZdotai } from "simple-icons";
 import type { SimpleIcon } from "simple-icons";
 import openaiLogo from "../../assets/providers/openai.svg";
 import type { Profile } from "../../study/types";
@@ -22,6 +22,12 @@ const LOGOS: Readonly<Record<string, string>> = {
   deepseek: markUri(siDeepseek),
   mistral: markUri(siMistralai),
   qwen: markUri(siQwen),
+  // Opening model rows: real marks from simple-icons (xAI has none, so grok keeps the lettered fallback).
+  llama: markUri(siMeta),
+  sonar: markUri(siPerplexity),
+  ernie: markUri(siBaidu),
+  kimi: markUri(siKimi),
+  glm: markUri(siZdotai),
 };
 
 /** Models outside the autoplay set fall back to a lettered mark. */

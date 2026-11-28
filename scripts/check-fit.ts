@@ -124,7 +124,8 @@ function measure(): string[] {
     const hasText = [...el.childNodes].some((c) => c.nodeType === 3 && (c.textContent ?? "").trim());
 
     // Text cut off by its own overflow:hidden box.
-    if (hasText && ["hidden", "clip"].includes(style.overflowX) && el.scrollWidth > el.clientWidth + eps) {
+    // An ellipsis is a deliberate cut (the tucked case header), not clipped text.
+    if (hasText && style.textOverflow !== "ellipsis" && ["hidden", "clip"].includes(style.overflowX) && el.scrollWidth > el.clientWidth + eps) {
       add(`text clipped by its box: ${label(el)}`);
     }
 
