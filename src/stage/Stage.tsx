@@ -64,7 +64,7 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
     case "opening-model":
       return { from: "icon-response", mix: 0, opacity: modelHandoff(e).responseEnter };
     case "cases":
-      // The first card keeps this icon on its anchor. A narrow cross-fade has no anchor, so the icon hides and each card draws its own.
+      // The one card keeps this icon on its anchor for all five cases.
       return { from: "icon-response", mix: 0, opacity: 1 };
     case "stack":
     case "regression":

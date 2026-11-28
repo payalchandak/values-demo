@@ -5,15 +5,16 @@ import type { StudyCase, Tag, Value } from "../../study/types";
 export const GPT_TRIALS = 10;
 
 /**
- * Short labels for the two added cases. The opening case keeps its own wording.
- * Keys are id prefixes in cases.json.
+ * Short choice labels for the four cases that follow the opening case, in play order.
+ * Keys are id prefixes in cases.json. The opening case keeps its own wording.
+ * Expected GPT counts for choice 1 are noted for reference and checked against the data.
  */
-export const CASE_CHOICE_LABELS = {
-  c66799aa: ["Start weight counseling", "Defer weight counseling"],
-  "4b731f8c": ["Proceed with chemotherapy", "Cancel chemotherapy"],
-} as const;
-
-export type AddedCasePrefix = keyof typeof CASE_CHOICE_LABELS;
+export const CASE_CHOICE_LABELS = [
+  { prefix: "4b731f8c", k: 7, labels: ["Proceed with chemotherapy", "Cancel chemotherapy"] },
+  { prefix: "7129cbd9", k: 3, labels: ["Amputate below the knee", "Continue antibiotics"] },
+  { prefix: "c66799aa", k: 10, labels: ["Start weight counseling", "Defer weight counseling"] },
+  { prefix: "7bd46c3e", k: 0, labels: ["Transfer both embryos", "Transfer one embryo"] },
+] as const;
 
 export interface DilemmaCard {
   id: string;
@@ -23,8 +24,6 @@ export interface DilemmaCard {
   /** Dots under choice 1. Choice 2 gets `GPT_TRIALS` minus this. */
   gptChoice1: number;
 }
-
-const ADD_ORDER: readonly AddedCasePrefix[] = ["c66799aa", "4b731f8c"];
 
 function noDash(text: string, where: string): string {
   if (/[\u2013\u2014]/.test(text)) throw new Error(`${where} has a dash character on screen`);
@@ -44,23 +43,22 @@ function findByPrefix(prefix: string): StudyCase {
   return matches[0];
 }
 
-function added(prefix: AddedCasePrefix): DilemmaCard {
-  const raw = findByPrefix(prefix);
-  const labels = CASE_CHOICE_LABELS[prefix];
+function added(entry: (typeof CASE_CHOICE_LABELS)[number]): DilemmaCard {
+  const raw = findByPrefix(entry.prefix);
   const k = raw.modelChoice1Counts.gpt;
   if (!Number.isInteger(k) || k < 0 || k > GPT_TRIALS) {
     throw new Error(`${raw.id}: modelChoice1Counts.gpt is ${String(k)}`);
   }
-  noDash(labels[0], prefix);
-  noDash(labels[1], prefix);
+  noDash(entry.labels[0], entry.prefix);
+  noDash(entry.labels[1], entry.prefix);
   return {
     id: raw.id,
     header: firstSentence(raw.vignette, raw.id),
-    choices: [labels[0], labels[1]],
+    choices: [entry.labels[0], entry.labels[1]],
     tags: raw.tags,
     gptChoice1: k,
   };
 }
 
-/** Weight counseling, then uncertain chemo. */
-export const addedCases: readonly DilemmaCard[] = ADD_ORDER.map(added);
+/** Chemotherapy, amputation, weight counseling, embryo transfer. */
+export const addedCases: readonly DilemmaCard[] = CASE_CHOICE_LABELS.map(added);
