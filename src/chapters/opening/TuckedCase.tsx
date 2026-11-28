@@ -12,7 +12,7 @@ const BORDER_PX = 2;
 const HEADER_PAD = "0.6em";
 
 /** The tucked case at rest: the vignette's first sentence, one line, ellipsis if it overflows. */
-export function CaseHeaderLine({ text, shared = false }: { text: string; shared?: boolean }) {
+export function CaseHeaderLine({ text, shared = false }: { text: ReactNode; shared?: boolean }) {
   return (
     <div
       data-shared={shared ? "patient" : undefined}

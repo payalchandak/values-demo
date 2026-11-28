@@ -802,11 +802,11 @@ function VotesLeave({ t, children }: { t: number; children: ReactNode }) {
 }
 
 /** The choice button at rest: neutral frame, no selection. */
-export function SettledChoice({ label }: { label: string }) {
+export function SettledChoice({ label }: { label: ReactNode }) {
   return <ChoiceFace label={label} selected={false} />;
 }
 
-function ChoiceFace({ label, selected }: { label: string; selected: boolean }) {
+function ChoiceFace({ label, selected }: { label: ReactNode; selected: boolean }) {
   const frame = selected ? OPTION_ACCENT : `color-mix(in srgb, ${NEUTRAL.ink} 28%, white)`;
   return (
     <div

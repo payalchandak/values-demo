@@ -95,6 +95,49 @@ function sink(t: number, i: number): { up: number; shrink: number } {
   return { up: d * EDGE_EM, shrink: d * EDGE_SHRINK };
 }
 
+/** How long a skipped card's text and marks take to blend in over the last card's. */
+const BLEND_MS = 380;
+
+/** Share of case `j` in the blend at time `t`: in as it starts, out as the next one starts. */
+function blendWeight(t: number, j: number): number {
+  const fade = (k: number) =>
+    k === 0 ? 1 : smooth(ramp(t, startOf(k), startOf(k) + BLEND_MS));
+  const next = j + 1 < CARDS.length ? fade(j + 1) : 0;
+  return fade(j) * (1 - next);
+}
+
+/** The cases still showing in a skipped card's blend, oldest first. */
+function blendOf(t: number, i: number): { card: DilemmaCard; w: number }[] {
+  const out: { card: DilemmaCard; w: number }[] = [];
+  for (let j = Math.max(0, i - 6); j <= i; j++) {
+    const w = blendWeight(t, j);
+    if (w > 0.005) out.push({ card: CARDS[j], w });
+  }
+  return out;
+}
+
+function Blend({
+  items,
+  text,
+}: {
+  items: { card: DilemmaCard; w: number }[];
+  text: (c: DilemmaCard) => string;
+}) {
+  return (
+    <span className="grid min-w-0">
+      {items.map(({ card, w }) => (
+        <span
+          key={card.id}
+          className="col-start-1 row-start-1 min-w-0 truncate"
+          style={{ opacity: w }}
+        >
+          {text(card)}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function dotOpacity(
   t: number,
   i: number,
@@ -130,11 +173,14 @@ function CaseContent({
   top: boolean;
   boxP: number;
 }) {
-  const arrive = arrival(t, index);
+  const fast = isFast(index);
+  // A skipped card lands at once: its frames match the card under it, and its text and marks blend over.
+  const arrive = fast ? (t >= startOf(index) ? 1 : 0) : arrival(t, index);
   const { up, shrink } = sink(t, index);
+  const mix = fast && !(up >= EDGE_EM * 2) ? blendOf(t, index) : null;
   // Skipped cards keep their content while on top, then go blank once buried, which is never seen.
   const blank = isFast(index) && up >= EDGE_EM * 2;
-  const rise = (1 - arrive) * (isFast(index) ? 0 : RISE_EM);
+  const rise = (1 - arrive) * (fast ? 0 : RISE_EM);
   const buried = up > 0.001;
   return (
     <div
@@ -169,32 +215,93 @@ function CaseContent({
         </div>
       ) : (
         <>
-          <CaseHeaderLine text={card.header} />
+          <CaseHeaderLine
+            text={
+              mix ? <Blend items={mix} text={(c) => c.header} /> : card.header
+            }
+          />
           <ul className="grid w-full min-w-0 grid-cols-2 grid-rows-[auto_auto] gap-x-[0.6em] gap-y-[0.45em] [&_li>div>p]:truncate">
             {([0, 1] as const).map((side) => (
               <li
                 key={side}
                 className="col-span-1 row-span-2 grid min-w-0 grid-rows-subgrid gap-y-[0.45em]"
               >
-                <SettledChoice label={card.choices[side]} />
-                <ChoiceLabels tags={card.tags[side]} />
+                <SettledChoice
+                  label={
+                    mix ? (
+                      <Blend items={mix} text={(c) => c.choices[side]} />
+                    ) : (
+                      card.choices[side]
+                    )
+                  }
+                />
+                {mix ? (
+                  <div className="grid">
+                    {mix.map(({ card: c, w }) => (
+                      <div
+                        key={c.id}
+                        className="col-start-1 row-start-1"
+                        style={{ opacity: w }}
+                      >
+                        <ChoiceLabels tags={c.tags[side]} />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <ChoiceLabels tags={card.tags[side]} />
+                )}
               </li>
             ))}
           </ul>
-          <div className="mt-auto">
-            <GptDotRow
-              left={card.gptChoice1}
-              right={GPT_TRIALS - card.gptChoice1}
-              opacityAt={(side, n) =>
-                dotOpacity(t, index, card.gptChoice1, side, n)
-              }
-              sharedIcon={sharedIcon}
-              anchorName={top ? "icon-response" : ""}
-              label={`${gpt.name} chose Choice 1 in ${card.gptChoice1} of ${GPT_TRIALS} queries`}
-              iconSrc={gpt.logo.src}
-              iconAlt={gpt.logo.alt}
-            />
-          </div>
+          {mix ? (
+            <div className="mt-auto grid">
+              <div className="col-start-1 row-start-1">
+                <GptDotRow
+                  left={0}
+                  right={0}
+                  opacityAt={() => 1}
+                  sharedIcon={false}
+                  label={`${gpt.name} chose Choice 1 in ${card.gptChoice1} of ${GPT_TRIALS} queries`}
+                  iconSrc={gpt.logo.src}
+                  iconAlt={gpt.logo.alt}
+                />
+              </div>
+              {mix.map(({ card: c, w }) => (
+                <div
+                  key={c.id}
+                  aria-hidden
+                  className="col-start-1 row-start-1"
+                  style={{ opacity: w }}
+                >
+                  <GptDotRow
+                    left={c.gptChoice1}
+                    right={GPT_TRIALS - c.gptChoice1}
+                    opacityAt={() => 1}
+                    sharedIcon
+                    anchorName=""
+                    label=""
+                    iconSrc={gpt.logo.src}
+                    iconAlt={gpt.logo.alt}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-auto">
+              <GptDotRow
+                left={card.gptChoice1}
+                right={GPT_TRIALS - card.gptChoice1}
+                opacityAt={(side, n) =>
+                  dotOpacity(t, index, card.gptChoice1, side, n)
+                }
+                sharedIcon={sharedIcon}
+                anchorName={top ? "icon-response" : ""}
+                label={`${gpt.name} chose Choice 1 in ${card.gptChoice1} of ${GPT_TRIALS} queries`}
+                iconSrc={gpt.logo.src}
+                iconAlt={gpt.logo.alt}
+              />
+            </div>
+          )}
         </>
       )}
     </div>
