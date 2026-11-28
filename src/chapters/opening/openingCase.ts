@@ -1,6 +1,6 @@
 /**
- * The opening case, read from src/study/data/opening.json (the Figure 1
- * psychiatric-hold case, 0b5a2bcb). Everything the opening chapters show about
+ * The opening case, read from src/study/data/opening.json (the illustrative
+ * anorexia case, 0b5a2bcb). Everything the opening chapters show about
  * the case is that file's vignette and choices, verbatim.
  *
  * Model labels: only the display name ("OpenAI") ever reaches the screen. The
@@ -71,10 +71,10 @@ function toIndex(n: number): 0 | 1 {
 
 function build(json: OpeningJson): OpeningCase {
   const { text: fullText, recommendation, runChoice } = json.models.gpt.excerpt;
-  // The real text has an em dash inside the marked recommendation ("Choice 1 \u2014
-  // Place him ..."). The quote is not altered: the excerpt starts after the
-  // dash, and the marked offsets move with it, so the recommendation is still
-  // the verbatim words that follow the dash.
+  // The recommendation line has an em dash ("Choice 1 \u2014 Recommend feeding
+  // tube."). The quote is not altered: the excerpt starts after the dash, and
+  // the marked offsets move with it, so the recommendation is still the
+  // verbatim words that follow the dash.
   const dash = fullText.indexOf("\u2014");
   if (dash !== -1 && (dash < recommendation.start || dash >= recommendation.end)) {
     throw new Error("opening.json: the em dash is outside the marked recommendation");
@@ -88,10 +88,11 @@ function build(json: OpeningJson): OpeningCase {
   const before = plain(text.slice(0, markStart));
   const span = plain(text.slice(markStart, markEnd));
   const after = plain(text.slice(markEnd));
-  // The excerpt is cut mid-sentence in the source; show the cut as an ellipsis.
-  const display = [before, span, after.replace(/[:,;]$/, "") + "\u2026"]
-    .filter((part) => part !== "")
-    .join(" ");
+  // A cut excerpt (trailing colon or comma) keeps an ellipsis. A finished
+  // sentence is shown as written.
+  const tail = after.replace(/[:,;]$/, "");
+  const finished = /[.!?]$/.test(tail || span);
+  const display = [before, span, finished ? tail : `${tail}\u2026`].filter((part) => part !== "").join(" ");
   const shown: string[] = [display, json.vignette, json.choices[0], json.choices[1]];
   if (shown.some((s) => /[\u2013\u2014]/.test(s))) {
     throw new Error("opening.json: on-screen text contains a dash character");

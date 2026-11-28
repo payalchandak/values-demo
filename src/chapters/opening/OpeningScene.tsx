@@ -46,7 +46,7 @@ const RESPONSE = {
   panelLabel: `${PROVIDER.name} response`,
   wordsPerGroup: 4,
   groupFadeMs: FADE_MS,
-  identifyLabel: "Identify the recommendation",
+  identifyLabel: "Identify the decision",
 } as const;
 
 const MODEL_BEATS = OPENING_BEATS.model;

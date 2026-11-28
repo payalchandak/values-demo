@@ -40,7 +40,7 @@ export interface ResponseProgress {
   outline: number;
   /** True once the matching card should read as selected. */
   extracted: boolean;
-  /** Opacity of the "Identify the recommendation" label (only while extracting). */
+  /** Opacity of the "Identify the decision" label (only while extracting). */
   identifyOpacity: number;
   /** Opacity of the "Extracted choice" label. */
   extractedOpacity: number;
