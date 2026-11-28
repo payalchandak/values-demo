@@ -9,7 +9,7 @@ import { openingRows } from "../opening/openingRows";
 import { ROW_VARS } from "../opening/rowMetrics";
 import { at } from "../opening/timeline";
 import { addedCases, GPT_TRIALS, type DilemmaCard } from "./data";
-import { BOX_MS, CASE_STARTS, casesBeats, DOT_IN_MS, DOT_STAGGER_MS, FAST_IN_MS, IN_MS, isFast } from "./beats";
+import { BOX_MS, CASE_STARTS, casesBeats, DOT_IN_MS, DOT_STAGGER_MS, IN_MS, isFast, SKIP_MS, SKIP_START } from "./beats";
 
 /** The opening's width cap, and the card's width once it has narrowed, in em. */
 const OPEN_EM = 46;
@@ -60,13 +60,14 @@ const startOf = (i: number) => (i === 0 ? -Infinity : CASE_STARTS[i - 1]);
 
 /** 0 to 1 as case `i` lands on the pile. Case 0 is already there. */
 function arrival(t: number, i: number): number {
-  return i === 0 ? 1 : smooth(ramp(t, startOf(i), startOf(i) + (isFast(i) ? FAST_IN_MS : IN_MS)));
+  return i === 0 ? 1 : smooth(ramp(t, startOf(i), startOf(i) + IN_MS));
 }
 
 /** How far down the pile case `i` has sunk: one per case that has landed on top of it. */
 function depthOf(t: number, i: number): number {
   let d = 0;
   for (let j = i + 1; j < CARDS.length; j++) {
+    if (isFast(j)) continue;
     if (t < startOf(j)) break;
     d += arrival(t, j);
   }
@@ -107,7 +108,7 @@ function CaseContent({
   // Only the first few cards down the pile show. Deeper ones are gone.
   const shown = Math.min(depth, PILE);
   const fade = 1 - clamp01(depth - PILE);
-  const rise = (1 - arrive) * (isFast(index) ? RISE_EM * 0.4 : RISE_EM);
+  const rise = (1 - arrive) * RISE_EM;
   const buried = depth > 0.001;
   return (
     <div
@@ -202,6 +203,8 @@ export default function CasesScene({ elapsedMs }: { elapsedMs: number; ownIcons?
   const fitPx = Math.max(8, (metrics.stageW - SIDE * 2) / FIT_EM);
   const fontPx = metrics.stageW > 0 ? Math.min(metrics.openingPx, fitPx) : metrics.openingPx;
 
+  const skipP = ramp(elapsedMs, SKIP_START, SKIP_START + SKIP_MS);
+  const skipShow = smooth(ramp(elapsedMs, SKIP_START, SKIP_START + 500)) * (1 - smooth(ramp(elapsedMs, SKIP_START + SKIP_MS - 400, SKIP_START + SKIP_MS)));
   let topIndex = 0;
   CARDS.forEach((_, i) => {
     if (arrival(elapsedMs, i) >= 0.5) topIndex = i;
@@ -227,6 +230,7 @@ export default function CasesScene({ elapsedMs }: { elapsedMs: number; ownIcons?
       <div className="absolute inset-0 flex items-center justify-center" style={{ padding: SIDE }}>
         <div className="@container relative box-border grid" style={shell}>
           {CARDS.map((card, i) => {
+            if (isFast(i)) return null;
             if (i > 0 && elapsedMs < startOf(i)) return null;
             if (depthOf(elapsedMs, i) >= PILE + 1) return null;
             return (
@@ -241,6 +245,16 @@ export default function CasesScene({ elapsedMs }: { elapsedMs: number; ownIcons?
               />
             );
           })}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-0 right-0 top-full flex flex-col items-center"
+            style={{ marginTop: "1.2em", opacity: skipShow, color: NEUTRAL.inkFaint }}
+          >
+            <span className="text-[0.8em] font-semibold">46 more cases</span>
+            <span className="mt-[0.5em] block h-[0.25em] w-[40%] overflow-hidden rounded-full" style={{ backgroundColor: NEUTRAL.line }}>
+              <span className="block h-full" style={{ width: `${skipP * 100}%`, backgroundColor: NEUTRAL.inkFaint }} />
+            </span>
+          </div>
         </div>
       </div>
     </div>

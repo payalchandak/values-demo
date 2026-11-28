@@ -19,23 +19,19 @@ export const HOLD_MS = 2200;
 export const CASE_COUNT = 50;
 /** Cards 4 to 49 (index 3 to 48) are skipped through. The rest are shown at full pace. */
 export const isFast = (i: number) => i >= 3 && i <= CASE_COUNT - 2;
-/** Time between skipped cards. Long fades overlap, so the skip reads as a slow dissolve. */
-export const FAST_STEP_MS = 240;
-/** A skipped card's slide in. */
-export const FAST_IN_MS = 1100;
+/** The skip is one calm stretch: the card on top stays put while a bar fills. */
+export const SKIP_MS = 3600;
 
 const box = FRAME_MS;
 /** The anorexia case is not held: the next case follows as soon as the card has drawn. */
 const case2 = box + BOX_MS;
+/** When the skip begins: after cases 2 and 3 have each been held. */
+export const SKIP_START = case2 + CASE_HOLD_MS * 2;
 
-/** Start of card `i` (1 to 49), as an index into this list. Card 0 is the opening's own frame. */
+/** Start of card `i` (1 to 49), as an index into this list. Skipped cards never show: they share the skip's start. */
 export const CASE_STARTS: readonly number[] = (() => {
-  const out: number[] = [case2];
-  let t = case2 + CASE_HOLD_MS;
-  for (let i = 2; i < CASE_COUNT; i++) {
-    out.push(t);
-    t += isFast(i) ? FAST_STEP_MS : CASE_HOLD_MS;
-  }
+  const out: number[] = [case2, case2 + CASE_HOLD_MS];
+  for (let i = 3; i < CASE_COUNT; i++) out.push(isFast(i) ? SKIP_START : SKIP_START + SKIP_MS);
   return out;
 })();
 
