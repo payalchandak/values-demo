@@ -57,8 +57,8 @@ interface StackStageProps {
 /**
  * The four value headers carry `data-anchor="hdr-<value>"` and each row
  * `data-anchor="row-<index>"`, so whatever builds on the table measures them.
- * `rest` is the opacity of the rows, their decision bars and the header cells
- * that are not values; `chrome` that of the ellipsis, the case count and the caption.
+ * `rest` is the opacity of the rows, their decision bars, the ellipsis and the
+ * header cells that are not values; `chrome` that of the case count and the caption.
  */
 export interface TableHandoff {
   emphasis: number;
@@ -182,7 +182,7 @@ export default function StackStage({
         )}
         </div>
 
-        <Centered layout={L} y={L.ellipsisY} opacity={frame.ellipsisOpacity * (handoff?.chrome ?? 1)}>
+        <Centered layout={L} y={L.ellipsisY} opacity={frame.ellipsisOpacity * (handoff?.rest ?? 1)}>
           <span className="text-3xl leading-none tracking-[0.3em]" style={{ color: `${INK}99` }}>
             ...
           </span>
@@ -552,7 +552,9 @@ function TableHeader({
         {compact ? "\u0394 tags" : "\u0394 tags, choice 1 minus choice 2"}
       </span>
       <span />
-      <span style={{ ...label, textAlign: "left", ...rest }}>Case</span>
+      <span data-anchor="hdr-case" style={{ ...label, textAlign: "left", ...rest }}>
+        Case
+      </span>
       {VALUES.map((v) => {
         const e = handoff?.emphasis ?? 0;
         return (

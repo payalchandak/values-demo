@@ -59,7 +59,7 @@ export default function Morph({
   barGrow = 1,
   names = 1,
   numbers = 1,
-  barShare,
+  bars: barsOpacity = 1,
 }: {
   profile: Profile;
   elapsedMs: number;
@@ -68,8 +68,8 @@ export default function Morph({
   /** 0..1 opacity of the bar names, and of the percents with the line under the bars. */
   names?: number;
   numbers?: number;
-  /** Shares the bars are drawn at (default: the profile's own priorities). The ring always uses the profile's. */
-  barShare?: Profile["priorities"];
+  /** 0..1 opacity of the horizontal bars. */
+  bars?: number;
 }) {
   useFontEpoch();
   const t = Math.max(0, elapsedMs);
@@ -77,7 +77,6 @@ export default function Morph({
   const { width: W, height: H } = useBox(viewport);
 
   const p = profile.priorities;
-  const share = barShare ?? p;
   const enter = clamp01(t / MORPH_HANDOFF_MS);
   const stackP = clamp01((t - at("stack")) / MORPH_TIMING.stackMs);
   // Bars first spread into their end-to-end places (staircase), then drop into one row.
@@ -112,7 +111,7 @@ export default function Morph({
 
     const bars = VALUE_ORDER.map((v, i) => {
       const span = spans[i];
-      const len0 = share[v] * track * barGrow;
+      const len0 = p[v] * track * barGrow;
       const x = lerp(barX, stripLeft + span.u0 * C, xP);
       const len = lerp(len0, (span.u1 - span.u0) * C, xP);
       const y = lerp(rowY(i), cy, yP);
@@ -136,7 +135,7 @@ export default function Morph({
       >
         {drawBars &&
           bars.map((b) => (
-            <rect key={b.v} x={b.x} y={b.y - b.h / 2} width={Math.max(b.len, 0)} height={b.h} rx={b.rx} fill={DONUT_INK} fillOpacity={opacityOf(b.v)} />
+            <rect key={b.v} data-anchor={`bar-${b.v}`} opacity={barsOpacity} x={b.x} y={b.y - b.h / 2} width={Math.max(b.len, 0)} height={b.h} rx={b.rx} fill={DONUT_INK} fillOpacity={opacityOf(b.v)} />
           ))}
         {bend &&
           spans.map((sp) => <path key={sp.value} d={bentSegmentPath(bend, sp.u0, sp.u1)} fill={DONUT_INK} fillOpacity={opacityOf(sp.value)} />)}
@@ -164,7 +163,7 @@ export default function Morph({
         {numberOpacity > 0 && (
           <g style={{ opacity: numberOpacity }} fontFamily={FONT_STACK}>
             {bars.map((b) => (
-              <text key={b.v} x={barX + share[b.v] * track * barGrow + GAP} y={rowY(b.i)} dy="0.35em" fontSize={PERCENT_FS * f} fill={DONUT_MUTED}>
+              <text key={b.v} x={barX + p[b.v] * track * barGrow + GAP} y={rowY(b.i)} dy="0.35em" fontSize={PERCENT_FS * f} fill={DONUT_MUTED}>
                 {Math.round(p[b.v] * 100)}%
               </text>
             ))}

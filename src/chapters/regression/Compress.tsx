@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { flushSync } from "react-dom";
-import { DONUT_INK, FONT_STACK, clamp01 } from "../../components/Donut";
+import { DONUT_INK, DONUT_MUTED, FONT_STACK, clamp01 } from "../../components/Donut";
 import { VALUE_ORDER } from "../../design";
 import { stackCases } from "../../stage/data";
 import Morph from "../../stage/Morph";
@@ -15,7 +15,7 @@ import {
   COMPRESS_TIMING,
   GHOST_LEVEL,
   NUMBERS_AT,
-  TABLE_GAP_PX,
+  PRIORITIES_CAPTION,
   TILT_FROM_EQUAL,
   compressBeats,
   easeOut,
@@ -23,53 +23,92 @@ import {
 
 const STACK_END = chapterDuration({ beats: stackBeats });
 const GHOST_AT = beatStart(compressBeats, "ghost");
-const TRAVEL_AT = beatStart(compressBeats, "travel");
 const GROW_AT = beatStart(compressBeats, "grow");
-const SETTLE_AT = beatStart(compressBeats, "settle");
+const TRAVEL_AT = beatStart(compressBeats, "travel");
 const END_AT = chapterDuration({ beats: compressBeats });
 
 /** Bars start at this share each when TILT_FROM_EQUAL is on. */
 const EQUAL_SHARE = 0.25;
+/**
+ * Summary row geometry, in the table's own units (multiplied by the measured
+ * stage scale), measured from the row where the table keeps its case count.
+ * The bars stand on a baseline, tallest first: a bar chart under the columns.
+ */
+const BAR_MAX = 60;
+const BASELINE = 54;
+const NUMBER_DROP = 66;
+const LABEL_DROP = 30;
+const CAPTION_DROP = 86;
+/** A column's bar is this wide, as a share of the distance between neighbouring columns. */
+const BAR_OF_PITCH = 0.42;
+const LABEL_INK = "#1B2433cc";
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const ramp = (x: number, a: number, b: number) => clamp01((x - a) / (b - a));
 const smooth = (x: number) => x * x * (3 - 2 * x);
 
 /* -------------------------------------------------------------------------- */
-/*  Measured layout: where each header word is, where its bar label goes,      */
-/*  and how far below the table the priorities have to sit                     */
+/*  Measured layout: the table's columns, the summary row, and where the bars  */
+/*  and bar labels of the morph's first frame are                              */
 /* -------------------------------------------------------------------------- */
 
-/** Everything is in px, relative to the bridge's own box. `cy` is the vertical centre of the text. */
+/** Everything is in px, relative to the bridge's own box. `cy` is the vertical centre. */
 interface WordAnchor {
   value: Value;
-  from: { text: string; left: number; cy: number; fontPx: number; family: string; weight: string; spacingEm: number; color: string };
+  from: { text: string; left: number; width: number; cy: number; fontPx: number; family: string; weight: string; spacingEm: number; color: string };
   to: { text: string; left: number; cy: number; fontPx: number };
+}
+
+interface Bar {
+  left: number;
+  top: number;
+  w: number;
+  h: number;
+}
+
+interface BarTarget extends Bar {
+  opacity: number;
+  radius: number;
+}
+
+interface SummaryRow {
+  /** Screen px per table unit (the table is scaled to fit). */
+  scale: number;
+  /** Vertical centre of the summary row: where the table keeps its case count. */
+  cy: number;
+  pitch: number;
+  label: { left: number; width: number };
+  rowLeft: number;
+  rowRight: number;
 }
 
 interface Anchors {
   words: Partial<Record<Value, WordAnchor>>;
-  /** How far down the priorities sit while the table is still on the page. */
-  dock: number;
+  bars: Partial<Record<Value, BarTarget>>;
+  summary: SummaryRow | null;
 }
 
-const NO_ANCHORS: Anchors = { words: {}, dock: 0 };
+const NO_ANCHORS: Anchors = { words: {}, bars: {}, summary: null };
 const round = (x: number) => Math.round(x * 10) / 10;
 
 /**
- * Reads the real table (header words, data-anchor "hdr-<value>", and its
- * last row, "row-2") and a hidden copy of the morph's first frame (bar
- * labels, "bar-name-<value>", and the line under the bars). Nothing is
- * hard-coded, so it holds at any viewport and in either table layout.
+ * Reads the real table (value headers "hdr-<value>", the Case header, rows,
+ * the case count) and a hidden copy of the morph's first frame (bar labels
+ * "bar-name-<value>", bars "bar-<value>"). Nothing is hard-coded, so it holds
+ * at any viewport and in either table layout.
  */
 function measure(root: HTMLElement, table: HTMLElement | null, probe: HTMLElement | null, prev: Anchors, settled: boolean): Anchors {
   const box = root.getBoundingClientRect();
+  const rel = (r: DOMRect) => ({ left: round(r.left - box.left), cy: round(r.top + r.height / 2 - box.top), w: round(r.width), h: round(r.height) });
   const words: Anchors["words"] = { ...prev.words };
+  const bars: Anchors["bars"] = { ...prev.bars };
+  let scale = prev.summary?.scale ?? 1;
+  const centers: number[] = [];
   for (const v of VALUE_ORDER) {
     const head = table?.querySelector<HTMLElement>(`[data-anchor="hdr-${v}"]`);
-    const bar = probe?.querySelector<Element>(`[data-anchor="bar-name-${v}"]`);
+    const label = probe?.querySelector<Element>(`[data-anchor="bar-name-${v}"]`);
+    const bar = probe?.querySelector<Element>(`[data-anchor="bar-${v}"]`);
     const old = prev.words[v];
-    if (!head && !bar) continue;
     let from = old?.from;
     let to = old?.to;
     if (head) {
@@ -77,12 +116,14 @@ function measure(root: HTMLElement, table: HTMLElement | null, probe: HTMLElemen
       const cs = getComputedStyle(head);
       const unscaled = parseFloat(cs.fontSize);
       // The stage is scaled to fit; offsetWidth is the layout width before that scale.
-      const scale = head.offsetWidth > 0 ? r.width / head.offsetWidth : 1;
+      scale = head.offsetWidth > 0 ? r.width / head.offsetWidth : 1;
       const spacing = parseFloat(cs.letterSpacing);
+      const m = rel(r);
       const measured = {
         text: head.textContent ?? "",
-        left: round(r.left - box.left),
-        cy: round(r.top + r.height / 2 - box.top),
+        left: m.left,
+        width: m.w,
+        cy: m.cy,
         fontPx: round(unscaled * scale),
         family: cs.fontFamily,
         weight: cs.fontWeight,
@@ -92,29 +133,43 @@ function measure(root: HTMLElement, table: HTMLElement | null, probe: HTMLElemen
       // Ink eases in with the emphasis; take it once it has settled.
       from = settled || !old ? measured : { ...measured, family: old.from.family, weight: old.from.weight, color: old.from.color };
     }
-    if (bar) {
-      const r = bar.getBoundingClientRect();
-      to = {
-        text: bar.textContent ?? "",
-        left: round(r.left - box.left),
-        cy: round(r.top + r.height / 2 - box.top),
-        fontPx: round(parseFloat(getComputedStyle(bar).fontSize)),
-      };
+    if (label) {
+      const m = rel(label.getBoundingClientRect());
+      to = { text: label.textContent ?? "", left: m.left, cy: m.cy, fontPx: round(parseFloat(getComputedStyle(label).fontSize)) };
     }
     if (from && to) words[v] = { value: v, from, to };
+    if (bar) {
+      const b = rel(bar.getBoundingClientRect());
+      bars[v] = {
+        left: b.left,
+        top: round(b.cy - b.h / 2),
+        w: b.w,
+        h: b.h,
+        opacity: Number(bar.getAttribute("fill-opacity") ?? 1),
+        radius: Number(bar.getAttribute("rx") ?? 0),
+      };
+    }
+    if (from) centers.push(from.left + from.width / 2);
   }
 
-  let dock = prev.dock;
-  const bottom = table?.querySelector<HTMLElement>('[data-anchor="row-2"]');
-  const first = probe?.querySelector<Element>('[data-anchor="bar-name-A"]');
-  const line = probe?.querySelector<Element>('[data-anchor="bar-subcaption"]');
-  const svg = probe?.querySelector<Element>('[data-testid="morph-svg"]');
-  if (bottom && first && line && svg) {
-    const want = bottom.getBoundingClientRect().bottom - first.getBoundingClientRect().top + TABLE_GAP_PX;
-    const room = svg.getBoundingClientRect().bottom - line.getBoundingClientRect().bottom - 4;
-    dock = round(Math.min(Math.max(want, 0), Math.max(room, 0)));
+  let summary = prev.summary;
+  const count = table?.querySelector<HTMLElement>("[data-stack-footer]");
+  const caseHead = table?.querySelector<HTMLElement>('[data-anchor="hdr-case"]');
+  const firstRow = table?.querySelector<HTMLElement>('[data-anchor="row-0"]');
+  if (count && caseHead && firstRow && centers.length === VALUE_ORDER.length) {
+    const c = rel(count.getBoundingClientRect());
+    const h = rel(caseHead.getBoundingClientRect());
+    const row = firstRow.getBoundingClientRect();
+    summary = {
+      scale: round(scale),
+      cy: c.cy,
+      pitch: round((centers[centers.length - 1] - centers[0]) / (centers.length - 1)),
+      label: { left: h.left, width: h.w },
+      rowLeft: round(row.left - box.left),
+      rowRight: round(row.right - box.left),
+    };
   }
-  return { words, dock };
+  return { words, bars, summary };
 }
 
 const same = (a: Anchors, b: Anchors) => JSON.stringify(a) === JSON.stringify(b);
@@ -124,14 +179,13 @@ const same = (a: Anchors, b: Anchors) => JSON.stringify(a) === JSON.stringify(b)
 /* -------------------------------------------------------------------------- */
 
 /**
- * A copy of the word lifts off its column (the header stays) in the mono
- * header style and lands in the bar label style. Both are drawn the whole way
- * and cross-fade. When the table is compact the header is a single letter:
- * that letter becomes the first letter of the full name, and the rest of the
- * name spells out as it travels. A soft halo keeps table text from showing
- * through while it passes over the rows.
+ * A copy of the word lifts off its column in the mono header style and lands
+ * in the bar label style. Both are drawn the whole way and cross-fade. When
+ * the table is compact the header is a single letter: that letter becomes the
+ * first letter of the full name, and the rest of the name spells out as it
+ * travels. A soft halo keeps table text from showing through on the way.
  */
-function TravelingWord({ word, p, dock }: { word: WordAnchor; p: number; dock: number }) {
+function TravelingWord({ word, p }: { word: WordAnchor; p: number }) {
   const e = easeInOut(p);
   const { from, to } = word;
   const fontPx = lerp(from.fontPx, to.fontPx, e);
@@ -157,7 +211,7 @@ function TravelingWord({ word, p, dock }: { word: WordAnchor; p: number; dock: n
         position: "absolute",
         left: 0,
         top: 0,
-        transform: `translate(${lerp(from.left, to.left, e)}px, ${lerp(from.cy, to.cy + dock, e)}px)`,
+        transform: `translate(${lerp(from.left, to.left, e)}px, ${lerp(from.cy, to.cy, e)}px)`,
       }}
     >
       <span
@@ -186,34 +240,33 @@ function TravelingWord({ word, p, dock }: { word: WordAnchor; p: number; dock: n
 
 /**
  * Autoplay after the stack table: "decisions and trade-offs in, four numbers
- * out", the table and the four priorities on one page. Every frame is a pure
- * function of `elapsedMs`; the only thing read from the page is layout (where
- * the real header words and bar labels are).
+ * out". The four numbers are one more row of the table: a bar under each value
+ * column, so position alone says which column made which bar. Every frame is a
+ * pure function of `elapsedMs`; the only thing read from the page is layout.
  *
  *   caption   the table holds under one question; the four headers get emphasis
  *   ghost     the table steps back, headers stay at full strength
- *   travel    copies of the header words move down into the bar label list
- *   grow      a bar grows beside each word, under the table
- *   together  both on screen
- *   settle    the table fades, the bars settle to where the morph starts
+ *   grow      a bar grows under each value column
+ *   together  the table and its four priorities, on one page
+ *   travel    the table fades; the bars and the header words flow into the bar list
  *
  * A clock past the end holds the last frame, which is the morph's first frame.
  */
 export function CompressBridge({ elapsedMs, profile }: { elapsedMs: number; profile: Profile }) {
   const t = Math.max(0, elapsedMs);
   const T = COMPRESS_TIMING;
+  const cases = stackCases.length;
 
   const emphasis = easeInOut(clamp01(t / T.emphasisMs));
   const ghost = easeInOut(ramp(t, GHOST_AT, GHOST_AT + T.ghostMs));
-  const travel = ramp(t, TRAVEL_AT, GROW_AT);
   const growP = ramp(t, GROW_AT, GROW_AT + T.growMs);
-  const settle = easeInOut(ramp(t, SETTLE_AT, END_AT));
+  const travel = ramp(t, TRAVEL_AT, END_AT);
+  const clear = easeInOut(ramp(travel, 0, 0.55));
   const barGrow = easeOut(growP);
-  const numbers = smooth(ramp(growP, NUMBERS_AT, 1));
   const tilt = TILT_FROM_EQUAL ? 1 - easeInOut(growP) : 0;
-  const barShare = TILT_FROM_EQUAL
-    ? (Object.fromEntries(VALUE_ORDER.map((v) => [v, lerp(profile.priorities[v], EQUAL_SHARE, tilt)])) as Profile["priorities"])
-    : undefined;
+  const numbersIn = smooth(ramp(growP, NUMBERS_AT, 1));
+  const footNumbers = numbersIn * (1 - smooth(ramp(travel, 0, 0.3)));
+  const landed = t >= END_AT;
 
   const rootRef = useRef<HTMLDivElement>(null);
   const tableRef = useRef<HTMLDivElement>(null);
@@ -246,36 +299,142 @@ export function CompressBridge({ elapsedMs, profile }: { elapsedMs: number; prof
     };
   }, []);
 
-  const words = VALUE_ORDER.map((v) => anchors.words[v]).filter((w): w is WordAnchor => w !== undefined);
-  const flying = t >= TRAVEL_AT && t < GROW_AT && words.length === VALUE_ORDER.length;
   const handoff: TableHandoff = {
     emphasis,
-    rest: (1 - ghost * (1 - GHOST_LEVEL)) * (1 - settle),
+    rest: 1 - ghost * (1 - GHOST_LEVEL),
     chrome: 1 - ghost,
   };
-  // The priorities wait under the table, then settle to the middle where the morph starts.
-  const lift = anchors.dock * (1 - settle);
+
+  const { summary } = anchors;
+  const words = VALUE_ORDER.map((v) => anchors.words[v]).filter((w): w is WordAnchor => w !== undefined);
+  const ready = summary !== null && words.length === VALUE_ORDER.length && VALUE_ORDER.every((v) => anchors.bars[v]);
+  const p = profile.priorities;
+  const biggest = Math.max(...VALUE_ORDER.map((v) => p[v]));
+
+  // The summary row: a label, a bar under each value column, its number, and one plain line.
+  let summaryRow = null;
+  if (ready && !landed && t >= GHOST_AT) {
+    const S = summary.scale;
+    const e = easeInOut(travel);
+    const barW = summary.pitch * BAR_OF_PITCH;
+    const baseline = summary.cy + BASELINE * S;
+    const first = anchors.words[VALUE_ORDER[0]]!.from;
+    const last = anchors.words[VALUE_ORDER[VALUE_ORDER.length - 1]]!.from;
+    const labelPx = Math.min(14 * S, summary.label.width / 5.2);
+    const numPx = Math.min(11 * S, summary.pitch / 3.4);
+    summaryRow = (
+      <>
+        <div
+          style={{
+            position: "absolute",
+            left: summary.label.left,
+            top: summary.cy + LABEL_DROP * S,
+            transform: "translateY(-50%)",
+            whiteSpace: "nowrap",
+            lineHeight: 1,
+            fontSize: labelPx,
+            fontWeight: 600,
+            color: LABEL_INK,
+            opacity: ghost * (1 - clear),
+          }}
+        >
+          {cases} cases
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            left: first.left + first.width / 2 - summary.pitch / 2,
+            width: last.left + last.width / 2 - (first.left + first.width / 2) + summary.pitch,
+            top: baseline,
+            height: 1,
+            background: "#d1d5db",
+            opacity: ghost * (1 - clear),
+          }}
+        />
+        {words.map((w) => {
+          const target = anchors.bars[w.value]!;
+          const centre = w.from.left + w.from.width / 2;
+          const share = lerp(p[w.value], EQUAL_SHARE, tilt);
+          const h = (share / biggest) * BAR_MAX * S * barGrow;
+          const from: Bar = { left: centre - barW / 2, top: baseline - h, w: barW, h };
+          const bar = {
+            left: lerp(from.left, target.left, e),
+            top: lerp(from.top, target.top, e),
+            w: lerp(from.w, target.w, e),
+            h: lerp(from.h, target.h, e),
+          };
+          return (
+            <div key={w.value}>
+              {bar.h > 0 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    left: bar.left,
+                    top: bar.top,
+                    width: bar.w,
+                    height: bar.h,
+                    borderRadius: Math.min(target.radius, bar.w / 2, bar.h / 2),
+                    background: DONUT_INK,
+                    opacity: target.opacity,
+                  }}
+                />
+              )}
+              <div
+                style={{
+                  position: "absolute",
+                  left: centre,
+                  top: summary.cy + NUMBER_DROP * S,
+                  transform: "translate(-50%, -50%)",
+                  whiteSpace: "nowrap",
+                  lineHeight: 1,
+                  fontSize: numPx,
+                  color: DONUT_MUTED,
+                  opacity: footNumbers,
+                }}
+              >
+                {Math.round(p[w.value] * 100)}%
+              </div>
+            </div>
+          );
+        })}
+        <div
+          style={{
+            position: "absolute",
+            left: summary.rowLeft,
+            width: summary.rowRight - summary.rowLeft,
+            top: summary.cy + CAPTION_DROP * S,
+            boxSizing: "border-box",
+            padding: `0 ${16 * S}px`,
+            textAlign: "center",
+            color: "#4b5563",
+            fontSize: 16 * S,
+            lineHeight: 1.35,
+            opacity: smooth(ramp(growP, 0.5, 1)) * (1 - clear),
+          }}
+        >
+          {PRIORITIES_CAPTION(cases)}
+        </div>
+      </>
+    );
+  }
 
   return (
     <div ref={rootRef} className="relative h-full w-full">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0" style={{ transform: `translateY(${lift}px)` }}>
-          <Morph
-            profile={profile}
-            elapsedMs={MORPH_HANDOFF_MS}
-            barGrow={barGrow}
-            names={t >= GROW_AT ? 1 : 0}
-            numbers={numbers}
-            barShare={barShare}
-          />
-        </div>
+      <div className="absolute inset-0">
+        <Morph
+          profile={profile}
+          elapsedMs={MORPH_HANDOFF_MS}
+          names={landed ? 1 : 0}
+          bars={landed ? 1 : 0}
+          numbers={landed ? 1 : smooth(ramp(travel, 0.8, 1))}
+        />
       </div>
-      {/* The morph's first frame, unseen: its bar labels are where the header words land. */}
+      {/* The morph's first frame, unseen: its bars and bar labels are where everything lands. */}
       <div ref={probeRef} data-probe aria-hidden className="pointer-events-none absolute inset-0" style={{ visibility: "hidden" }}>
         <Morph profile={profile} elapsedMs={MORPH_HANDOFF_MS} />
       </div>
-      {t < END_AT && (
-        <div ref={tableRef} className="absolute inset-0">
+      {!landed && (
+        <div ref={tableRef} className="absolute inset-0" style={{ opacity: 1 - clear }}>
           <StackStage
             cases={stackCases}
             beats={stackBeats}
@@ -287,13 +446,10 @@ export function CompressBridge({ elapsedMs, profile }: { elapsedMs: number; prof
           />
         </div>
       )}
-      {flying && (
-        <div aria-hidden className="pointer-events-none absolute inset-0 z-20">
-          {words.map((w) => (
-            <TravelingWord key={w.value} word={w} p={travel} dock={anchors.dock} />
-          ))}
-        </div>
-      )}
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-20">
+        {summaryRow}
+        {ready && t >= TRAVEL_AT && !landed && words.map((w) => <TravelingWord key={w.value} word={w} p={travel} />)}
+      </div>
     </div>
   );
 }

@@ -113,36 +113,36 @@ export function textAt(
 
 /**
  * Autoplay bridge between the stack table and the bars-to-ring morph:
- * "decisions and trade-offs in, four numbers out". No equation, no weights.
+ * "decisions and trade-offs in, four numbers out". The four numbers are one
+ * more row of the table, a bar under each value column. No equation, no weights.
  */
 export const COMPRESS_CAPTION = "Which priorities best explain these choices?";
 
+/** Plain-language line under the priorities row. `cases` is how many cases the table summarises. */
+export const PRIORITIES_CAPTION = (cases: number) => `One set of priorities best explains all ${cases} cases.`;
+
 /**
  * Timings local to this transition. `design/motion.ts` is deliberately very
- * short (a cut, for UI changes), so the travel and the grow need their own.
+ * short (a cut, for UI changes), so the grow and the travel need their own.
  * TODO: tune after visual review
  */
 export const COMPRESS_TIMING = {
-  /** The table holds with the caption; the four headers get a soft emphasis. */
+  /** The table holds with the question; the four headers get a soft emphasis. */
   captionHoldMs: 2500,
   /** The headers ease to full emphasis over this long, from the start of the hold. */
   emphasisMs: 700,
-  /** The table steps back (rows dim, ellipsis, count and caption fade) to make room under it. */
+  /** The rows dim, the case count and question fade, the summary row's label arrives. */
   ghostMs: 500,
-  /** Copies of the four header words travel down into the bar label list. */
-  travelMs: 600,
-  /** A bar grows beside each word. */
-  growMs: 700,
-  /** Table above, priorities below, both on screen. */
-  togetherMs: 1600,
-  /** The table fades while the bars settle to the middle, where the morph starts. */
-  settleMs: 800,
+  /** A bar grows under each value column. */
+  growMs: 800,
+  /** Table above, one priority bar under each of its columns, on one page. */
+  togetherMs: 1800,
+  /** The table fades while the bars and the header words flow into the bar list. */
+  travelMs: 900,
 } as const;
 
-/** How faint the rows, per-row bars and ellipsis get while the headers stay at full strength. */
+/** How faint the rows, their decision bars and the ellipsis get while the headers stay at full strength. */
 export const GHOST_LEVEL = 0.4;
-/** Space kept between the table's last row and the first bar. */
-export const TABLE_GAP_PX = 24;
 /** Share of the grow after which the percent numbers fade in, once the bars have settled. */
 export const NUMBERS_AT = 0.75;
 
@@ -153,32 +153,29 @@ export const NUMBERS_AT = 0.75;
  */
 export const TILT_FROM_EQUAL = false;
 
-/** Kept for existing imports: how long the caption holds. */
+/** Kept for existing imports: how long the question holds. */
 export const CAPTION_HOLD_MS = COMPRESS_TIMING.captionHoldMs;
 
 const ghostAt = COMPRESS_TIMING.captionHoldMs;
-const travelAt = ghostAt + COMPRESS_TIMING.ghostMs;
-const growAt = travelAt + COMPRESS_TIMING.travelMs;
+const growAt = ghostAt + COMPRESS_TIMING.ghostMs;
 const togetherAt = growAt + COMPRESS_TIMING.growMs;
-const settleAt = togetherAt + COMPRESS_TIMING.togetherMs;
-const compressEnd = settleAt + COMPRESS_TIMING.settleMs;
+const travelAt = togetherAt + COMPRESS_TIMING.togetherMs;
+const compressEnd = travelAt + COMPRESS_TIMING.travelMs;
 
 /**
  * Autoplay between the stack table and the bars-to-ring morph.
  *   caption   the table holds under one question; the four headers get emphasis
  *   ghost     the table steps back, headers stay at full strength
- *   travel    copies of the header words move down into the bar label list
- *   grow      a bar grows beside each word; the profile headline takes over
- *   together  the table and the four priorities, on one page
- *   settle    the table fades, the bars settle to where the morph starts
+ *   grow      a bar grows under each value column; the profile headline takes over
+ *   together  the table and its four priorities, on one page
+ *   travel    the table fades; the bars and the header words flow into the bar list
  *   end       chapter end marker
  */
 export const compressBeats = [
   { name: "caption", startMs: 0 },
   { name: "ghost", startMs: ghostAt },
-  { name: "travel", startMs: travelAt },
   { name: "grow", startMs: growAt },
   { name: "together", startMs: togetherAt },
-  { name: "settle", startMs: settleAt },
+  { name: "travel", startMs: travelAt },
   { name: "end", startMs: compressEnd },
 ] as const satisfies readonly Beat[];
