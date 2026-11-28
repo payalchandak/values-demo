@@ -20,11 +20,13 @@ import { PHYSICIAN_VOTE_COUNT } from "./DoctorSplit";
 const CASE_HOLD_MS = 800;
 
 /**
- * One step of the typing clock, in ms. Every rest is a whole number of these
- * steps, and a step is the same length as a letter, so a pause is the next
- * beat rather than a hole whose length changes with the frame.
+ * How long after one character begins the next one begins, in ms.
+ * Shorter than the ink fade, so several letters are always easing in together
+ * and the line never stops between words.
  */
-const TYPE_STEP_MS = 1000 / 60;
+const CASE_ADVANCE_MS = 18;
+/** How long a character takes to ease from nothing to full ink. */
+export const CASE_INK_MS = 64;
 
 /** The mark that closed the clause before character `i`, skipping the space and a closing quote. */
 function clauseEnd(text: string, i: number): string {
@@ -34,37 +36,35 @@ function clauseEnd(text: string, i: number): string {
 }
 
 /**
- * How many steps character `i` waits.
- * A letter, a space, and a mark are each one step, so a word rolls without a hitch.
- * The first letter of the next word waits one extra step. A comma waits two more,
- * a period four more: longer, and still on the same beat.
+ * Ms from the previous character's start until this one starts.
+ * Words run together. A comma and a period only slow the same stream,
+ * by less than the fade, so the ink never drops out.
  */
-function stepsBefore(text: string, i: number): number {
-  if (i === 0) return 1;
+function advanceBefore(text: string, i: number): number {
+  if (i === 0) return 0;
   const prev = text[i - 1] ?? "";
   const ch = text[i] ?? "";
   if (ch !== " " && ch !== "\n" && (prev === " " || prev === "\n")) {
     const ended = clauseEnd(text, i);
-    if (".!?".includes(ended)) return 6;
-    if (",;:".includes(ended)) return 4;
-    return 2;
+    if (".!?".includes(ended)) return CASE_ADVANCE_MS + 36;
+    if (",;:".includes(ended)) return CASE_ADVANCE_MS + 16;
   }
-  return 1;
+  return CASE_ADVANCE_MS;
 }
 
-/** Step at which each character has landed. */
-const CASE_REVEAL_STEP: readonly number[] = (() => {
+/** Ms from the start of typing when each character begins to appear. */
+const CASE_INK_AT: readonly number[] = (() => {
   const text = openingCase.vignette;
-  const steps: number[] = [];
+  const atMs: number[] = [];
   let acc = 0;
   for (let i = 0; i < text.length; i++) {
-    acc += stepsBefore(text, i);
-    steps.push(acc);
+    acc += advanceBefore(text, i);
+    atMs.push(acc);
   }
-  return steps;
+  return atMs;
 })();
 
-const CASE_TYPE_MS = Math.ceil((CASE_REVEAL_STEP[CASE_REVEAL_STEP.length - 1] ?? 0) * TYPE_STEP_MS);
+const CASE_TYPE_MS = (CASE_INK_AT[CASE_INK_AT.length - 1] ?? 0) + CASE_INK_MS;
 
 /** Logo and title open together, hold, then both fade out completely before the case types. */
 const LOGO_IN_MS = 560;
@@ -333,22 +333,32 @@ export const OFFSETS: Readonly<Record<OpeningChapterKey, number>> = (() => {
 export const at = (chapter: OpeningChapterKey, beat: string): number =>
   OFFSETS[chapter] + beatStart(OPENING_BEATS[chapter], beat);
 
-/** How many characters of the case are visible at opening time `t`. */
+/** How many characters have begun to appear at opening time `t`. */
 export function caseCharsAt(t: number): number {
   const start = at("hook", "patient");
-  const n = CASE_REVEAL_STEP.length;
+  const n = CASE_INK_AT.length;
   if (n === 0 || t <= start) return 0;
-  const step = Math.floor((t - start) / TYPE_STEP_MS);
-  const last = CASE_REVEAL_STEP[n - 1] ?? 0;
-  if (step >= last) return n;
+  const elapsed = t - start;
+  const last = CASE_INK_AT[n - 1] ?? 0;
+  if (elapsed >= last) return n;
   let lo = 0;
   let hi = n;
   while (lo < hi) {
     const mid = (lo + hi) >> 1;
-    if ((CASE_REVEAL_STEP[mid] ?? 0) <= step) lo = mid + 1;
+    if ((CASE_INK_AT[mid] ?? 0) <= elapsed) lo = mid + 1;
     else hi = mid;
   }
   return lo;
+}
+
+/** 0..1 ink of character `index` at opening time `t`. Eases out, so it settles rather than popping. */
+export function caseInkOpacity(t: number, index: number): number {
+  const begin = CASE_INK_AT[index];
+  if (begin === undefined) return 0;
+  const x = (t - at("hook", "patient") - begin) / CASE_INK_MS;
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  return 1 - (1 - x) ** 2;
 }
 
 /** 0 before `start`, 1 after `end`, linear between. */

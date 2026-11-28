@@ -25,7 +25,7 @@ import { CHARCOAL, CHARCOAL_FAINT } from "./charcoal";
 import { ROW_VARS } from "./rowMetrics";
 import { valueSteps } from "./valueSteps";
 import { triggerWords } from "./valueTriggers";
-import { CASE_SHRINK_MS, COLLAPSE_MS, OPENING_BEATS, HEADING_SWAP_MS, OFFSETS, PILL_ENTER_MS, at, caseCharsAt, modelHandoff, MODEL_HANDOFF_MS, ramp, caseSettle, visibility, voteEnter, votesOut } from "./timeline";
+import { CASE_SHRINK_MS, COLLAPSE_MS, OPENING_BEATS, HEADING_SWAP_MS, OFFSETS, PILL_ENTER_MS, at, caseCharsAt, caseInkOpacity, modelHandoff, MODEL_HANDOFF_MS, ramp, caseSettle, visibility, voteEnter, votesOut } from "./timeline";
 
 /* -------------------------------------------------------------------------- */
 /*  Copy                                                                       */
@@ -1040,12 +1040,24 @@ function HeroOverlay({ t, lockup }: { t: number; lockup: HeroLockup }) {
  * The case, typed on a card that fills the scene. When the dilemma starts the
  * card shrinks onto `target`, the in-flow card's place, and hands over to it.
  * The full text is always laid out, with the untyped tail hidden, so nothing
- * reflows while it types.
+ * reflows while it types. The newest letters ease in over one another, so the
+ * edge moves as a continuous stream instead of a tick.
  */
 function CaseOverlay({ t, full, target }: { t: number; full: Rect | null; target: Rect | null }) {
   if (!caseOverlayAt(t) || full === null || target === null) return null;
   const text = openingCase.vignette;
-  const typed = caseCharsAt(t);
+  const started = caseCharsAt(t);
+  let solid = started;
+  while (solid > 0 && caseInkOpacity(t, solid - 1) < 1) solid -= 1;
+  const fading: ReactNode[] = [];
+  for (let i = solid; i < started; i++) {
+    fading.push(
+      <span key={i} style={{ opacity: caseInkOpacity(t, i) }}>
+        {text.slice(i, i + 1)}
+      </span>,
+    );
+  }
+  const settling = text.length === 0 || caseInkOpacity(t, text.length - 1) < 1;
   const p = easeOut(ramp(t, dilemmaStartMs, dilemmaStartMs + CASE_SHRINK_MS));
   const lerp = (a: number, b: number) => a + (b - a) * p;
   return (
@@ -1065,8 +1077,9 @@ function CaseOverlay({ t, full, target }: { t: number; full: Rect | null; target
       }}
     >
       <p className="w-full min-w-0 leading-[1.5]" style={{ textWrap: "pretty" }}>
-        {text.slice(0, typed)}
-        {typed < text.length && (
+        {text.slice(0, solid)}
+        {fading}
+        {settling && (
           // A zero-size inline-block sits on the baseline. An empty inline does not,
           // and the bar then drops through the line gap onto the next line.
           <span aria-hidden className="relative inline-block align-baseline" style={{ width: 0, height: 0 }}>
@@ -1076,9 +1089,9 @@ function CaseOverlay({ t, full, target }: { t: number; full: Rect | null; target
             />
           </span>
         )}
-        {typed < text.length && (
+        {started < text.length && (
           <span aria-hidden style={{ display: "contents", color: "transparent" }}>
-            {text.slice(typed)}
+            {text.slice(started)}
           </span>
         )}
       </p>
