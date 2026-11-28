@@ -97,20 +97,28 @@ function sink(t: number, i: number): { up: number; shrink: number } {
 
 /** How long a skipped card's text and marks take to blend in over the last card's. */
 const BLEND_MS = 380;
+/** The header and choice text blend slower and softer, so the skip reads as a haze. */
+const TEXT_BLEND_MS = 900;
+const TEXT_HAZE_OPACITY = 0.6;
+const TEXT_HAZE_BLUR_EM = 0.06;
 
 /** Share of case `j` in the blend at time `t`: in as it starts, out as the next one starts. */
-function blendWeight(t: number, j: number): number {
+function blendWeight(t: number, j: number, ms: number): number {
   const fade = (k: number) =>
-    k === 0 ? 1 : smooth(ramp(t, startOf(k), startOf(k) + BLEND_MS));
+    k === 0 ? 1 : smooth(ramp(t, startOf(k), startOf(k) + ms));
   const next = j + 1 < CARDS.length ? fade(j + 1) : 0;
   return fade(j) * (1 - next);
 }
 
 /** The cases still showing in a skipped card's blend, oldest first. */
-function blendOf(t: number, i: number): { card: DilemmaCard; w: number }[] {
+function blendOf(
+  t: number,
+  i: number,
+  ms = BLEND_MS,
+): { card: DilemmaCard; w: number }[] {
   const out: { card: DilemmaCard; w: number }[] = [];
-  for (let j = Math.max(0, i - 6); j <= i; j++) {
-    const w = blendWeight(t, j);
+  for (let j = Math.max(0, i - 12); j <= i; j++) {
+    const w = blendWeight(t, j, ms);
     if (w > 0.005) out.push({ card: CARDS[j], w });
   }
   return out;
@@ -123,13 +131,20 @@ function Blend({
   items: { card: DilemmaCard; w: number }[];
   text: (c: DilemmaCard) => string;
 }) {
+  // One case alone reads sharp; a mix of several goes soft and faint.
+  const haze = 1 - Math.max(0, ...items.map((it) => it.w));
   return (
-    <span className="grid min-w-0">
+    <span
+      className="grid min-w-0"
+      style={{
+        filter: haze > 0.01 ? `blur(${haze * TEXT_HAZE_BLUR_EM}em)` : undefined,
+      }}
+    >
       {items.map(({ card, w }) => (
         <span
           key={card.id}
           className="col-start-1 row-start-1 min-w-0 truncate"
-          style={{ opacity: w }}
+          style={{ opacity: w * lerp(1, TEXT_HAZE_OPACITY, haze) }}
         >
           {text(card)}
         </span>
@@ -177,7 +192,9 @@ function CaseContent({
   // A skipped card lands at once: its frames match the card under it, and its text and marks blend over.
   const arrive = fast ? (t >= startOf(index) ? 1 : 0) : arrival(t, index);
   const { up, shrink } = sink(t, index);
-  const mix = fast && !(up >= EDGE_EM * 2) ? blendOf(t, index) : null;
+  const live = fast && !(up >= EDGE_EM * 2);
+  const mix = live ? blendOf(t, index) : null;
+  const textMix = live ? blendOf(t, index, TEXT_BLEND_MS) : null;
   // Skipped cards keep their content while on top, then go blank once buried, which is never seen.
   const blank = isFast(index) && up >= EDGE_EM * 2;
   const rise = (1 - arrive) * (fast ? 0 : RISE_EM);
@@ -217,7 +234,11 @@ function CaseContent({
         <>
           <CaseHeaderLine
             text={
-              mix ? <Blend items={mix} text={(c) => c.header} /> : card.header
+              textMix ? (
+                <Blend items={textMix} text={(c) => c.header} />
+              ) : (
+                card.header
+              )
             }
           />
           <ul className="grid w-full min-w-0 grid-cols-2 grid-rows-[auto_auto] gap-x-[0.6em] gap-y-[0.45em] [&_li>div>p]:truncate">
@@ -229,7 +250,7 @@ function CaseContent({
                 <SettledChoice
                   label={
                     mix ? (
-                      <Blend items={mix} text={(c) => c.choices[side]} />
+                      <Blend items={textMix!} text={(c) => c.choices[side]} />
                     ) : (
                       card.choices[side]
                     )
