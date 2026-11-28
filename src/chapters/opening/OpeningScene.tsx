@@ -19,21 +19,23 @@ import DecisionBoard from "./DecisionBoard";
 import OpeningResponse from "./OpeningResponse";
 import ValueStrip from "./ValueStrip";
 import Vignette from "./Vignette";
-import { SplitCaption, SplitStat } from "./DoctorSplit";
+import { PhysicianVotes } from "./DoctorSplit";
 import { CARD_CLASS, CARD_SURFACE } from "./cardClass";
 import { CHARCOAL, CHARCOAL_FAINT } from "./charcoal";
 import { ROW_VARS } from "./rowMetrics";
 import { valueSteps } from "./valueSteps";
-import { CASE_SHRINK_MS, COLLAPSE_MS, OPENING_BEATS, SPLIT_IN_MS, OFFSETS, PILL_ENTER_MS, at, caseCharsAt, modelHandoff, ramp, stripProgress, visibility } from "./timeline";
+import { CASE_SHRINK_MS, COLLAPSE_MS, OPENING_BEATS, HEADING_SWAP_MS, OFFSETS, PILL_ENTER_MS, at, caseCharsAt, modelHandoff, ramp, stripProgress, visibility, voteEnter } from "./timeline";
 
 /* -------------------------------------------------------------------------- */
 /*  Copy                                                                       */
 /* -------------------------------------------------------------------------- */
 
 /** Storyboard copy, verbatim. */
+const PHYSICIANS_HEADING = "Physicians disagree on the decision";
+
 const HEADLINES = [
   { text: "Do Language Models Share Your Doctor's Priorities?", size: "2.6em" }, // ch1
-  { text: "What would you recommend?", size: "1.7em" }, // ch2, then it leaves and the model answers
+  { text: "What would you recommend?", size: "1.7em" }, // ch2, then it becomes the physicians heading
   { text: "Clinical decisions require prioritizing competing values.", size: "1.7em" }, // ch4
 ] as const;
 
@@ -335,6 +337,7 @@ function HeadlineReplace({
   titleOpacity,
   questionOpacity,
   titleSize,
+  swap = 0,
 }: {
   /** 0 = the paper title's box, 1 = the question's box. */
   mix: number;
@@ -346,6 +349,8 @@ function HeadlineReplace({
   questionOpacity: number;
   /** Override for the opening card. Omit to use the shared headline size. */
   titleSize?: string;
+  /** 0..1 cross-fade from the question to the physicians heading. */
+  swap?: number;
 }) {
   const [titleRef, titleH] = useBoxHeight();
   const [questionRef, questionH] = useBoxHeight();
@@ -414,7 +419,12 @@ function HeadlineReplace({
           }}
           aria-hidden={questionOpacity < 0.5}
         >
-          {HEADLINES[1].text}
+          <span className="grid">
+            <span style={{ gridArea: "1 / 1", opacity: 1 - swap }}>{HEADLINES[1].text}</span>
+            <span style={{ gridArea: "1 / 1", opacity: swap }} aria-hidden={swap < 0.5}>
+              {PHYSICIANS_HEADING}
+            </span>
+          </span>
         </h1>
       </div>
       <div aria-hidden style={{ height: `calc(${STACK_GAP} * ${1 - gone})` }} />
@@ -631,14 +641,14 @@ function OptionCard({
   t,
   selected,
   showChips,
-  split,
+  votes,
 }: {
   index: 0 | 1;
   t: number;
   selected: boolean;
   showChips: boolean;
-  /** Physician split fade, 0..1, or null once it is no longer shown. */
-  split: number | null;
+  /** Opening time while the physician icons are shown, or null once they are not. */
+  votes: number | null;
 }) {
   const frame = selected ? OPTION_ACCENT : `color-mix(in srgb, ${NEUTRAL.ink} 28%, white)`;
   return (
@@ -657,7 +667,7 @@ function OptionCard({
           {openingCase.choices[index]}
         </p>
       </div>
-      {showChips ? <Chips index={index} t={t} /> : split !== null ? <SplitStat index={index} enter={split} /> : null}
+      {showChips ? <Chips index={index} t={t} /> : votes !== null ? <PhysicianVotes index={index} enterOf={(i) => voteEnter(votes, i)} /> : null}
     </li>
   );
 }
@@ -900,9 +910,9 @@ const SceneBody = memo(function SceneBody({
   const optionsMoving = showOptions && optionsEnter > 0 && optionsEnter < 1;
   const selectedIndex = t >= at("model", "extract") && t < at("model", "collapse") ? openingCase.response.chosen : null;
   const showChips = t >= FRAMEWORK_AT;
-  // Space is held from the options on, so the split fades in without moving anything.
-  const splitStart = at("dilemma", "split");
-  const split = showOptions && t < at("model", "ask") ? ease(ramp(t, splitStart, splitStart + SPLIT_IN_MS)) : null;
+  // Space is held from the options on, so the icons arrive without moving anything.
+  const votes = showOptions && t < at("model", "ask") ? t : null;
+  const headingSwap = ease(ramp(t, at("dilemma", "heading"), at("dilemma", "heading") + HEADING_SWAP_MS));
   const steps = valueSteps(t);
   // While a label is opening, its height already follows the clock. A layout
   // animation on top of that would trail the row and make the arrival feel late.
@@ -933,6 +943,7 @@ const SceneBody = memo(function SceneBody({
         <HeadlineReplace
           mix={1}
           exit={h === 0 ? 0 : questionExit}
+          swap={headingSwap}
           drift={h === 0 ? 0 : handoff.questionFade}
           titleOpacity={0}
           questionOpacity={questionIn * (1 - handoff.questionFade)}
@@ -995,16 +1006,10 @@ const SceneBody = memo(function SceneBody({
                 showBoard ? "@max-md:grid-cols-2 @max-md:gap-x-[0.6em] @max-md:gap-y-0" : ""
               }`}
             >
-              <OptionCard index={0} t={t} selected={selectedIndex === 0} showChips={showChips} split={split} />
-              <OptionCard index={1} t={t} selected={selectedIndex === 1} showChips={showChips} split={split} />
+              <OptionCard index={0} t={t} selected={selectedIndex === 0} showChips={showChips} votes={votes} />
+              <OptionCard index={1} t={t} selected={selectedIndex === 1} showChips={showChips} votes={votes} />
             </ul>
           </FadeSlot>
-        </Block>
-      )}
-
-      {split !== null && (
-        <Block probe={probe} className="w-full" layout={sceneStill}>
-          <SplitCaption enter={split} />
         </Block>
       )}
 

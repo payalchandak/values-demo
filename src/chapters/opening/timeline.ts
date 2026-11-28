@@ -4,6 +4,7 @@ import type { Value } from "../../study/types";
 import { openingCase } from "./openingCase";
 import { openingRows } from "./openingRows";
 import { triggerWords } from "./valueTriggers";
+import { PHYSICIAN_VOTE_COUNT } from "./DoctorSplit";
 
 /**
  * Beats for the four opening chapters (data, ms from each chapter's start).
@@ -49,16 +50,29 @@ const hook = [
 const OPTIONS_AT = 600;
 /** The full-scene case card shrinks to its place while the question fades in. Ends before the options. */
 export const CASE_SHRINK_MS = 500;
-/** The physician split fades in once the options have landed, then holds long enough to read. */
-const SPLIT_AT = OPTIONS_AT + 900;
-export const SPLIT_IN_MS = 500;
-const SPLIT_HOLD_MS = 1400;
+/** The choices finish landing, then a short still hold before the heading changes. */
+const OPTIONS_LANDED_MS = 680;
+const HEADING_HOLD_MS = 400;
+const HEADING_AT = OPTIONS_AT + OPTIONS_LANDED_MS + HEADING_HOLD_MS;
+/** "What would you recommend?" cross-fades to "Physicians disagree on the decision". */
+export const HEADING_SWAP_MS = 500;
+/** Physician icons arrive one at a time, in a fixed interleaved order. */
+const VOTES_AT = HEADING_AT + HEADING_SWAP_MS;
+export const VOTE_GAP_MS = 100;
+/** One icon fading in. */
+export const VOTE_IN_MS = 180;
+const VOTES_DONE_AT = VOTES_AT + (PHYSICIAN_VOTE_COUNT - 1) * VOTE_GAP_MS + VOTE_IN_MS;
+const VOTES_HOLD_MS = 1600;
+/** Opening time at which physician icon number `i` (0-based, in vote order) starts to appear. */
+export const voteStartMs = (i: number): number => at("dilemma", "votes") + i * VOTE_GAP_MS;
 const dilemma = [
   { name: "question", startMs: 0 }, // "What would you recommend?"
   { name: "options", startMs: OPTIONS_AT }, // two equal option cards
   { name: "hold", startMs: OPTIONS_AT + 500 }, // nothing moves: the viewer decides, no model answer yet
-  { name: "split", startMs: SPLIT_AT }, // "47%" and "53%" with thin bars, "Physicians split." below
-  { name: "end", startMs: SPLIT_AT + SPLIT_IN_MS + SPLIT_HOLD_MS },
+  { name: "heading", startMs: HEADING_AT }, // heading cross-fades to "Physicians disagree on the decision"
+  { name: "votes", startMs: VOTES_AT }, // physician icons appear one at a time under each option
+  { name: "voted", startMs: VOTES_DONE_AT }, // all 25 are in
+  { name: "end", startMs: VOTES_DONE_AT + VOTES_HOLD_MS },
 ] as const satisfies readonly Beat[];
 
 /** Two full turns of the provider mark, with "Thinking…" in the panel. */
@@ -304,3 +318,6 @@ export function stripProgress(t: number): number {
   return ramp(t, start, start + STRIP_MS);
 }
 
+
+/** 0..1: how far physician icon number `i` (in vote order) has appeared at opening time `t`. */
+export const voteEnter = (t: number, i: number): number => ramp(t, voteStartMs(i), voteStartMs(i) + VOTE_IN_MS);
