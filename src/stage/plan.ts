@@ -4,16 +4,19 @@ import { PROFILE_HEADLINE, VOTE_HEADLINE } from "../chapters/vote/beats";
 import { closingBeats, individualBeats } from "../chapters/ending";
 import { FADE_MS } from "../design/motion";
 import { beatStart, chapterDuration, type Beat } from "../types";
-import { morphBeats } from "./morphBeats";
+import { MORPH_LEAD_MS, morphBeats } from "./morphBeats";
 
-/** Chapter ids, in play order: opening (4), cases (each one voting), morph, ending (2). Reorder freely. */
+/**
+ * Chapter ids, in play order: opening (4), cases (each one voting), then the
+ * donut. The bars bend into that donut at the start of individual-models,
+ * rather than as their own chapter. Reorder freely.
+ */
 export const SEGMENTS = [
   "opening-hook",
   "opening-dilemma",
   "opening-framework",
   "opening-model",
   "cases",
-  "morph",
   "individual-models",
   "models-and-physicians",
 ] as const;
@@ -32,8 +35,10 @@ export const SEGMENT_BEATS: Record<SegmentId, readonly Beat[]> = {
   "opening-framework": OPENING_BEATS.framework,
   "opening-model": OPENING_BEATS.model,
   cases: casesBeats,
-  morph: morphBeats,
-  "individual-models": individualBeats,
+  "individual-models": [
+    ...morphBeats.filter((b) => b.name !== "end"),
+    ...individualBeats.map((b) => ({ name: b.name, startMs: b.startMs + MORPH_LEAD_MS })),
+  ],
   "models-and-physicians": closingBeats,
 };
 
@@ -72,7 +77,7 @@ const casesAt = (name: string) => SEGMENT_OFFSET.cases + beatStart(casesBeats, n
 export const HEADLINE_ENTRIES: readonly HeadlineEntry[] = [
   { at: casesAt("shrink"), text: VOTE_HEADLINE },
   { at: casesAt("settle"), text: PROFILE_HEADLINE },
-  { at: SEGMENT_OFFSET["individual-models"], text: INDIVIDUAL_HEADLINE },
+  { at: SEGMENT_OFFSET["individual-models"] + MORPH_LEAD_MS, text: INDIVIDUAL_HEADLINE },
   { at: SEGMENT_OFFSET["models-and-physicians"] + beatStart(closingBeats, "question"), text: "" },
 ].slice().sort((a, b) => a.at - b.at);
 

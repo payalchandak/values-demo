@@ -2,25 +2,29 @@ import { FADE_MS } from "../design/motion";
 import type { Beat } from "../types";
 
 /**
- * Bars-to-donut morph, as data. Every visual in `Morph` is a pure function of
- * chapter-local time, so it plays, pauses and scrubs on the chapter clock.
+ * Bars-to-donut, played at the start of the individual-models chapter. It is
+ * not its own chapter: the cases chapter hands straight to the donut. Every
+ * visual in `Morph` is a pure function of the time passed in.
  *
- *   bars    the four priority bars from the vote chapter, held
- *   stack   the bars slide into one row and stack end to end into a strip as
- *           long as the ring's circumference (each segment keeps its length)
+ * The bars do not rest in one horizontal line. They sweep through that strip
+ * and bend into the ring.
+ *
+ *   bars    the four priority bars from the cases chapter, briefly
+ *   stack   the bars sweep into a strip as long as the ring's circumference
  *   bend    the strip bends into the ring, first segment starting at 12 o'clock
  *   labels  names and percents fade in outside; the provider icon lands in the hole
- *   end     the hero donut, held
+ *   end     the hero donut, where the first model's hold begins
  */
-// TODO: tune after visual review
 export const MORPH_TIMING = {
-  holdMs: 1200,
-  stackMs: 1000,
-  /** The stacked strip rests this long before it bends. */
-  settleMs: 300,
-  bendMs: 1400,
-  labelsMs: 600,
-  endHoldMs: 800,
+  /** The cases chapter already held this profile. */
+  holdMs: 240,
+  /** Sweep into the strip. The horizontal line is passed through, not held. */
+  stackMs: 380,
+  settleMs: 0,
+  bendMs: 1000,
+  labelsMs: 450,
+  /** The first model's hold is the dwell on the finished ring. */
+  endHoldMs: 0,
 } as const;
 
 const stack = MORPH_TIMING.holdMs;
@@ -36,5 +40,8 @@ export const morphBeats = [
   { name: "end", startMs: end },
 ] as const satisfies readonly Beat[];
 
-/** The vote chapter's last frame cross-fades into the bars over this long at the start. */
+/** When the ring is fully formed. The first model's hold starts here. */
+export const MORPH_LEAD_MS = end;
+
+/** The cases chapter's last frame cross-fades into the bars over this long at the start. */
 export const MORPH_HANDOFF_MS = FADE_MS;

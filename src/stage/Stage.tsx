@@ -15,7 +15,7 @@ import { clamp01, easeInOut } from "../chapters/ending/shared";
 import { FADE_MS } from "../design/motion";
 import { gptProfile } from "./data";
 import Morph from "./Morph";
-import { MORPH_TIMING, morphBeats } from "./morphBeats";
+import { MORPH_LEAD_MS, MORPH_TIMING, morphBeats } from "./morphBeats";
 import {
   headlineAt,
   isOpening,
@@ -62,14 +62,20 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
     case "cases":
       // Every card draws its own icon, so the pile fades it with the card.
       return { from: null, mix: 0, opacity: 0 };
-    case "morph": {
-      // The icon fades in at the donut hole when the labels arrive.
-      const r = beatStart(morphBeats, "labels");
-      return { from: "icon-label", mix: 0, opacity: easeInOut(ramp(e, r, r + MORPH_TIMING.labelsMs)), clipToScene: true };
+    case "individual-models": {
+      // Through the bars-to-donut, the icon fades in at the hole as the labels arrive.
+      // Then it sits there and cross-fades with the next model's icon.
+      if (e < MORPH_LEAD_MS) {
+        const r = beatStart(morphBeats, "labels");
+        return { from: "icon-label", mix: 0, opacity: easeInOut(ramp(e, r, r + MORPH_TIMING.labelsMs)), clipToScene: true };
+      }
+      return {
+        from: "icon-label",
+        mix: 0,
+        opacity: individualLabelWeight(e - MORPH_LEAD_MS, INDIVIDUAL_MODELS[0].key),
+        clipToScene: true,
+      };
     }
-    case "individual-models":
-      // The icon sits in the donut hole and cross-fades with the next model's icon.
-      return { from: "icon-label", mix: 0, opacity: individualLabelWeight(e, INDIVIDUAL_MODELS[0].key), clipToScene: true };
     default:
       return { from: null, mix: 0, opacity: 0 };
   }
@@ -197,29 +203,28 @@ export default function Stage({ segment, ctx }: { segment: SegmentId; ctx: Chapt
           <div data-scene-zone className="relative min-h-0 flex-1">
             {segment === "cases" && <VoteScene elapsedMs={e} profile={gptProfile} />}
 
-            {segment === "morph" && (
-              <>
-                <Morph profile={gptProfile} elapsedMs={e} />
-                {e < GHOST_MS && (
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0 bg-canvas"
-                    style={{ opacity: 1 - e / GHOST_MS }}
-                  >
-                    <VoteScene elapsedMs={CASES_END} profile={gptProfile} />
-                  </div>
-                )}
-              </>
-            )}
-
-            {segment === "individual-models" && (
-              <IndividualModels
-                models={INDIVIDUAL_MODELS}
-                elapsedMs={e}
-                showHeader={false}
-                sharedIconFor={INDIVIDUAL_MODELS[0].key}
-              />
-            )}
+            {segment === "individual-models" &&
+              (e < MORPH_LEAD_MS ? (
+                <>
+                  <Morph profile={gptProfile} elapsedMs={e} />
+                  {e < GHOST_MS && (
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 bg-canvas"
+                      style={{ opacity: 1 - e / GHOST_MS }}
+                    >
+                      <VoteScene elapsedMs={CASES_END} profile={gptProfile} />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <IndividualModels
+                  models={INDIVIDUAL_MODELS}
+                  elapsedMs={e - MORPH_LEAD_MS}
+                  showHeader={false}
+                  sharedIconFor={INDIVIDUAL_MODELS[0].key}
+                />
+              ))}
 
             {segment === "models-and-physicians" && (
               <ModelsAndPhysicians

@@ -7,7 +7,8 @@ import { SEGMENTS, SEGMENT_BEATS } from "./stage/plan";
  * never keyed by chapter, so it persists for the whole demo. A chapter is just
  * its beats plus which clock position the stage is drawn at.
  *
- * Order: opening (4), cases with their votes, bars-to-donut morph, ending (2).
+ * Order: opening (4), cases with their votes, then the donut (the bars bend into
+ * it at the start of that chapter), then the gallery.
  */
 export const chapters: Chapter[] = SEGMENTS.map((id) => ({
   id,
