@@ -1171,7 +1171,11 @@ const SceneBody = memo(function SceneBody({
   // Reserving that height is what keeps the case from minimizing at the bottom and then riding up.
   const reserveOptions = t >= dilemmaStart && !cleared;
   const optionsEnter = ease(ramp(t, optionsAt, optionsAt + OPTIONS_IN_MS)) * (1 - clearP);
-  const selectedIndex = t >= at("model", "extract") && t < at("model", "collapse") ? openingCase.response.chosen : null;
+  // The outline stays until the words have left, so it does not snap off as they fade.
+  const selectedIndex =
+    t >= at("model", "extract") && t < at("model", "collapse") + COLLAPSE_MS * 0.46
+      ? openingCase.response.chosen
+      : null;
   const showChips = t >= FRAMEWORK_AT;
   // Space is held from the options on, so the icons arrive without moving anything.
   // In the framework chapter that same slot becomes the value labels, still without moving the column.
@@ -1509,7 +1513,15 @@ export default function OpeningScene({
       style={{ fontSize: "var(--fs)" }}
     >
       <CaseOverlay t={t} full={fullRect} target={target} />
-      <div className="flex h-full w-full items-center justify-center">
+      <div
+        className="flex h-full w-full justify-center"
+        style={{
+          // Once the answer fills the stage its top edge is already the stage's.
+          // Keeping that edge fixed means the case and the choices do not slide
+          // down when the answer's slot closes.
+          alignItems: t >= at("model", "ask") + MODEL_HANDOFF_MS ? "flex-start" : "center",
+        }}
+      >
         <div ref={scaleRef} data-scale-box className="w-full max-w-[46em] origin-center">
           <SceneBody
             t={t}

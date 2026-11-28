@@ -6,7 +6,7 @@ import { CHARCOAL } from "./charcoal";
 import { openingRows } from "./openingRows";
 import { DotSide } from "./DecisionBoard";
 import { COLUMN_GAP, DOT_SIZE } from "./rowMetrics";
-import { FIRST_DOT_CHOICE, firstDotEnter, markSpinDeg } from "./timeline";
+import { FIRST_DOT_CHOICE, easeInOut, firstDotEnter, markSpinDeg } from "./timeline";
 
 const clamp01 = (n: number): number => Math.min(Math.max(n, 0), 1);
 const ramp = (t: number, start: number, end: number): number =>
@@ -131,8 +131,9 @@ const HALF_ROW = "1.125em";
  * The model's response for the opening, below the options. The round provider
  * icon sits on the panel's top-left edge and spins while the panel reads
  * "Thinking…"; then the answer types out and its recommendation is picked out.
- * The first decision dot rises beside the mark, and the panel then shrinks
- * away, leaving that dot. The rest arrive later, with the other model rows,
+ * The first decision dot rises beside the mark. The answer then fades in
+ * place, and only the empty slot closes, leaving that dot. The rest arrive
+ * later, with the other model rows,
  * once the case has tucked. Highlight timing matches `ModelResponse`.
  * Everything is in `em`, so it scales with the scene.
  */
@@ -212,7 +213,10 @@ export default function OpeningResponse({
   const firstDot = firstDotEnter(progress.elapsedMs);
   const c = clamp01(collapse);
   const settled = c <= 0 || panelH === 0;
-  const panelFade = 1 - ramp(c, 0, 0.6);
+  // Gone before the slot moves, so the words are never squashed and the
+  // choices stay where they are while the text is still readable.
+  const gone = easeInOut(ramp(c, 0, 0.46));
+  const close = easeInOut(ramp(c, 0.42, 1));
 
   const renderPiece = (piece: Piece, key: number, highlight: boolean) => {
     const shownN = Math.max(0, Math.min(piece.text.length, typed - piece.start));
@@ -296,7 +300,7 @@ export default function OpeningResponse({
       <div
         style={{
           marginTop: `calc(${HALF_ROW} * -1)`,
-          height: settled ? "auto" : panelH * (1 - c),
+          height: settled ? "auto" : panelH * (1 - close),
           pointerEvents: "none",
         }}
       >
@@ -304,15 +308,13 @@ export default function OpeningResponse({
           ref={panelRef}
           role="group"
           aria-label={panelLabel}
-          aria-hidden={panelFade === 0}
+          aria-hidden={gone === 1}
           className="w-full rounded-[0.9em] border bg-white px-[1em] pb-[0.9em] pt-[1.4em]"
           style={{
             borderColor: NEUTRAL.line,
             color: NEUTRAL.ink,
-            opacity: panelFade,
-            transform: c > 0 ? `scale(${1 - 0.4 * c})` : undefined,
-            transformOrigin: "2em 0",
-            visibility: panelFade === 0 ? "hidden" : undefined,
+            opacity: 1 - gone,
+            visibility: gone === 1 ? "hidden" : undefined,
           }}
         >
           {/* Fixed-height label row: the label fades in place, never shifting text. */}
@@ -365,7 +367,7 @@ export default function OpeningResponse({
         </div>
       </div>
       {/* Keeps the row's full height once the panel is gone. */}
-      <div aria-hidden style={{ height: `calc(${HALF_ROW} * ${c})` }} />
+      <div aria-hidden style={{ height: `calc(${HALF_ROW} * ${close})` }} />
     </div>
   );
 }

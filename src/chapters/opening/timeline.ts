@@ -139,8 +139,8 @@ const EXTRACTED_AT = EXTRACT_AT + 1000;
 const FIRST_DOT_MS = 400;
 const FIRST_DOT_HOLD_MS = 240;
 const FIRST_DOT_AT = EXTRACTED_AT;
-/** The answer text shrinks away once the first dot has landed. */
-export const COLLAPSE_MS = 300;
+/** The answer fades in place, then its slot closes, once the first dot has landed. */
+export const COLLAPSE_MS = 560;
 const COLLAPSE_AT = FIRST_DOT_AT + FIRST_DOT_MS + FIRST_DOT_HOLD_MS;
 /**
  * Choice each recorded query made, in run order. 0 = choice 1, 1 = choice 2.
@@ -246,7 +246,7 @@ const model = [
   { name: "extract", startMs: EXTRACT_AT }, // its choice is outlined
   { name: "extracted", startMs: EXTRACTED_AT },
   { name: "firstDot", startMs: FIRST_DOT_AT }, // the excerpt's dot rises beside the mark
-  { name: "collapse", startMs: COLLAPSE_AT }, // answer shrinks away; the first dot stays
+  { name: "collapse", startMs: COLLAPSE_AT }, // answer fades in place, then its slot closes; the first dot stays
   { name: "models", startMs: MODELS_AT }, // the mark spins once per remaining query; each spin ends in a dot
   { name: "end", startMs: LAST_DOT_AT + DECISIONS_HOLD_MS }, // hold the tucked case, the labels, and GPT's dots
 ] as const satisfies readonly Beat[];
@@ -376,7 +376,7 @@ export const visibility = (
 
 /**
  * The excerpted query's dot, 0..1. It rises beside the mark once the decision
- * is identified, and it is fully up before the answer shrinks. Chapter-local ms.
+ * is identified, and it is fully up before the answer fades. Chapter-local ms.
  */
 export function firstDotEnter(elapsedMs: number): number {
   const start = beatStart(OPENING_BEATS.model, "firstDot");
