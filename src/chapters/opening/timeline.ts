@@ -20,73 +20,51 @@ import { PHYSICIAN_VOTE_COUNT } from "./DoctorSplit";
 const CASE_HOLD_MS = 800;
 
 /**
- * 0..1 from a character index. Stable across pauses and seeks: the same
- * index always gets the same gap, so the prefix on screen never disagrees
- * with the clock.
+ * One step of the typing clock, in ms. Every rest is a whole number of these
+ * steps, and a step is the same length as a letter, so a pause is the next
+ * beat rather than a hole whose length changes with the frame.
  */
-function typingUnit(i: number): number {
-  let x = Math.imul(i + 1, 0x9e3779b1);
-  x ^= x >>> 16;
-  x = Math.imul(x, 0x85ebca6b);
-  x ^= x >>> 13;
-  return (x >>> 0) / 0x100000000;
-}
+const TYPE_STEP_MS = 1000 / 60;
 
-/** Punctuation and the marks stuck to a word. They land with the word, not as their own beat. */
-function sticksToWord(ch: string): boolean {
-  return ".,;:!?%“”\"'-".includes(ch);
+/** The mark that closed the clause before character `i`, skipping the space and a closing quote. */
+function clauseEnd(text: string, i: number): string {
+  let j = i - 1;
+  while (j >= 0 && (text[j] === " " || text[j] === "\n" || "”\"')".includes(text[j] ?? ""))) j--;
+  return j >= 0 ? (text[j] ?? "") : "";
 }
 
 /**
- * How long character `i` waits before it appears, in ms.
- * Letters inside a word roll through together. The caret then rests on the
- * space, a little longer before a long word, longer still after a comma, and
- * long enough after a period for the sentence to land. A hitch inside a word
- * reads as a stutter, so the unevenness stays between words.
+ * How many steps character `i` waits.
+ * A letter, a space, and a mark are each one step, so a word rolls without a hitch.
+ * The first letter of the next word waits one extra step. A comma waits two more,
+ * a period four more: longer, and still on the same beat.
  */
-function charGapMs(text: string, i: number): number {
-  if (i === 0) return 60;
+function stepsBefore(text: string, i: number): number {
+  if (i === 0) return 1;
   const prev = text[i - 1] ?? "";
   const ch = text[i] ?? "";
-  const u = typingUnit(i);
-  // A closing quote rides on the comma or period before it, so the pause follows the quote.
-  const closedBy = prev === "”" || prev === '"' || prev === ")" ? (text[i - 2] ?? prev) : prev;
-  if (ch === " " || ch === "\n") {
-    if (".!?".includes(closedBy)) return 280;
-    if (",;:".includes(closedBy)) return 150;
-    const ahead = wordAhead(text, i + 1);
-    const harder = ahead >= 10 ? 24 : 0;
-    return Math.round(52 + u * 28) + harder;
+  if (ch !== " " && ch !== "\n" && (prev === " " || prev === "\n")) {
+    const ended = clauseEnd(text, i);
+    if (".!?".includes(ended)) return 6;
+    if (",;:".includes(ended)) return 4;
+    return 2;
   }
-  if (sticksToWord(ch)) return Math.round(4 + u * 6);
-  if (prev === " ") return Math.round(6 + u * 8);
-  return Math.round(5 + u * 11);
+  return 1;
 }
 
-/** Letters ahead of this index, up to the next space. Hyphenated words count as one. */
-function wordAhead(text: string, i: number): number {
-  let n = 0;
-  for (let j = i; j < text.length; j++) {
-    const ch = text[j] ?? "";
-    if (ch === " " || ch === "\n") break;
-    if (!sticksToWord(ch)) n++;
-  }
-  return n;
-}
-
-/** Time, in ms from when the card starts typing, at which each character has landed. */
-const CASE_REVEAL_AT: readonly number[] = (() => {
+/** Step at which each character has landed. */
+const CASE_REVEAL_STEP: readonly number[] = (() => {
   const text = openingCase.vignette;
-  const atMs: number[] = [];
+  const steps: number[] = [];
   let acc = 0;
   for (let i = 0; i < text.length; i++) {
-    acc += charGapMs(text, i);
-    atMs.push(acc);
+    acc += stepsBefore(text, i);
+    steps.push(acc);
   }
-  return atMs;
+  return steps;
 })();
 
-const CASE_TYPE_MS = CASE_REVEAL_AT[CASE_REVEAL_AT.length - 1] ?? 0;
+const CASE_TYPE_MS = Math.ceil((CASE_REVEAL_STEP[CASE_REVEAL_STEP.length - 1] ?? 0) * TYPE_STEP_MS);
 
 /** Logo and title open together, hold, then both fade out completely before the case types. */
 const LOGO_IN_MS = 560;
@@ -354,15 +332,16 @@ export const at = (chapter: OpeningChapterKey, beat: string): number =>
 /** How many characters of the case are visible at opening time `t`. */
 export function caseCharsAt(t: number): number {
   const start = at("hook", "patient");
-  const n = CASE_REVEAL_AT.length;
+  const n = CASE_REVEAL_STEP.length;
   if (n === 0 || t <= start) return 0;
-  const elapsed = t - start;
-  if (elapsed >= CASE_TYPE_MS) return n;
+  const step = Math.floor((t - start) / TYPE_STEP_MS);
+  const last = CASE_REVEAL_STEP[n - 1] ?? 0;
+  if (step >= last) return n;
   let lo = 0;
   let hi = n;
   while (lo < hi) {
     const mid = (lo + hi) >> 1;
-    if (CASE_REVEAL_AT[mid] <= elapsed) lo = mid + 1;
+    if ((CASE_REVEAL_STEP[mid] ?? 0) <= step) lo = mid + 1;
     else hi = mid;
   }
   return lo;
