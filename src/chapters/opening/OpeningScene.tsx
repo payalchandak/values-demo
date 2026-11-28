@@ -916,7 +916,7 @@ const SceneBody = memo(function SceneBody({
   const stripping = focused && t >= FRAMEWORK_AT && settle < 1 && t < ask;
   const showVignette = t >= FRAMEWORK_AT && t < ask && !stripping && !cleared;
   const vignetteOpacity = 1 - clearP;
-  const tuck = ease(ramp(t, ask, ask + MODEL_HANDOFF_MS));
+  const tuck = ease(ramp(t, ask, ask + MODEL_HANDOFF_MS * 0.7));
   const showTuck = t >= ask && !cleared;
 
   const showOptions = t >= at("dilemma", "options") && !cleared;
@@ -960,7 +960,7 @@ const SceneBody = memo(function SceneBody({
           mix={1}
           exit={inHook ? 0 : questionExit}
           swapClinical={headingClinical}
-          drift={inHook ? 0 : handoff.questionFade}
+          drift={0}
           titleOpacity={0}
           questionOpacity={questionIn * (1 - handoff.questionFade)}
         />

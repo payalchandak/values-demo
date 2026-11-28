@@ -142,7 +142,7 @@ export function modelHandoff(elapsedMs: number): {
   return {
     questionFade: easeInOut(Math.min(1, rise / 0.5)),
     questionCollapse: easeInOut(Math.min(1, Math.max(0, (rise - 0.46) / 0.54))),
-    responseEnter: easeInOut(Math.min(1, rise / 0.72)),
+    responseEnter: easeInOut(Math.min(1, Math.max(0, (rise - 0.4) / 0.6))), // after the case has begun to tuck, so the scene never grows past the viewport
   };
 }
 
