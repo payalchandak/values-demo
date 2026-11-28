@@ -19,7 +19,7 @@ export const FOREGROUND = 3;
 /**
  * Everything positional lives in a Layout, in logical stage px. The renderer
  * scales the stage to fit its container and picks `wide` or `tall` from the
- * container's aspect ratio, so phones get a stacked trio and a compact table
+ * container's aspect ratio, so phones get a compact table
  * instead of a landscape stage shrunk to unreadable.
  */
 export interface Layout {
@@ -27,16 +27,13 @@ export interface Layout {
   stageW: number;
   stageH: number;
   center: { x: number; y: number };
-  /** Face scale of the hero card, of every card in the grid, and of the foreground trio. */
+  /** Face scale of the hero card, and of every card in the grid. */
   heroScale: number;
   gridScale: number;
-  trioScale: number;
   /** The grid of all cards: columns, and the gaps between cards (wide enough for the edge dots). */
   gridCols: number;
   gridGapX: number;
   gridGapY: number;
-  /** Foreground trio centres. Card 0 is the first row of the table. */
-  trio: readonly { x: number; y: number }[];
   rowW: number;
   rowH: number;
   headerY: number;
@@ -56,15 +53,9 @@ export const WIDE: Layout = {
   center: { x: 500, y: 300 },
   heroScale: 2.2,
   gridScale: 0.32,
-  trioScale: 1,
   gridCols: 9,
   gridGapX: 16,
   gridGapY: 12,
-  trio: [
-    { x: 180, y: 300 },
-    { x: 500, y: 300 },
-    { x: 820, y: 300 },
-  ],
   rowW: 820,
   rowH: 60,
   headerY: 114,
@@ -83,15 +74,9 @@ export const TALL: Layout = {
   center: { x: 200, y: 310 },
   heroScale: 1.35,
   gridScale: 0.24,
-  trioScale: 0.9,
   gridCols: 5,
   gridGapX: 12,
   gridGapY: 12,
-  trio: [
-    { x: 200, y: 100 },
-    { x: 200, y: 296 },
-    { x: 200, y: 492 },
-  ],
   rowW: 340,
   rowH: 64,
   headerY: 136,
@@ -123,8 +108,22 @@ export interface CardFrame {
   /** Whole-card opacity (background fade). 0 means do not render. */
   opacity: number;
   faceOpacity: number;
-  /** Row chrome (border/background) that replaces the faces during the morph. */
+  /** Card body (border/background) that stands in for the faces once the contents leave. */
   shellOpacity: number;
+  /** Corner radius and border width of that body, in stage px. */
+  shellRadius: number;
+  shellBorder: number;
+  /** Where the card sat in the grid: the contents start their journey here. */
+  slotX: number;
+  slotY: number;
+  /**
+   * 0..1 linear progress of this card's contents travelling to the table.
+   * While it is above 0 and below 1 the contents are drawn as free-flying parts.
+   */
+  fly: number;
+  /** True from the first moment of this card's journey: its faces and edge dots are replaced by parts. */
+  flying: boolean;
+  /** The finished row's own content (id, tags, bar). Only the first three cards have one. */
   rowOpacity: number;
   /**
    * Edge markers: each edge carries one dot per model query (TRIALS). `dots`
@@ -184,6 +183,11 @@ function gridSlots(n: number, layout: Layout) {
   return slots.sort((a, b) => a.d - b.d).slice(0, n);
 }
 
+/** Where each part of the table journey starts, as shares of the gather beat. */
+const FLY_LEAD = 0.14;
+const FLY_CASE = 0.22;
+const FLY_WAVE = FLY_LEAD + FOREGROUND * FLY_CASE;
+
 export function computeFrame(
   t: number,
   times: StackBeatTimes,
@@ -200,8 +204,9 @@ export function computeFrame(
   const revealP = span(t, times, "reveal", "grid");
   const flipP = span(t, times, "flip", "settle");
   const markersP = span(t, times, "markers", "observed");
-  const gatherP = easeInOut(span(t, times, "gather", "morph"));
-  const morphP = span(t, times, "morph", "highlight");
+  // The grid becomes the table one case at a time: the first three cards, one after
+  // another, each into its own row; then everything else sweeps into the ellipsis.
+  const flyP = span(t, times, "gather", "morph");
   const highlightP = easeInOut(span(t, times, "highlight", "end"));
   const labelP = span(t, times, "shrink", "reveal");
 
@@ -214,42 +219,39 @@ export function computeFrame(
 
     // 1. Placement. The hero starts big in the middle and shrinks into its slot.
     //    Every other card sits in its slot and fades in during the reveal, from the middle out.
-    let cx = i === 0 ? lerp(L.center.x, slot.x, shrinkP) : slot.x;
-    let cy = i === 0 ? lerp(L.center.y, slot.y, shrinkP) : slot.y;
-    let scale = i === 0 ? lerp(L.heroScale, L.gridScale, shrinkP) : L.gridScale;
+    const slotX = i === 0 ? lerp(L.center.x, slot.x, shrinkP) : slot.x;
+    const slotY = i === 0 ? lerp(L.center.y, slot.y, shrinkP) : slot.y;
+    const scale = i === 0 ? lerp(L.heroScale, L.gridScale, shrinkP) : L.gridScale;
     const base = i === 0 ? 1 : easeOut(clamp01((revealP - rank * 0.7) / 0.3));
-    // The first three leave the grid for the trio; the rest fade away as they go.
-    if (foreground) {
-      cx = lerp(cx, L.trio[i].x, gatherP);
-      cy = lerp(cy, L.trio[i].y, gatherP);
-      scale = lerp(scale, L.trioScale, gatherP);
-    }
-    const opacity = foreground ? base : base * (1 - clamp01(gatherP * 1.5));
-    const rot = 0;
 
     // 2. Flip every card to the tag side one after another. They stay there while the
-    //    decisions arrive; only the trio flips back, as it leaves the grid.
+    //    decisions arrive and while their contents leave for the table.
     const flipOut = easeInOut(clamp01((flipP - rank * 0.55) / 0.45));
     //    The hero also turns over once at the start (turnP), and back as it shrinks (shrinkP).
     const heroTurn = i === 0 ? turnP - shrinkP : 0;
-    const flipLocal = flipOut + heroTurn - (foreground ? gatherP : 0);
+    const flipLocal = flipOut + heroTurn;
 
-    // 3. Morph into a table row (foreground only), staggered by row.
-    const morphLocal = foreground ? easeInOut(clamp01((morphP - i * 0.12) / 0.76)) : 0;
-    const row = foreground ? L.rowTops[i] + L.rowH / 2 : 0;
-    cx = foreground ? lerp(cx, L.center.x, morphLocal) : cx;
-    cy = foreground ? lerp(cy, row, morphLocal) : cy;
-    const w = lerp(CARD_W * scale, L.rowW, morphLocal);
-    const h = lerp(CARD_H * scale, L.rowH, morphLocal);
+    // 3. The journey. Strictly one case at a time for the rows, then a quick wave for the rest.
+    const fly = foreground
+      ? clamp01((flyP - (FLY_LEAD + i * FLY_CASE)) / FLY_CASE)
+      : clamp01((flyP - (FLY_WAVE + rank * 0.08)) / 0.12);
+    const flyingNow = fly > 0;
+    const arrived = fly >= 1;
+    const eased = easeInOut(fly);
 
-    // Faces give way to the row shell early in the morph; row content arrives late.
-    const swap = clamp01(morphLocal / 0.25);
-    const rowOpacity = clamp01((morphLocal - 0.6) / 0.35);
+    // A card widens into its table row as its turn starts. The rest dim while they wait, then empty out and fade.
+    const rowCy = foreground ? L.rowTops[i] + L.rowH / 2 : 0;
+    const widen = foreground ? easeInOut(clamp01(fly / 0.3)) : 0;
+    const cx = lerp(slotX, L.center.x, widen);
+    const cy = foreground ? lerp(slotY, rowCy, widen) : slotY;
+    const w = foreground ? lerp(CARD_W * scale, L.rowW, widen) : CARD_W * scale;
+    const h = foreground ? lerp(CARD_H * scale, L.rowH, widen) : CARD_H * scale;
+    const waiting = foreground ? 1 : 1 - 0.88 * clamp01((flyP - 0.02) / 0.1);
+    const opacity = foreground ? base : base * waiting * (1 - clamp01(eased * 1.8));
 
     // 4. Edge markers accumulate across every card, spreading out from the middle.
     const local = t < times.markers ? 0 : clamp01((markersP - rank * 0.55) / 0.45);
     const dots = Math.round(TRIALS * local);
-    const markerOpacity = 1 - clamp01(morphLocal / 0.3);
 
     cards.push({
       index: i,
@@ -257,27 +259,88 @@ export function computeFrame(
       cy,
       w,
       h,
-      rot,
+      rot: 0,
       zIndex: foreground ? 1000 - i : 500 - i,
       faceScale: scale,
       flipDeg: flipLocal * 180,
       opacity,
-      faceOpacity: 1 - swap,
-      shellOpacity: swap,
-      rowOpacity,
+      faceOpacity: flyingNow ? 0 : 1,
+      shellOpacity: flyingNow ? 1 : 0,
+      shellRadius: lerp(12 * scale, 12, widen),
+      shellBorder: lerp(scale, 1, widen),
+      slotX,
+      slotY,
+      fly,
+      flying: flyingNow,
+      rowOpacity: foreground && arrived ? 1 : 0,
       dots,
       choice1Count: choice1Counts[i],
-      markerOpacity,
-      freqFill: i < FOREGROUND ? easeOut(clamp01((morphLocal - 0.55) / 0.45)) : 0,
+      markerOpacity: flyingNow ? 0 : 1,
+      freqFill: foreground && arrived ? 1 : 0,
       highlight: i === 0 ? highlightP : 0,
     });
   }
 
   return {
     cards,
-    stackLabel: easeOut(clamp01((labelP - 0.4) / 0.6)) * (1 - clamp01(gatherP * 1.5)),
-    headerOpacity: clamp01((morphP - 0.5) / 0.4),
-    ellipsisOpacity: clamp01((morphP - 0.6) / 0.3),
-    countLabelOpacity: clamp01((morphP - 0.75) / 0.25),
+    stackLabel: easeOut(clamp01((labelP - 0.4) / 0.6)) * (1 - clamp01(flyP * 12)),
+    headerOpacity: clamp01((flyP - 0.02) / 0.1),
+    ellipsisOpacity: clamp01((flyP - 0.88) / 0.12),
+    countLabelOpacity: clamp01((flyP - 0.9) / 0.1),
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Where the contents of a row land                                           */
+/* -------------------------------------------------------------------------- */
+
+/** Column widths of a table row, shared by the row's own content and the parts that fly into it. */
+export const ROW_GRID = {
+  wide: { pad: 20, caseW: 140, valueW: 96, freqPad: 20, gap: 12, countW: 48, chipW: 44, chipH: 26, barH: 10, chipRadius: 8, text: 14 },
+  compact: { pad: 12, caseW: 62, valueW: 34, freqPad: 10, gap: 8, countW: 36, chipW: 28, chipH: 22, barH: 8, chipRadius: 6, text: 12 },
+} as const;
+
+/** Positions, in stage px, of every item in one table row (or in a row-shaped place). */
+export interface RowTargets {
+  /** Left edge and vertical centre of the case id. */
+  caseX: number;
+  caseW: number;
+  cy: number;
+  /** Horizontal centre of each value's cell, in `VALUES` order. */
+  chipX: readonly number[];
+  chipW: number;
+  chipH: number;
+  chipRadius: number;
+  /** The decision bar. */
+  barX: number;
+  barW: number;
+  barH: number;
+  /** Right edge of the "k/10" count. */
+  countRight: number;
+  countW: number;
+  text: number;
+}
+
+/** Where the items of a table row land, for a row whose vertical centre is `cy`. */
+export function rowTargets(L: Layout, cy: number): RowTargets {
+  const g = L.compactRows ? ROW_GRID.compact : ROW_GRID.wide;
+  const left = (L.stageW - L.rowW) / 2;
+  const valuesLeft = left + g.pad + g.caseW;
+  const freqLeft = valuesLeft + 4 * g.valueW;
+  const freqW = L.rowW - 2 * g.pad - g.caseW - 4 * g.valueW;
+  return {
+    caseX: left + g.pad,
+    caseW: g.caseW,
+    cy,
+    chipX: [0, 1, 2, 3].map((v) => valuesLeft + g.valueW * v + g.valueW / 2),
+    chipW: g.chipW,
+    chipH: g.chipH,
+    chipRadius: g.chipRadius,
+    barX: freqLeft + g.freqPad,
+    barW: freqW - g.freqPad - g.gap - g.countW,
+    barH: g.barH,
+    countRight: freqLeft + freqW,
+    countW: g.countW,
+    text: g.text,
   };
 }

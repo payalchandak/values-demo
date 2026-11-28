@@ -1,5 +1,5 @@
 import { beatStart, type Beat } from "../../types";
-import { FADE_MS, VALUE_ORDER } from "../../design";
+import { VALUE_ORDER } from "../../design";
 import type { Value } from "../../study/types";
 import { openingCase } from "./openingCase";
 import { openingRows } from "./openingRows";
@@ -92,7 +92,7 @@ export function markSpinDeg(e: number): number {
  */
 export const MODEL_HANDOFF_MS = 780;
 
-const easeInOut = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - ((-2 * x + 2) ** 3) / 2);
+export const easeInOut = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - ((-2 * x + 2) ** 3) / 2);
 
 /**
  * Chapter-local handoff at the start of the model chapter.
@@ -132,8 +132,21 @@ export const MODELS_HOLD_MS = 2500;
 export const PHYSICIAN_STAGGER_MS = 40;
 /** One physician square fading in; also the MD badge and the separator. TODO: tune after visual review */
 export const PHYSICIAN_IN_MS = 160;
-/** The full picture held before the framework chapter. TODO: tune after visual review */
-export const FULL_PICTURE_HOLD_MS = 3500;
+/** The full picture held, then the rows gather into choice 1 / split / choice 2. TODO: tune after visual review */
+export const FULL_PICTURE_HOLD_MS = 2400;
+/** Icons leave their rows and settle into the three groups. TODO: tune after visual review */
+export const GATHER_MS = 1100;
+/** The three groups held under the choices, before the next slide. TODO: tune after visual review */
+export const SUMMARY_HOLD_MS = 2000;
+/**
+ * The next slide arrives and the grouped icons move to the bottom of the stage.
+ * TODO: tune after visual review
+ */
+export const STRIP_MS = 1000;
+/** The bottom band fades at the end of the framework chapter, as the icon leaves for its dock. */
+export const BAND_LEAVE_MS = 700;
+/** The shared icon's flight from the band to the dock, inside the band's leaving window. */
+export const ICON_DOCK_MS = 450;
 
 /** GPT's row is already there, so only the rest arrive. */
 const ARRIVING_ROWS = openingRows.models.length - 1;
@@ -159,7 +172,9 @@ const model = [
   { name: "modelsHold", startMs: MODELS_HOLD_AT }, // all twelve rows visible, held for reading
   { name: "physicians", startMs: PHYSICIANS_AT }, // the physician row arrives, one square at a time
   { name: "hold", startMs: FULL_AT }, // the full picture, held
-  { name: "end", startMs: FULL_AT + FULL_PICTURE_HOLD_MS },
+  { name: "summarize", startMs: FULL_AT + FULL_PICTURE_HOLD_MS }, // dots fold in; icons gather into the three groups
+  { name: "summarized", startMs: FULL_AT + FULL_PICTURE_HOLD_MS + GATHER_MS },
+  { name: "end", startMs: FULL_AT + FULL_PICTURE_HOLD_MS + GATHER_MS + SUMMARY_HOLD_MS },
 ] as const satisfies readonly Beat[];
 
 const round100 = (ms: number): number => Math.round(ms / 100) * 100;
@@ -182,6 +197,17 @@ const HIGHLIGHT_BASE_MS = 900; // still hold of the fully tinted sentence, befor
 const HIGHLIGHT_PER_WORD_MS = 180; // the tint crosses one word in this long
 const CHIP_GAP_MS = 700; // Choice 1 label, then Choice 2 label
 
+/**
+ * How a value's name and definition arrive and leave. Longer than a fade so
+ * the handoff reads as motion. The next value still begins on this window.
+ */
+export const VALUE_ENTER_MS = 480;
+/**
+ * How a label under a choice opens. The row grows with this, and the pill
+ * settles inside it. The next value waits until Choice 2 has finished.
+ */
+export const PILL_ENTER_MS = 460;
+
 /** How long the tint takes to travel across a value's trigger sentence. */
 export function highlightSweepMs(v: Value): number {
   return HIGHLIGHT_PER_WORD_MS * triggerWords(v);
@@ -189,7 +215,7 @@ export function highlightSweepMs(v: Value): number {
 
 const framework = (() => {
   const beats: Beat[] = [{ name: "framework", startMs: 0 }]; // "Clinical decisions require ..."
-  let cursor = 1200;
+  let cursor = 1800; // the grouped models have reached the bottom; hold the slide, then the values
   for (const v of VALUE_ORDER) {
     const highlight = cursor + NAME_MS;
     const chip1 = highlight + round100(HIGHLIGHT_BASE_MS + HIGHLIGHT_PER_WORD_MS * triggerWords(v));
@@ -200,7 +226,7 @@ const framework = (() => {
       { name: `${v}Chip1`, startMs: chip1 },
       { name: `${v}Chip2`, startMs: chip2 },
     );
-    cursor = chip2 + FADE_MS;
+    cursor = chip2 + PILL_ENTER_MS;
   }
   beats.push({ name: "all", startMs: cursor }); // names cleared; four tints remain, four labels on each choice
   beats.push({ name: "end", startMs: cursor + 5000 });
@@ -278,4 +304,34 @@ export function physicianEnter(t: number, index: number): number {
 export function physicianRowEnter(t: number): number {
   const start = at("model", "physicians");
   return ramp(t, start, start + PHYSICIAN_IN_MS);
+}
+
+/**
+ * 0 while the rows are still the picture, 1 once the icons have gathered into
+ * choice 1, the split, and choice 2. Opening time `t`.
+ */
+export function gatherProgress(t: number): number {
+  const start = at("model", "summarize");
+  return ramp(t, start, start + GATHER_MS);
+}
+
+/** 0 at the framework slide's start, 1 once the grouped icons have reached the bottom. */
+export function stripProgress(t: number): number {
+  const start = at("framework", "framework");
+  return ramp(t, start, start + STRIP_MS);
+}
+
+/**
+ * The physician summary leaves during the first half of the move to the bottom.
+ * The band that arrives there is the models.
+ */
+export function physicianSummaryOpacity(t: number): number {
+  const start = at("framework", "framework");
+  return 1 - ramp(t, start, start + STRIP_MS * 0.45);
+}
+
+/** 0 while the band is on screen, 1 once it has faded for the stack. */
+export function bandLeaveProgress(t: number): number {
+  const end = at("framework", "end");
+  return ramp(t, end - BAND_LEAVE_MS, end);
 }

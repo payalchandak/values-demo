@@ -18,6 +18,8 @@ import {
   DOT_SIZE,
   FOREGROUND,
   layoutFor,
+  ROW_GRID,
+  rowTargets,
   TRIALS,
   WIDE,
   type CardFrame,
@@ -129,9 +131,9 @@ export default function StackStage({
 
   // Cards stay centered. As they become rows, the stage rises so the table
   // header sits just under the headline instead of in the middle of the scene.
-  const shiftSpan = times.highlight - times.morph;
+  const shiftSpan = (times.morph - times.gather) * 0.14;
   const shiftP =
-    shiftSpan <= 0 ? (elapsedMs >= times.morph ? 1 : 0) : easeInOut(clamp01((elapsedMs - times.morph) / shiftSpan));
+    shiftSpan <= 0 ? (elapsedMs >= times.gather ? 1 : 0) : easeInOut(clamp01((elapsedMs - times.gather) / shiftSpan));
   const stageTop = lerp(fit.top, 8 - L.headerY * fit.scale, shiftP);
 
   return (
@@ -181,6 +183,27 @@ export default function StackStage({
           ),
         )}
         </div>
+
+        {/* The contents of every card, in flight to their columns. The first three cards' contents
+            ride above the rows; the rest pass behind them on their way to the ellipsis. */}
+        {[false, true].map((kept) => (
+          <div
+            key={String(kept)}
+            style={{ position: "absolute", inset: 0, zIndex: kept ? 2000 : 600, pointerEvents: "none", opacity: handoff?.rest ?? 1 }}
+          >
+            {frame.cards.map((card) =>
+              !card.flying || card.fly >= 1 || card.index < FOREGROUND !== kept ? null : (
+                <FlightParts
+                  key={cases[card.index].id}
+                  card={card}
+                  study={cases[card.index]}
+                  delta={deltas[card.index]}
+                  layout={L}
+                />
+              ),
+            )}
+          </div>
+        ))}
 
         <Centered layout={L} y={L.ellipsisY} opacity={frame.ellipsisOpacity * (handoff?.rest ?? 1)}>
           <span className="text-3xl leading-none tracking-[0.3em]" style={{ color: `${INK}99` }}>
@@ -283,9 +306,10 @@ function StackCard({
         style={{
           position: "absolute",
           inset: 0,
-          borderRadius: 12,
+          boxSizing: "border-box",
+          borderRadius: card.shellRadius,
           background: "#fff",
-          border: "1px solid #e5e7eb",
+          border: `${card.shellBorder}px solid #e5e7eb`,
           boxShadow: "0 1px 2px rgba(17,24,39,0.06)",
           opacity: card.shellOpacity,
         }}
@@ -357,6 +381,269 @@ function StackCard({
         <DotStrip side="left" frame={card} />
       )}
     </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Contents in flight: title, tags and decisions travel to their columns     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Geometry of the tag side of a card at its natural size (CARD_W x CARD_H), so
+ * the parts that leave it can start exactly where the faces drew them. The
+ * card's content box begins 15px in: 14px of padding and a 1px border.
+ */
+const BACK = {
+  pad: 15,
+  innerW: CARD_W - 30,
+  titleSize: 18,
+  titleH: 20,
+  titleGap: 8,
+  colGap: 10,
+  labelH: 12,
+  labelGap: 5,
+  chipH: 22,
+  chipGap: 4,
+} as const;
+const BACK_COL_W = (BACK.innerW - BACK.colGap) / 2;
+const BACK_LABEL_TOP = BACK.pad + BACK.titleH + BACK.titleGap;
+const BACK_CHIPS_TOP = BACK_LABEL_TOP + BACK.labelH + BACK.labelGap;
+
+const ramp = (x: number, a: number, b: number) => clamp01((x - a) / (b - a));
+const colLeft = (choice: number) => BACK.pad + choice * (BACK_COL_W + BACK.colGap);
+
+interface Rect {
+  left: number;
+  top: number;
+  w: number;
+  h: number;
+}
+const lerpRect = (a: Rect, b: Rect, t: number): Rect => ({
+  left: lerp(a.left, b.left, t),
+  top: lerp(a.top, b.top, t),
+  w: lerp(a.w, b.w, t),
+  h: lerp(a.h, b.h, t),
+});
+const rectStyle = (r: Rect) => ({ position: "absolute", left: r.left, top: r.top, width: r.w, height: r.h }) as const;
+
+/**
+ * One card's contents, each item travelling from where it sat on the card to
+ * where it belongs in the table: the title to the Case column, the two tags of
+ * each value to that value's column (where they merge into one trade-off chip),
+ * and the ten decision dots to the decision bar. The first three cards land in
+ * their rows; every other card's items run into the ellipsis row and fade out.
+ * `card.fly` is this card's linear 0..1 progress. A row's items go one after
+ * another (title, then each value's tags, then the ten dots, then the count);
+ * the other cards move all their items together.
+ */
+function FlightParts({
+  card,
+  study,
+  delta,
+  layout,
+}: {
+  card: CardFrame;
+  study: StudyCase;
+  delta: ReturnType<typeof deltaOf> | undefined;
+  layout: Layout;
+}) {
+  const lin = card.fly;
+  const g = layout.gridScale;
+  const kept = card.index < FOREGROUND && delta !== undefined;
+  /** Eased progress of one item. Row items run on their own slice of the card's time. */
+  const stage = (from: number, to: number) => easeInOut(kept ? ramp(lin, from, to) : lin);
+  const q = easeInOut(lin);
+  const to = rowTargets(layout, kept ? layout.rowTops[card.index] + layout.rowH / 2 : layout.ellipsisY);
+  // The card's top-left in the grid: where every item starts.
+  const boxLeft = card.slotX - (CARD_W * g) / 2;
+  const boxTop = card.slotY - (CARD_H * g) / 2;
+  // Items that do not land in a row dissolve as they arrive at the ellipsis.
+  const dissolve = kept ? 1 : 1 - ramp(q, 0.4, 0.85);
+  const titleQ = stage(0, 0.35);
+  if (dissolve <= 0) return null;
+
+  const item = caseCardFor(study);
+  const count = card.choice1Count;
+
+  // Title, then the id it becomes in the Case column.
+  const titleSize = lerp(BACK.titleSize * g, to.text, titleQ);
+  const titleBox = {
+    position: "absolute",
+    left: lerp(boxLeft + BACK.pad * g, to.caseX, titleQ),
+    top: lerp(boxTop + (BACK.pad + BACK.titleH / 2) * g, to.cy, titleQ),
+    maxWidth: lerp(BACK.innerW * g, to.caseW - 8, titleQ),
+    transform: "translateY(-50%)",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    lineHeight: 1,
+    fontSize: titleSize,
+    color: INK,
+  } as const;
+  const idIn = kept ? ramp(titleQ, 0.5, 0.85) : 0;
+
+  // "CHOICE 1" / "CHOICE 2" stay behind, fading as their tags leave.
+  const labelOpacity = 1 - ramp(lin, 0, 0.12);
+
+  // Tags: one chip per value per choice, merging into the trade-off chip.
+  const chips = [];
+  for (const [vi, v] of VALUES.entries()) {
+    // One value at a time: its two tags travel, merge, and the next value goes.
+    const cq = stage(0.12 + 0.1 * vi, 0.47 + 0.1 * vi);
+    const chipsOut = kept ? 1 - ramp(cq, 0.55, 0.85) : 1;
+    const chipText = lerp(10 * g, 11, cq);
+    const target: Rect = { left: to.chipX[vi] - to.chipW / 2, top: to.cy - to.chipH / 2, w: to.chipW, h: to.chipH };
+    for (const choice of [0, 1] as const) {
+      const tag = study.tags[choice][v];
+      const from: Rect = {
+        left: boxLeft + colLeft(choice) * g,
+        top: boxTop + (BACK_CHIPS_TOP + vi * (BACK.chipH + BACK.chipGap)) * g,
+        w: BACK_COL_W * g,
+        h: BACK.chipH * g,
+      };
+      const style = TAG_STYLE[tag];
+      chips.push(
+        <div
+          key={`${v}-${choice}`}
+          style={{
+            ...rectStyle(lerpRect(from, target, cq)),
+            boxSizing: "border-box",
+            display: "flex",
+            alignItems: "center",
+            gap: lerp(5 * g, 2, cq),
+            padding: `0 ${lerp(6 * g, 3, cq)}px`,
+            borderRadius: 999,
+            background: style.bg,
+            fontSize: chipText,
+            lineHeight: 1,
+            whiteSpace: "nowrap",
+            opacity: chipsOut * dissolve,
+          }}
+        >
+          <span style={{ flex: 1, overflow: "hidden", opacity: 1 - ramp(cq, 0, 0.3) }}>{VALUE_NAMES[v]}</span>
+          <span className="font-mono" style={{ color: style.fg, fontWeight: 700 }}>
+            {SIGN[tag]}
+          </span>
+        </div>,
+      );
+    }
+    if (kept) {
+      const d = delta[v];
+      const meanFrom: Rect = {
+        left: boxLeft + (colLeft(0) + colLeft(1)) * 0.5 * g,
+        top: boxTop + (BACK_CHIPS_TOP + vi * (BACK.chipH + BACK.chipGap)) * g,
+        w: BACK_COL_W * g,
+        h: BACK.chipH * g,
+      };
+      const r = lerpRect(meanFrom, target, cq);
+      chips.push(
+        <div
+          key={`${v}-delta`}
+          className="font-mono"
+          style={{
+            ...rectStyle(r),
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: lerp(r.h / 2, to.chipRadius, cq),
+            background: DELTA_TINT[d],
+            color: d === 0 ? "#6b7280" : d > 0 ? "#1D7A4D" : "#B42318",
+            fontSize: lerp(10 * g, to.text, cq),
+            fontWeight: 600,
+            lineHeight: 1,
+            opacity: ramp(cq, 0.55, 0.85),
+          }}
+        >
+          {d > 0 ? `+${d}` : d < 0 ? `\u2212${-d}` : "0"}
+        </div>,
+      );
+    }
+  }
+
+  // Decisions: ten dots, one per query, become the ten slots of the frequency bar.
+  const k = Math.min(1, g);
+  const dot = DOT_SIZE * k;
+  const pitch = DOT_PITCH * k;
+  const shown = Math.min(TRIALS, Math.max(0, Math.floor((CARD_H * g - 8) / pitch)));
+  const dotsTop = boxTop + Math.max(4, (CARD_H * g - TRIALS * pitch) / 2);
+  const slotW = to.barW / TRIALS;
+  const endRadius = Math.min(5, to.barH / 2);
+  const decisions = [];
+  for (let j = 0; j < shown; j++) {
+    // One dot at a time, top to bottom, each dropping into its slot of the bar.
+    const dq = stage(0.45 + 0.035 * j, 0.65 + 0.035 * j);
+    const settle = ramp(dq, 0.4, 1);
+    const from: Rect = { left: boxLeft - (dot + 4), top: dotsTop + j * pitch + (pitch - dot) / 2, w: dot, h: dot };
+    const slot: Rect = { left: to.barX + j * slotW, top: to.cy - to.barH / 2, w: slotW + 0.5, h: to.barH };
+    const corner = (end: boolean) => lerp(dot / 2, end ? endRadius : 0, settle);
+    const left = corner(j === 0);
+    const right = corner(j === TRIALS - 1);
+    decisions.push(
+      <div
+        key={j}
+        style={{
+          ...rectStyle(lerpRect(from, slot, dq)),
+          borderRadius: `${left}px ${right}px ${right}px ${left}px`,
+          background: j < count ? CHOICE_COLORS[0] : CHOICE_COLORS[1],
+          opacity: dissolve,
+        }}
+      />,
+    );
+  }
+
+  return (
+    <>
+      {[0, 1].map((choice) => (
+        <div
+          key={choice}
+          className="font-mono"
+          style={{
+            position: "absolute",
+            left: boxLeft + colLeft(choice) * g,
+            top: boxTop + (BACK_LABEL_TOP + BACK.labelH / 2) * g,
+            transform: "translateY(-50%)",
+            whiteSpace: "nowrap",
+            fontSize: 10 * g,
+            lineHeight: 1,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            fontWeight: 600,
+            color: OPTION_INK,
+            opacity: labelOpacity,
+          }}
+        >
+          Choice {choice + 1}
+        </div>
+      ))}
+      {chips}
+      {decisions}
+      <div style={{ ...titleBox, fontWeight: 700, letterSpacing: "-0.01em", opacity: (1 - idIn) * dissolve }}>{item.title}</div>
+      {kept && (
+        <div className="font-mono" style={{ ...titleBox, fontWeight: 600, letterSpacing: 0, opacity: idIn }}>
+          {displayId(study.id)}
+        </div>
+      )}
+      {kept && (
+        <div
+          className="font-mono"
+          style={{
+            position: "absolute",
+            left: to.countRight - to.countW,
+            width: to.countW,
+            top: to.cy,
+            transform: "translateY(-50%)",
+            textAlign: "right",
+            fontSize: to.text,
+            fontWeight: 600,
+            lineHeight: 1,
+            color: INK,
+            opacity: ramp(lin, 0.85, 0.97),
+          }}
+        >
+          {count}/{TRIALS}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -444,9 +731,9 @@ const CardBack = memo(function CardBack({ study }: { study: StudyCase }) {
     <div style={{ ...caseFaceStyle, display: "flex", flexDirection: "column" }}>
       <div
         style={{
-          fontSize: 18,
+          fontSize: BACK.titleSize,
           fontWeight: 700,
-          lineHeight: 1.1,
+          lineHeight: `${BACK.titleH}px`,
           letterSpacing: "-0.01em",
           color: INK,
           whiteSpace: "nowrap",
@@ -456,16 +743,23 @@ const CardBack = memo(function CardBack({ study }: { study: StudyCase }) {
       >
         {card.title}
       </div>
-      <div style={{ marginTop: 8, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      <div style={{ marginTop: BACK.titleGap, display: "grid", gridTemplateColumns: "1fr 1fr", gap: BACK.colGap }}>
         {study.tags.map((tags, i) => (
           <div key={i}>
             <div
               className="font-mono"
-              style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: OPTION_INK, fontWeight: 600 }}
+              style={{
+                fontSize: 10,
+                lineHeight: `${BACK.labelH}px`,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: OPTION_INK,
+                fontWeight: 600,
+              }}
             >
               Choice {i + 1}
             </div>
-            <div style={{ marginTop: 5, display: "grid", gap: 4 }}>
+            <div style={{ marginTop: BACK.labelGap, display: "grid", gap: BACK.chipGap }}>
               {VALUES.map((v) => (
                 <Chip key={v} value={v} tag={tags[v]} />
               ))}
@@ -485,7 +779,7 @@ function Chip({ value, tag }: { value: Value; tag: Tag }) {
         display: "flex",
         alignItems: "center",
         gap: 5,
-        height: 22,
+        height: BACK.chipH,
         padding: "0 6px",
         borderRadius: 999,
         background: s.bg,
@@ -584,7 +878,7 @@ function TableHeader({
   );
 }
 
-const DELTA_TINT: Record<number, string> = {
+export const DELTA_TINT: Record<number, string> = {
   [-2]: "rgba(180,35,24,0.26)",
   [-1]: "rgba(180,35,24,0.12)",
   0: "rgba(107,114,128,0.10)",
@@ -607,7 +901,8 @@ function RowContent({
   compact: boolean;
 }) {
   const frequency = count / TRIALS;
-  const text = compact ? 12 : 14;
+  const grid = compact ? ROW_GRID.compact : ROW_GRID.wide;
+  const text = grid.text;
   return (
     <div
       style={{
@@ -628,10 +923,14 @@ function RowContent({
             <span
               className="font-mono"
               style={{
-                minWidth: compact ? 28 : 44,
-                textAlign: "center",
-                padding: compact ? "3px 0" : "4px 0",
-                borderRadius: compact ? 6 : 8,
+                boxSizing: "border-box",
+                width: grid.chipW,
+                height: grid.chipH,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                lineHeight: 1,
+                borderRadius: grid.chipRadius,
                 fontSize: text,
                 fontWeight: 600,
                 background: DELTA_TINT[d],

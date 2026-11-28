@@ -19,7 +19,7 @@ export function NameChip({ v }: { v: Value }) {
 /**
  * The framework chapter's value area. One cell per value; all cells share one grid area
  * so the area is as tall as the tallest and nothing below it moves while the
- * cells cross-fade. Each cell is the name chip and its definition.
+ * cells trade places. Each cell is the name chip and its definition.
  */
 export default function ValueStrip({ t, introAt }: { t: number; introAt: number }) {
   const s = valueSteps(t);
@@ -29,7 +29,10 @@ export default function ValueStrip({ t, introAt }: { t: number; introAt: number 
         <div
           key={v}
           className="col-start-1 row-start-1 flex flex-wrap items-center justify-center gap-x-[0.6em] gap-y-[0.2em] text-center"
-          style={{ opacity: s.name[v] }}
+          style={{
+            opacity: s.name[v],
+            transform: s.nameShift[v] === 0 ? undefined : `translateY(${s.nameShift[v]}em)`,
+          }}
           aria-hidden={s.name[v] === 0}
         >
           <NameChip v={v} />

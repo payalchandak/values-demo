@@ -64,9 +64,26 @@ export interface PhysicianSquares {
   total: number;
 }
 
+/**
+ * A model is in the middle when both choices got at least this many of its
+ * queries. One or two queries on the other side still read as a side with a
+ * stray dot; three or more on each side is a real split.
+ */
+export const MIDDLE_AT = 3;
+
+export type Camp = "choice1" | "middle" | "choice2";
+
+/** Which group a model row belongs to once the dots fold into the summary. */
+export function campOf(row: ModelRow): Camp {
+  if (row.choice1 >= MIDDLE_AT && row.choice2 >= MIDDLE_AT) return "middle";
+  return row.choice1 >= row.choice2 ? "choice1" : "choice2";
+}
+
 export interface OpeningRows {
   /** Sorted by choice-1 count, largest first. Ties keep profile order. */
   models: readonly ModelRow[];
+  /** The same models, split into the summary's three groups, in that order. */
+  camps: Record<Camp, readonly ModelRow[]>;
   physicians: PhysicianSquares;
   /** Most dots any model row puts on one side. Sets the shared dot pitch. */
   maxDotsPerSide: number;
@@ -149,10 +166,34 @@ function firstSentence(vignette: string): string {
   return match[0];
 }
 
+function series(rows: readonly ModelRow[]): string {
+  const names = rows.map((r) => r.name);
+  if (names.length <= 1) return names[0] ?? "";
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+/** One sentence for the gathered groups. Camps that are empty are left out. */
+export function decisionSummary(rows: OpeningRows): string {
+  const { camps, physicians } = rows;
+  const bits = [
+    camps.choice1.length > 0 ? `${series(camps.choice1)} on choice 1` : "",
+    camps.middle.length > 0 ? `${series(camps.middle)} split` : "",
+    camps.choice2.length > 0 ? `${series(camps.choice2)} on choice 2` : "",
+    `Physicians split ${physicians.left.length} to ${physicians.right.length}`,
+  ].filter((bit) => bit !== "");
+  return `${bits.join(". ")}.`;
+}
+
 function build(): OpeningRows {
   const models = buildModels(openingCase.caseId);
+  const camps: Record<Camp, ModelRow[]> = { choice1: [], middle: [], choice2: [] };
+  for (const row of models) camps[campOf(row)].push(row);
+  if (camps.choice1.length + camps.middle.length + camps.choice2.length !== models.length) {
+    fail("camps do not partition the models");
+  }
   return {
     models,
+    camps,
     physicians: buildPhysicians(openingCase.caseId),
     maxDotsPerSide: Math.max(...models.map((m) => Math.max(m.choice1, m.choice2))),
     caseHeader: firstSentence(openingCase.vignette),

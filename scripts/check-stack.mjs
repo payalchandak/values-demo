@@ -37,11 +37,13 @@ const FRAMES = {
   settle_mid: 12900,
   markers_mid: 14500,
   observed_mid: 15700,
-  gather_mid: 16325,
-  morph_mid: 16650,
-  morph_end: 16750,
-  highlight_mid: 16825,
-  end: 16900,
+  gather_row1: 17400,
+  gather_row2: 18900,
+  gather_row3: 20400,
+  gather_wave: 22800,
+  morph_end: 23150,
+  highlight_mid: 23200,
+  end: 23400,
 };
 // From here on only the table is on screen, so its text must be legible.
 const TABLE_FRAMES = new Set(["morph_end", "highlight_mid", "end"]);

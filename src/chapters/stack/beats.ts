@@ -19,9 +19,11 @@ import type { Beat } from "../../types";
  *   settle     all the tag backs sit so the trade-offs can be read
  *   markers    the red and dark decision dots come in along the card edges, beside the tags
  *   observed   the dots are all in and hold
- *   gather     the first three cards flip back to full cards, grow and move out of the grid,
- *              the rest fade away
- *   morph      the three cards morph into table rows, ellipsis + count label
+ *   gather     the grid becomes the table, one case at a time: the first card widens into row 1
+ *              and its title, tags and decision dots travel to the Case, value and decision
+ *              columns, one item after another; then card 2, then card 3; then every other
+ *              card sweeps its contents into the ellipsis
+ *   morph      the table holds, complete, for a beat
  *   highlight  the first row takes its highlight
  *   end        chapter end marker
  */
@@ -64,10 +66,10 @@ const TRADEOFF_HOLD_MS = 1600;
 const MARKERS_MS = 1600;
 /** The finished dots hold before the table takes over. */
 const DOTS_HOLD_MS = 800;
-/** The trio leaves the grid. */
-const GATHER_MS = 450;
-/** Three staggered morphs into rows. Each morph lasts MOVE_MS (see the 0.76 divisor). */
-const MORPH_MS = 200;
+/** The grid becomes the table, one case at a time. */
+const GATHER_MS = 7000;
+/** The finished table holds before the first row is highlighted. */
+const MORPH_MS = 150;
 
 const turn = CARD_HOLD_MS;
 const values = turn + TURN_MS;

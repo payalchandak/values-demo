@@ -1,4 +1,4 @@
-import { Fragment, memo, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { memo, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import type { ModelResponseTiming } from "../../components/ModelResponse";
 import neuripsLogo from "../../assets/neurips-logo.svg";
@@ -15,6 +15,7 @@ import {
 } from "../../design";
 import type { Tag } from "../../study/types";
 import { openingCase } from "./openingCase";
+import DecisionBoard from "./DecisionBoard";
 import ModelRows from "./ModelRows";
 import OpeningResponse from "./OpeningResponse";
 import ValueStrip from "./ValueStrip";
@@ -24,7 +25,7 @@ import { CARD_CLASS } from "./cardClass";
 import { CHARCOAL, CHARCOAL_FAINT } from "./charcoal";
 import { ROW_VARS } from "./rowMetrics";
 import { valueSteps } from "./valueSteps";
-import { COLLAPSE_MS, OPENING_BEATS, OFFSETS, at, caseCharsAt, modelHandoff, ramp, visibility } from "./timeline";
+import { COLLAPSE_MS, OPENING_BEATS, OFFSETS, PILL_ENTER_MS, at, caseCharsAt, modelHandoff, ramp, stripProgress, visibility } from "./timeline";
 
 /* -------------------------------------------------------------------------- */
 /*  Copy                                                                       */
@@ -61,13 +62,10 @@ const RESPONSE_TIMING: ModelResponseTiming = {
 };
 
 /**
- * The framework chapter's first beat. The model answer leaves here and the
- * plain vignette arrives with the new headline; the value walk follows.
+ * The framework chapter's first beat. The grouped models move to the bottom
+ * while the plain vignette and the new headline arrive; the value walk follows.
  */
 const FRAMEWORK_AT = at("framework", "framework");
-
-/** After that beat, the shared icon needs its option slot for this long while it leaves. */
-export const ICON_LEAVE_MS = MOVE_MS;
 
 /** How long before the opening's last beat the patient card returns, when the stage asks for the stack handoff. */
 const RECALL_LEAD_MS = 1800;
@@ -103,6 +101,7 @@ const OPTIONS_IN_MS = 680;
 const STACK_GAP = "0.9em";
 
 const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - ((-2 * x + 2) ** 3) / 2);
+const easeOut = (x: number) => 1 - (1 - Math.min(1, Math.max(0, x))) ** 3;
 
 /**
  * Times inside each chapter at which that chapter's layout is at its fullest.
@@ -118,7 +117,7 @@ const PROBE_TIMES: readonly number[] = [
   at("model", "extracted"),
   at("model", "hold"), // the case tucked, all twelve model rows and the physician row on screen
   ...VALUE_ORDER.map((v) => at("framework", `${v}Highlight`) + 400),
-  ...VALUE_ORDER.map((v) => at("framework", `${v}Chip2`) + FADE_MS),
+  ...VALUE_ORDER.map((v) => at("framework", `${v}Chip2`) + PILL_ENTER_MS),
   at("framework", "all") + 800,
 ];
 
@@ -166,6 +165,20 @@ function useBoxHeight() {
     return () => ro.disconnect();
   }, [node]);
   return [setNode, height] as const;
+}
+
+function useBox() {
+  const [node, setNode] = useState<HTMLElement | null>(null);
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  useLayoutEffect(() => {
+    if (!node) return;
+    const measure = () => setBox({ w: node.offsetWidth, h: node.offsetHeight });
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(node);
+    return () => ro.disconnect();
+  }, [node]);
+  return [setNode, box] as const;
 }
 
 /**
@@ -442,42 +455,120 @@ function RelationPill({ tag }: { tag: Tag }) {
   );
 }
 
+/** Space a new label opens between itself and the label above it. */
+const CHIP_ROW_GAP = "0.28em";
+
+/**
+ * One label under a choice. The row's height follows the clock, so labels
+ * already on screen stay put and the list opens instead of jumping. The name
+ * leads; the pill resolves just after it. `rowHeight` is the settled line,
+ * measured once outside the clip.
+ */
+function ChipRow({
+  first,
+  progress,
+  rowHeight,
+  name,
+  tag,
+}: {
+  first: boolean;
+  /** Linear 0..1 over the landing. */
+  progress: number;
+  rowHeight: number;
+  name: string;
+  tag: Tag;
+}) {
+  const p = Math.min(1, Math.max(0, progress));
+  const settled = p >= 1 && rowHeight > 0;
+  const grow = easeOut(p);
+  // The name is readable first. The pill fades in across the rest of the open.
+  const nameIn = easeOut(Math.min(1, p / 0.7));
+  const pillIn = easeOut(Math.min(1, Math.max(0, (p - 0.22) / 0.78)));
+  const rise = settled ? 0 : (1 - grow) * 0.45;
+  const clip = {
+    maxHeight: settled ? undefined : rowHeight * grow,
+    marginTop: `calc(${CHIP_ROW_GAP} * ${first ? 0 : settled ? 1 : grow})`,
+    minHeight: 0,
+    overflow: settled ? ("visible" as const) : ("hidden" as const),
+  };
+  return (
+    <>
+      <span aria-hidden="true" className="self-center text-right font-semibold leading-none" style={clip}>
+        <span className="block" style={{ opacity: nameIn, transform: rise === 0 ? undefined : `translateY(${rise}em)` }}>
+          {name}:
+        </span>
+      </span>
+      <span
+        aria-label={`${name}: ${TAGS[tag].word}`}
+        aria-hidden={p <= 0}
+        className="self-center justify-self-start"
+        style={clip}
+      >
+        <span
+          className="block"
+          style={{
+            opacity: pillIn,
+            transform: settled ? undefined : `translateY(${(1 - pillIn) * 0.4}em) scale(${0.96 + 0.04 * pillIn})`,
+            transformOrigin: "left center",
+          }}
+        >
+          <RelationPill tag={tag} />
+        </span>
+      </span>
+    </>
+  );
+}
+
 /**
  * The labels of one decision, outside the choice button. Each value's name
  * sits beside a pill that says promotes, violates, or neutral. Names share
  * one column and the pills share the next, so the judgments line up.
- * A row mounts when its label starts to land, and a label already on screen
- * stays put when the next one arrives. Choice 1's label lands first, then
- * Choice 2's.
+ * Every value is in the grid from the first label, at zero height until its
+ * own landing, so a longer name does not shove the rows already on screen.
+ * Choice 1's label lands first, then Choice 2's.
  */
 function Chips({ index, t }: { index: 0 | 1; t: number }) {
   const steps = valueSteps(t);
   const tags = openingCase.tags[index];
   const weight = index === 0 ? steps.chip1 : steps.chip2;
-  const shown = VALUE_ORDER.filter((v) => weight[v] > 0);
-  if (shown.length === 0) return null;
+  const [setName, nameBox] = useBox();
+  const [setPill, pillBox] = useBox();
+  const [setLine, lineBox] = useBox();
+  if (VALUE_ORDER.every((v) => weight[v] <= 0)) return null;
+  const measuredLine = Math.max(nameBox.h, lineBox.h);
+  // The live row is a couple of pixels taller than the offscreen measure (grid
+  // line box). Extra room keeps the pill from clipping, then popping, as it lands.
+  const rowHeight = measuredLine > 0 ? measuredLine + 4 : 0;
+  // A little slack so a rounded measurement never clips the glyph while the row is opening.
+  const columns =
+    nameBox.w > 0 && pillBox.w > 0 ? `${nameBox.w + 2}px ${pillBox.w + 2}px` : "max-content max-content";
   return (
-    <div
-      className="mx-auto grid w-fit grid-cols-[auto_auto] items-center gap-x-[0.45em] gap-y-[0.28em]"
-      style={{ fontSize: "0.78em", color: CHARCOAL }}
-    >
-      {shown.map((v) => {
-        const mount = {
-          opacity: weight[v],
-          transform: `scale(${0.92 + 0.08 * weight[v]})`,
-          transformOrigin: "center",
-        };
-        return (
-          <Fragment key={v}>
-            <span aria-hidden="true" className="text-right font-semibold leading-none" style={mount}>
-              {VALUES[v].name}:
-            </span>
-            <span aria-label={`${VALUES[v].name}: ${TAGS[tags[v]].word}`} className="justify-self-start" style={mount}>
-              <RelationPill tag={tags[v]} />
-            </span>
-          </Fragment>
-        );
-      })}
+    <div className="relative mx-auto w-fit" style={{ fontSize: "0.78em", color: CHARCOAL }}>
+      <div aria-hidden className="pointer-events-none invisible absolute left-0 top-0">
+        <span ref={setName} className="block whitespace-nowrap font-semibold leading-none">
+          Nonmaleficence:
+        </span>
+        <span ref={setPill} className="flex w-max flex-col">
+          <RelationPill tag={1} />
+          <RelationPill tag={-1} />
+          <RelationPill tag={0} />
+        </span>
+        <span ref={setLine} className="block w-max font-semibold leading-none">
+          <RelationPill tag={-1} />
+        </span>
+      </div>
+      <div className="grid items-center gap-x-[0.45em]" style={{ gridTemplateColumns: columns }}>
+        {VALUE_ORDER.map((v, i) => (
+          <ChipRow
+            key={v}
+            first={i === 0}
+            progress={weight[v]}
+            rowHeight={rowHeight}
+            name={VALUES[v].name}
+            tag={tags[v]}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -512,6 +603,37 @@ function OptionCard({
       </div>
       {showChips ? <Chips index={index} t={t} /> : null}
     </li>
+  );
+}
+
+/**
+ * The tucked one-line case grows back into the full vignette. `settle` is 0..1.
+ * Both cards are measured, so a seek shows the height in between.
+ */
+function CaseHandoff({
+  t,
+  settle,
+  focused,
+  shared,
+}: {
+  t: number;
+  settle: number;
+  focused: boolean;
+  shared: boolean;
+}) {
+  const [lineRef, lineH] = useBoxHeight();
+  const [fullRef, fullH] = useBoxHeight();
+  const p = Math.min(1, Math.max(0, settle));
+  const height = lineH > 0 && fullH > 0 ? lineH + (fullH - lineH) * p : undefined;
+  return (
+    <div className="relative w-full overflow-hidden" style={{ height }}>
+      <div ref={lineRef} style={{ opacity: 1 - p }} aria-hidden={p > 0.6}>
+        <TuckedCase tuck={1} shared={shared && p < 0.5} />
+      </div>
+      <div ref={fullRef} className="absolute inset-x-0 top-0" style={{ opacity: p }} aria-hidden={p < 0.4}>
+        <Vignette t={t} focused={focused} />
+      </div>
+    </div>
   );
 }
 
@@ -554,15 +676,12 @@ const SceneBody = memo(function SceneBody({
   const recall = Math.max(at("framework", "all"), openingEnd - RECALL_LEAD_MS);
   const clearP = recallPatient ? ramp(t, recall, recall + FADE_MS) : 0;
   const cleared = recallPatient && t >= recall + FADE_MS;
-  const headlineOpacity =
-    (h === 0
-      ? ramp(t, HEADLINE_STARTS[0], HEADLINE_STARTS[0] + FADE_MS)
-      : ramp(t, HEADLINE_STARTS[h], HEADLINE_STARTS[h] + FADE_MS)) *
-    (next === undefined
+  const headlineExit =
+    next === undefined
       ? recallPatient
         ? 1 - ramp(t, openingEnd, openingEnd + FADE_MS)
         : 1
-      : 1 - ramp(t, next - FADE_MS, next));
+      : 1 - ramp(t, next - FADE_MS, next);
 
   const dilemmaStart = at("dilemma", "question");
   const ask = at("model", "ask");
@@ -587,6 +706,7 @@ const SceneBody = memo(function SceneBody({
   // The case collapses to its one-line header, then the model rows and the physician row take its room.
   const tuckAt = at("model", "tuck");
   const modelsAt = at("model", "models");
+  const frameworkEnd = at("framework", "end");
   const tucked = t >= tuckAt && t < FRAMEWORK_AT;
   const tuck = ease(ramp(t, tuckAt, modelsAt));
   const tuckMoving = t >= tuckAt && t < modelsAt;
@@ -596,15 +716,18 @@ const SceneBody = memo(function SceneBody({
     recallPatient && t >= recall
       ? ramp(t, recall + FADE_MS, recall + FADE_MS * 2)
       : visibility(t, at("hook", "patient"), at("hook", "patient") + FADE_MS, FRAMEWORK_AT - FADE_MS, FRAMEWORK_AT);
-  // The mark stays after the framework starts, only until the stage icon has left for its dock.
   const responseEnter = handoff.responseEnter;
-  const showResponse = t >= ask && responseEnter > 0 && t < FRAMEWORK_AT;
+  // The dot rows take over from the answer the moment they arrive, and stay through the framework chapter.
+  const showResponse = t >= ask && responseEnter > 0 && t < modelsAt;
+  const showBoard = t >= modelsAt && t < frameworkEnd;
   const collapse = ramp(t, at("model", "collapse"), at("model", "collapse") + COLLAPSE_MS);
-  const responseFadeOut = 1 - ramp(t, FRAMEWORK_AT - FADE_MS, FRAMEWORK_AT);
 
-  // The annotatable vignette replaces the case card as the framework chapter starts.
-  const showVignette = t >= FRAMEWORK_AT && !cleared;
-  const vignetteOpacity = ramp(t, FRAMEWORK_AT, FRAMEWORK_AT + FADE_MS) * (1 - clearP);
+  // The one-line case grows into the vignette over the same span the models move to the bottom.
+  const stripLinear = stripProgress(t);
+  const stripP = ease(stripLinear);
+  const stripping = t >= FRAMEWORK_AT && stripLinear < 1;
+  const showVignette = t >= FRAMEWORK_AT && !stripping && !cleared;
+  const vignetteOpacity = (1 - clearP);
 
   const showOptions = t >= at("dilemma", "options") && !cleared;
   const optionsEnter =
@@ -612,18 +735,31 @@ const SceneBody = memo(function SceneBody({
   const optionsMoving = showOptions && optionsEnter > 0 && optionsEnter < 1;
   const selectedIndex = t >= at("model", "extract") && t < at("model", "collapse") ? openingCase.response.chosen : null;
   const showChips = t >= FRAMEWORK_AT;
+  const steps = valueSteps(t);
+  // While a label is opening, its height already follows the clock. A layout
+  // animation on top of that would trail the row and make the arrival feel late.
+  const chipsMoving =
+    showChips &&
+    VALUE_ORDER.some((v) => {
+      const a = steps.chip1[v];
+      const b = steps.chip2[v];
+      return (a > 0 && a < 1) || (b > 0 && b < 1);
+    });
 
-  const showStrip = t >= at("framework", "framework") && !cleared;
+  const valuesAt = at("framework", VALUE_ORDER[0]);
+  const showStrip = t >= valuesAt && !cleared;
   const handoffMoving = (questionExit > 0 && questionExit < 1) || (responseEnter > 0 && responseEnter < 1);
   const headingMoving = (space > 0 && space < 1) || handoffMoving;
   const showQuestionHeading = h === 0 || (h === 1 && questionExit < 1);
+  const sceneStill = !headingMoving && !optionsMoving && !tuckMoving && !stripping && !chipsMoving;
 
   return (
     <div
+      data-scene-body
       className={`relative mx-auto flex w-full max-w-[46em] flex-col items-center ${
         probe ? "" : "h-full justify-center"
       }`}
-      style={{ gap: STACK_GAP, ...ROW_VARS }}
+      style={{ gap: STACK_GAP, ...ROW_VARS, paddingBottom: "var(--band-pad, 0px)" }}
     >
       {riseT < 1 && (
         <OpeningMark opacity={logoOpacity} lift={logoLift} drift={logoFade} open={logoOpen} />
@@ -640,18 +776,20 @@ const SceneBody = memo(function SceneBody({
       )}
 
       {h > 1 && (
-        <Block probe={probe} className="w-full">
-          <h1
-            className="mx-auto max-w-[30em] text-balance text-center font-semibold leading-[1.12] tracking-tight"
-            style={{ fontSize: HEADLINES[h].size, color: NEUTRAL.ink, opacity: headlineOpacity }}
-          >
-            {HEADLINES[h].text}
-          </h1>
+        <Block probe={probe} className="w-full" layout={false}>
+          <FadeSlot enter={stripP}>
+            <h1
+              className="mx-auto max-w-[30em] text-balance text-center font-semibold leading-[1.12] tracking-tight"
+              style={{ fontSize: HEADLINES[h].size, color: NEUTRAL.ink, opacity: headlineExit }}
+            >
+              {HEADLINES[h].text}
+            </h1>
+          </FadeSlot>
         </Block>
       )}
 
       {showSummary && (
-        <Block probe={probe} className="w-full" layout={!headingMoving && !optionsMoving && !tuckMoving}>
+        <Block probe={probe} className="w-full" layout={sceneStill}>
           <div style={{ opacity: summaryOpacity }} aria-hidden={summaryOpacity === 0 || hidePatient}>
             <div style={{ visibility: hidePatient ? "hidden" : undefined }}>
               {tucked ? (
@@ -664,8 +802,14 @@ const SceneBody = memo(function SceneBody({
         </Block>
       )}
 
+      {stripping && (
+        <Block probe={probe} className="w-full" layout={false}>
+          <CaseHandoff t={t} settle={stripP} focused={focused} shared={sharedCard && !hidePatient} />
+        </Block>
+      )}
+
       {showVignette && (
-        <Block probe={probe} className="w-full">
+        <Block probe={probe} className="w-full" layout={!chipsMoving}>
           <div style={{ opacity: vignetteOpacity }}>
             <Vignette t={t} focused={focused} />
           </div>
@@ -673,20 +817,22 @@ const SceneBody = memo(function SceneBody({
       )}
 
       {showStrip && (
-        <Block probe={probe} className="w-full">
-          <div style={{ opacity: 1 - clearP }}>
-            <ValueStrip t={t} introAt={at("framework", "framework")} />
-          </div>
+        <Block probe={probe} className="w-full" layout={false}>
+          <FadeSlot enter={ease(ramp(t, valuesAt, valuesAt + 420))}>
+            <div style={{ opacity: 1 - clearP }}>
+              <ValueStrip t={t} introAt={valuesAt - 1000} />
+            </div>
+          </FadeSlot>
         </Block>
       )}
 
       {showOptions && (
-        <Block probe={probe} className="w-full" layout={!headingMoving && !optionsMoving && !tuckMoving}>
+        <Block probe={probe} className="w-full" layout={sceneStill}>
           <FadeSlot enter={optionsEnter}>
             <ul
               className={`grid w-full grid-cols-1 gap-y-[0.7em] @md:grid-cols-2 @md:grid-rows-[auto_auto] @md:gap-x-[0.6em] @md:gap-y-[0.45em] ${
-                // The rows sit under these two buttons as their column heads, so they stay side by side on a narrow screen.
-                tucked ? "@max-md:grid-cols-2 @max-md:gap-x-[0.6em] @max-md:gap-y-0" : ""
+                // The rows, and then the grouped marks, sit under these two buttons.
+                tucked || showBoard ? "@max-md:grid-cols-2 @max-md:gap-x-[0.6em] @max-md:gap-y-0" : ""
               }`}
             >
               <OptionCard index={0} t={t} selected={selectedIndex === 0} showChips={showChips} />
@@ -704,25 +850,25 @@ const SceneBody = memo(function SceneBody({
           style={responseEnter < 1 ? { marginTop: `calc(${STACK_GAP} * ${responseEnter - 1})` } : undefined}
         >
           <GrowIn enter={responseEnter}>
-            <div style={{ opacity: responseFadeOut }}>
-              <OpeningResponse
-                text={openingCase.response.text}
-                recommendationSpan={openingCase.response.recommendationSpan}
-                wordsPerGroup={RESPONSE.wordsPerGroup}
-                identifyLabel={RESPONSE.identifyLabel}
-                panelLabel={RESPONSE.panelLabel}
-                iconSrc={PROVIDER.logo}
-                iconLabel={PROVIDER.name}
-                elapsedMs={Math.max(0, t - OFFSETS.model)}
-                timing={RESPONSE_TIMING}
-                collapse={collapse}
-                hideIcon={sharedIcon}
-              />
-              {tucked && <ModelRows t={t} grow={tuck} />}
-            </div>
+            <OpeningResponse
+              text={openingCase.response.text}
+              recommendationSpan={openingCase.response.recommendationSpan}
+              wordsPerGroup={RESPONSE.wordsPerGroup}
+              identifyLabel={RESPONSE.identifyLabel}
+              panelLabel={RESPONSE.panelLabel}
+              iconSrc={PROVIDER.logo}
+              iconLabel={PROVIDER.name}
+              elapsedMs={Math.max(0, t - OFFSETS.model)}
+              timing={RESPONSE_TIMING}
+              collapse={collapse}
+              hideIcon={sharedIcon}
+            />
+            {tucked && <ModelRows t={t} grow={tuck} />}
           </GrowIn>
         </Block>
       )}
+
+      {showBoard && <DecisionBoard t={t} sharedIcon={sharedIcon && !ghost} />}
     </div>
   );
 });
@@ -828,22 +974,6 @@ export default function OpeningScene({
         hidePatient={hidePatient}
         recallPatient={recallPatient}
       />
-      {sharedIcon && t >= FRAMEWORK_AT && t < FRAMEWORK_AT + ICON_LEAVE_MS && (
-        // The stage icon leaves for its dock from the GPT row, so that row's anchor has to stay where the
-        // viewer last saw it. The framework layout has moved on, so an invisible copy of the last model
-        // frame holds the anchor for the leave. It is the same function of the clock, so a seek is exact.
-        <div aria-hidden className="pointer-events-none invisible absolute inset-0">
-          <SceneBody
-            t={FRAMEWORK_AT - 1}
-            probe={false}
-            focused={focused}
-            sharedIcon
-            hidePatient={false}
-            recallPatient={false}
-            ghost
-          />
-        </div>
-      )}
       {probeSet(fullProbesRef, false)}
       {probeSet(focusedProbesRef, true)}
     </div>

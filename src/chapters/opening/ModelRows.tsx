@@ -30,15 +30,40 @@ function useBoxHeight() {
 }
 
 /** Same slot as the opening's mark: 36px at the base size, scaled with the scene. */
-function IconSlot({ children }: { children: ReactNode }) {
+export function IconSlot({
+  children,
+  slot,
+  anchor,
+}: {
+  children?: ReactNode;
+  /** Measured by the summary when the visible mark is drawn elsewhere. */
+  slot?: string;
+  /** The stage's shared icon follows this slot. */
+  anchor?: string;
+}) {
   return (
     <span
+      data-slot={slot}
+      data-anchor={anchor}
       className="inline-flex shrink-0 items-center justify-center"
       style={{ width: "calc(36px * var(--z))", height: "calc(36px * var(--z))" }}
     >
       <span className="inline-flex" style={{ zoom: "var(--z)" }}>
         {children}
       </span>
+    </span>
+  );
+}
+
+/** The physician mark. 36px at the base size; IconSlot scales it with the scene. */
+export function MdBadge() {
+  return (
+    <span
+      aria-hidden
+      className="inline-flex shrink-0 select-none items-center justify-center rounded-full border border-neutral-200 bg-white font-semibold"
+      style={{ width: 36, height: 36, fontSize: 13, color: NEUTRAL.inkMuted }}
+    >
+      MD
     </span>
   );
 }
@@ -66,7 +91,7 @@ function Dots({ n }: { n: number }) {
   );
 }
 
-function ModelRowView({ row, enter }: { row: ModelRow; enter: number }) {
+function ModelRowView({ row, enter, hideMarks }: { row: ModelRow; enter: number; hideMarks: boolean }) {
   return (
     <div
       role="img"
@@ -81,8 +106,10 @@ function ModelRowView({ row, enter }: { row: ModelRow; enter: number }) {
       }}
     >
       <div className="flex min-w-0 items-center" style={{ paddingLeft: EDGE_PAD, gap: ICON_GAP }}>
-        <IconSlot>
-          <ProviderIcon src={row.logo.src} alt={row.logo.alt} size={36} />
+        <IconSlot slot={row.key}>
+          <span style={{ visibility: hideMarks ? "hidden" : undefined }}>
+            <ProviderIcon src={row.logo.src} alt={row.logo.alt} size={36} />
+          </span>
         </IconSlot>
         <Dots n={row.choice1} />
       </div>
@@ -134,7 +161,7 @@ function Squares({ keys, first, t, end }: { keys: readonly string[]; first: numb
   );
 }
 
-function PhysicianRow({ t }: { t: number }) {
+function PhysicianRow({ t, hideMarks }: { t: number; hideMarks: boolean }) {
   const { left, right, total } = openingRows.physicians;
   const enter = physicianRowEnter(t);
   return (
@@ -151,13 +178,9 @@ function PhysicianRow({ t }: { t: number }) {
       >
         <div className="flex min-w-0 items-center" style={{ paddingLeft: EDGE_PAD, gap: ICON_GAP }}>
           <span style={{ opacity: enter }}>
-            <IconSlot>
-              <span
-                aria-hidden
-                className="inline-flex shrink-0 select-none items-center justify-center rounded-full border border-neutral-200 bg-white font-semibold"
-                style={{ width: 36, height: 36, fontSize: 13, color: NEUTRAL.inkMuted }}
-              >
-                MD
+            <IconSlot slot="md">
+              <span style={{ visibility: hideMarks ? "hidden" : undefined }}>
+                <MdBadge />
               </span>
             </IconSlot>
           </span>
@@ -182,7 +205,7 @@ function PhysicianRow({ t }: { t: number }) {
  * their room while the case tucks, so GPT's row glides instead of jumping.
  * Each row's own arrival is a pure function of the opening time `t`.
  */
-export default function ModelRows({ t, grow }: { t: number; grow: number }) {
+export default function ModelRows({ t, grow, hideMarks = false }: { t: number; grow: number; hideMarks?: boolean }) {
   const [ref, measured] = useBoxHeight();
   const p = clamp01(grow);
   const settled = p >= 1;
@@ -191,9 +214,9 @@ export default function ModelRows({ t, grow }: { t: number; grow: number }) {
     <div style={{ height: settled ? "auto" : measured === 0 ? 0 : measured * p }}>
       <div ref={ref} className="flex w-full flex-col" style={{ gap: ROW_GAP, paddingTop: ROW_GAP }}>
         {rows.map((row, i) => (
-          <ModelRowView key={row.key} row={row} enter={modelRowEnter(t, i)} />
+          <ModelRowView key={row.key} row={row} enter={modelRowEnter(t, i)} hideMarks={hideMarks} />
         ))}
-        <PhysicianRow t={t} />
+        <PhysicianRow t={t} hideMarks={hideMarks} />
       </div>
     </div>
   );

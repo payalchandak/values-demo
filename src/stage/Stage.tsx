@@ -4,8 +4,7 @@ import { beatStart, chapterDuration } from "../types";
 import ProviderIcon from "../components/ProviderIcon";
 import openaiLogo from "../assets/providers/openai.svg";
 import OpeningScene from "../chapters/opening/OpeningScene";
-import { ICON_LEAVE_MS } from "../chapters/opening/OpeningScene";
-import { markSpinDeg, modelHandoff } from "../chapters/opening/timeline";
+import { ICON_DOCK_MS, at, markSpinDeg, modelHandoff } from "../chapters/opening/timeline";
 import StackStage from "../chapters/stack/StackStage";
 import { stackBeats } from "../chapters/stack/beats";
 import { RegressionScene } from "../chapters/regression/RegressionChapter";
@@ -61,8 +60,11 @@ function iconPlan(segment: SegmentId, e: number): IconPlan {
       return { from: null, mix: 0, opacity: 0 };
     case "opening-model":
       return { from: "icon-response", mix: 0, opacity: modelHandoff(e).responseEnter };
-    case "opening-framework":
-      return { from: "icon-response", to: "dock", mix: easeInOut(ramp(e, 0, ICON_LEAVE_MS)), opacity: 1 };
+    case "opening-framework": {
+      // The icon stays with the other models until the band leaves, then flies to the dock.
+      const end = at("framework", "end") - at("framework", "framework");
+      return { from: "icon-response", to: "dock", mix: easeInOut(ramp(e, end - ICON_DOCK_MS, end)), opacity: 1 };
+    }
     case "stack":
     case "regression":
       return { from: "dock", mix: 0, opacity: 1 };
